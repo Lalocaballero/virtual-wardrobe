@@ -1,0 +1,774 @@
+from flask import Flask, request, jsonify, send_from_directory, session
+from flask_cors import CORS
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+import os
+from urllib.parse import urlparse
+from datetime import datetime, timedelta
+import json
+import traceback
+from utils.laundry_service import LaundryIntelligenceService
+from utils.wardrobe_intelligence import WardrobeIntelligenceService, AnalyticsService
+
+from models import db, User, ClothingItem, Outfit
+from utils.ai_service import AIOutfitService
+from utils.weather_service import WeatherService
+
+# Initialize Flask app
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+# Database configuration
+if os.environ.get('DATABASE_URL'):
+    # Production (Railway/Render)
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+else:
+    # Development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# Session configuration
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Initialize extensions
+db.init_app(app)
+
+# SIMPLIFIED CORS Configuration - let the extension handle everything
+CORS(app, 
+     origins=['http://localhost:3000'],
+     supports_credentials=True,
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.session_protection = "strong"
+
+# Initialize services
+ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY', 'test-key'))
+weather_service = WeatherService(os.environ.get('WEATHER_API_KEY', 'test-key'))
+
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# REMOVE the manual CORS handlers - let the extension handle it
+# (Remove @app.before_request and @app.after_request CORS handlers)
+
+# ======================
+# UTILITY ROUTES
+# ======================
+
+@app.route('/api/test', methods=['GET'])
+def test():
+    return jsonify({'message': 'Backend is working!', 'timestamp': datetime.now().isoformat()})
+
+@app.route('/api/check-auth', methods=['GET'])
+def check_auth():
+    if current_user.is_authenticated:
+        return jsonify({
+            'authenticated': True,
+            'user_id': current_user.id,
+            'email': current_user.email
+        })
+    else:
+        return jsonify({'authenticated': False}), 401
+
+# ======================
+# AUTHENTICATION ROUTES
+# ======================
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    try:
+        print("=== REGISTRATION REQUEST ===")
+        data = request.get_json()
+        print(f"Received data: {data}")
+        
+        if not data:
+            print("No data received")
+            return jsonify({'error': 'No data provided'}), 400
+        
+        email = data.get('email')
+        password = data.get('password')
+        location = data.get('location', '')
+        
+        print(f"Email: {email}, Password: {'[PROVIDED]' if password else 'None'}, Location: {location}")
+        
+        if not email or not password:
+            print("Missing email or password")
+            return jsonify({'error': 'Email and password are required'}), 400
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            print(f"User {email} already exists")
+            return jsonify({'error': 'Email already exists'}), 400
+        
+        # Create new user
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(password),
+            location=location
+        )
+        
+        print(f"Created user object: {user.email}")
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        print(f"User saved to database with ID: {user.id}")
+        
+        # Log the user in
+        login_user(user, remember=True)
+        session.permanent = True
+        print(f"User logged in successfully")
+        
+        return jsonify({
+            'message': 'User created successfully', 
+            'user_id': user.id,
+            'email': user.email
+        })
+        
+    except Exception as e:
+        print(f"Registration error: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        db.session.rollback()
+        return jsonify({'error': f'Registration failed: {str(e)}'}), 500
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    try:
+        print("=== LOGIN REQUEST ===")
+        data = request.get_json()
+        print(f"Login attempt for: {data.get('email') if data else 'No data'}")
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
+        
+        user = User.query.filter_by(email=email).first()
+        print(f"User found: {user is not None}")
+        
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user, remember=True)
+            session.permanent = True
+            print(f"Login successful for {email}")
+            return jsonify({
+                'message': 'Login successful', 
+                'user_id': user.id,
+                'email': user.email
+            })
+        
+        print(f"Invalid credentials for {email}")
+        return jsonify({'error': 'Invalid credentials'}), 401
+        
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        return jsonify({'error': f'Login failed: {str(e)}'}), 500
+
+@app.route('/api/logout', methods=['POST'])
+@login_required
+def logout():
+    logout_user()
+    session.clear()
+    return jsonify({'message': 'Logged out successfully'})
+
+# ======================
+# WARDROBE ROUTES
+# ======================
+
+@app.route('/api/add-item', methods=['POST'])
+@login_required
+def add_clothing_item():
+    try:
+        data = request.get_json()
+        
+        item = ClothingItem(
+            user_id=current_user.id,
+            name=data['name'],
+            type=data['type'],
+            style=data.get('style', ''),
+            color=data.get('color', ''),
+            season=data.get('season', 'all'),
+            fabric=data.get('fabric', ''),
+            mood_tags=json.dumps(data.get('mood_tags', [])),
+            brand=data.get('brand', ''),
+            condition=data.get('condition', 'good'),
+            is_clean=data.get('is_clean', True),
+            image_url=data.get('image_url', ''),
+            custom_tags=json.dumps(data.get('custom_tags', []))
+        )
+        
+        db.session.add(item)
+        db.session.commit()
+        
+        return jsonify({'message': 'Item added successfully', 'item': item.to_dict()})
+    except Exception as e:
+        print(f"Add item error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Failed to add item: {str(e)}'}), 500
+
+@app.route('/api/get-wardrobe', methods=['GET'])
+@login_required
+def get_wardrobe():
+    try:
+        items = ClothingItem.query.filter_by(user_id=current_user.id).all()
+        return jsonify({'items': [item.to_dict() for item in items]})
+    except Exception as e:
+        print(f"Get wardrobe error: {str(e)}")
+        return jsonify({'error': f'Failed to get wardrobe: {str(e)}'}), 500
+
+@app.route('/api/update-item/<int:item_id>', methods=['PUT'])
+@login_required
+def update_clothing_item(item_id):
+    try:
+        item = ClothingItem.query.get(item_id)
+        
+        if not item or item.user_id != current_user.id:
+            return jsonify({'error': 'Item not found'}), 404
+        
+        data = request.get_json()
+        
+        # Update fields
+        item.name = data.get('name', item.name)
+        item.type = data.get('type', item.type)
+        item.style = data.get('style', item.style)
+        item.color = data.get('color', item.color)
+        item.season = data.get('season', item.season)
+        item.fabric = data.get('fabric', item.fabric)
+        item.mood_tags = json.dumps(data.get('mood_tags', json.loads(item.mood_tags or '[]')))
+        item.brand = data.get('brand', item.brand)
+        item.condition = data.get('condition', item.condition)
+        item.is_clean = data.get('is_clean', item.is_clean)
+        item.custom_tags = json.dumps(data.get('custom_tags', json.loads(item.custom_tags or '[]')))
+        
+        # Only update image_url if provided
+        if 'image_url' in data:
+            item.image_url = data['image_url']
+        
+        db.session.commit()
+        
+        return jsonify({'message': 'Item updated successfully', 'item': item.to_dict()})
+        
+    except Exception as e:
+        print(f"Update item error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Failed to update item: {str(e)}'}), 500
+
+@app.route('/api/delete-item/<int:item_id>', methods=['DELETE'])
+@login_required
+def delete_clothing_item(item_id):
+    try:
+        item = ClothingItem.query.get(item_id)
+        
+        if not item or item.user_id != current_user.id:
+            return jsonify({'error': 'Item not found'}), 404
+        
+        # Optional: Delete image file from server
+        if item.image_url and not item.image_url.startswith('http'):
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(item.image_url))
+            if os.path.exists(image_path):
+                try:
+                    os.remove(image_path)
+                except:
+                    pass  # Don't fail if image deletion fails
+        
+        db.session.delete(item)
+        db.session.commit()
+        
+        return jsonify({'message': 'Item deleted successfully'})
+        
+    except Exception as e:
+        print(f"Delete item error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Failed to delete item: {str(e)}'}), 500
+
+@app.route('/api/toggle-clean/<int:item_id>', methods=['PATCH'])
+@login_required
+def toggle_item_clean_status(item_id):
+    try:
+        item = ClothingItem.query.get(item_id)
+        
+        if not item or item.user_id != current_user.id:
+            return jsonify({'error': 'Item not found'}), 404
+        
+        item.is_clean = not item.is_clean
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'Item marked as {"clean" if item.is_clean else "dirty"}',
+            'item': item.to_dict()
+        })
+        
+    except Exception as e:
+        print(f"Toggle clean status error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Failed to update item status: {str(e)}'}), 500
+
+# ======================
+# OUTFIT ROUTES
+# ======================
+
+@app.route('/api/get-outfit', methods=['POST'])
+@login_required
+def get_outfit_suggestion():
+    try:
+        print("=== OUTFIT GENERATION REQUEST ===")
+        print(f"Current user: {current_user.email if current_user.is_authenticated else 'Not authenticated'}")
+        
+        data = request.get_json()
+        mood = data.get('mood', 'casual')
+        print(f"Mood: {mood}")
+        
+        # Get user's wardrobe
+        wardrobe_items = ClothingItem.query.filter_by(user_id=current_user.id).all()
+        wardrobe = [item.to_dict() for item in wardrobe_items]
+        print(f"Wardrobe items: {len(wardrobe)}")
+        
+        if not wardrobe:
+            return jsonify({
+                'error': 'No clothes in wardrobe',
+                'message': 'Add some clothes to your wardrobe first!',
+                'suggestion': None,
+                'items': [],
+                'weather': None,
+                'mood': mood
+            }), 400
+        
+        # Get enhanced weather data
+        weather_data = None
+        weather_str = "mild weather"
+        weather_advice = "General weather conditions"
+        
+        if current_user.location:
+            print(f"Getting weather for: {current_user.location}")
+            weather_data = weather_service.get_current_weather(current_user.location)
+            weather_str = weather_service.get_weather_description(weather_data)
+            weather_advice = weather_service.get_outfit_weather_advice(weather_data)
+        
+        # Get recent outfits to avoid repetition
+        recent_outfits = Outfit.query.filter_by(user_id=current_user.id)\
+                                    .filter(Outfit.date >= datetime.utcnow() - timedelta(days=7))\
+                                    .order_by(Outfit.date.desc()).all()
+        recent_outfits_data = [outfit.to_dict() for outfit in recent_outfits]
+        print(f"Recent outfits: {len(recent_outfits_data)}")
+        
+        # Generate outfit suggestion with enhanced AI
+        print("Generating outfit suggestion...")
+        suggestion = ai_service.generate_outfit_suggestion(
+            wardrobe=wardrobe,
+            weather=weather_str,
+            mood=mood,
+            recent_outfits=recent_outfits_data
+        )
+        print(f"Suggestion generated: {suggestion}")
+        
+        # Get full item details for suggested items
+        suggested_items = []
+        for item_id in suggestion.get('selected_items', []):
+            item = ClothingItem.query.get(item_id)
+            if item and item.user_id == current_user.id:
+                suggested_items.append(item.to_dict())
+        
+        print(f"Suggested items: {len(suggested_items)}")
+        
+        return jsonify({
+            'suggestion': suggestion,
+            'items': suggested_items,
+            'weather': weather_str,
+            'weather_data': weather_data,
+            'weather_advice': weather_advice,
+            'mood': mood,
+            'wardrobe_count': len(wardrobe),
+            'clean_items_count': len([item for item in wardrobe if item.get('is_clean', True)])
+        })
+        
+    except Exception as e:
+        print(f"Get outfit error: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'error': f'Failed to generate outfit: {str(e)}'}), 500
+
+@app.route('/api/save-outfit', methods=['POST'])
+@login_required
+def save_outfit():
+    try:
+        data = request.get_json()
+        
+        outfit = Outfit(
+            user_id=current_user.id,
+            weather=data.get('weather', ''),
+            mood=data.get('mood', ''),
+            reason_text=data.get('reason_text', ''),
+            was_actually_worn=data.get('was_actually_worn', True),
+            rating=data.get('rating'),
+            notes=data.get('notes', '')
+        )
+        
+        # Add clothing items to outfit and increment wear counts
+        for item_id in data.get('item_ids', []):
+            item = ClothingItem.query.get(item_id)
+            if item and item.user_id == current_user.id:
+                outfit.clothing_items.append(item)
+                
+                # NEW: Increment wear count using laundry service
+                LaundryIntelligenceService.increment_wear_count(item_id)
+        
+        db.session.add(outfit)
+        db.session.commit()
+        
+        return jsonify({'message': 'Outfit saved successfully', 'outfit': outfit.to_dict()})
+    except Exception as e:
+        print(f"Save outfit error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Failed to save outfit: {str(e)}'}), 500
+
+@app.route('/api/outfit-history', methods=['GET'])
+@login_required
+def get_outfit_history():
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        outfits = Outfit.query.filter_by(user_id=current_user.id)\
+                            .order_by(Outfit.date.desc())\
+                            .paginate(page=page, per_page=per_page, error_out=False)
+        
+        return jsonify({
+            'outfits': [outfit.to_dict() for outfit in outfits.items],
+            'total': outfits.total,
+            'pages': outfits.pages,
+            'current_page': page
+        })
+    except Exception as e:
+        print(f"Get outfit history error: {str(e)}")
+        return jsonify({'error': f'Failed to get outfit history: {str(e)}'}), 500
+
+# ======================
+# LAUNDRY TRACKING ROUTES
+# ======================
+
+@app.route('/api/laundry/alerts', methods=['GET'])
+@login_required
+def get_laundry_alerts():
+    try:
+        alerts = LaundryIntelligenceService.get_laundry_alerts(current_user.id)
+        return jsonify(alerts)
+    except Exception as e:
+        print(f"Laundry alerts error: {str(e)}")
+        return jsonify({'error': f'Failed to get laundry alerts: {str(e)}'}), 500
+
+@app.route('/api/laundry/health-score', methods=['GET'])
+@login_required
+def get_wardrobe_health():
+    try:
+        health = LaundryIntelligenceService.get_wardrobe_health_score(current_user.id)
+        return jsonify(health)
+    except Exception as e:
+        print(f"Wardrobe health error: {str(e)}")
+        return jsonify({'error': f'Failed to get wardrobe health: {str(e)}'}), 500
+
+@app.route('/api/laundry/mark-washed', methods=['POST'])
+@login_required
+def mark_items_washed():
+    try:
+        data = request.get_json()
+        item_ids = data.get('item_ids', [])
+        
+        if not item_ids:
+            return jsonify({'error': 'No items specified'}), 400
+        
+        # Verify all items belong to current user
+        items = ClothingItem.query.filter(
+            ClothingItem.id.in_(item_ids),
+            ClothingItem.user_id == current_user.id
+        ).all()
+        
+        if len(items) != len(item_ids):
+            return jsonify({'error': 'Some items not found or not owned by user'}), 400
+        
+        success = LaundryIntelligenceService.mark_items_washed(item_ids)
+        
+        if success:
+            return jsonify({'message': f'Marked {len(item_ids)} items as washed'})
+        else:
+            return jsonify({'error': 'Failed to mark items as washed'}), 500
+            
+    except Exception as e:
+        print(f"Mark washed error: {str(e)}")
+        return jsonify({'error': f'Failed to mark items as washed: {str(e)}'}), 500
+
+@app.route('/api/laundry/toggle-status/<int:item_id>', methods=['PATCH'])
+@login_required
+def toggle_laundry_status(item_id):
+    try:
+        item = ClothingItem.query.get(item_id)
+        
+        if not item or item.user_id != current_user.id:
+            return jsonify({'error': 'Item not found'}), 404
+        
+        # Cycle through statuses: clean -> dirty -> in_laundry -> drying -> clean
+        status_cycle = ['clean', 'dirty', 'in_laundry', 'drying']
+        current_index = status_cycle.index(item.laundry_status) if item.laundry_status in status_cycle else 0
+        next_index = (current_index + 1) % len(status_cycle)
+        
+        item.laundry_status = status_cycle[next_index]
+        
+        # Update related fields
+        if item.laundry_status == 'clean':
+            item.is_clean = True
+            item.needs_washing = False
+            item.wash_urgency = 'none'
+        elif item.laundry_status == 'dirty':
+            item.is_clean = False
+            item.needs_washing = True
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': f'Item status changed to {item.laundry_status}',
+            'item': item.to_dict()
+        })
+        
+    except Exception as e:
+        print(f"Toggle laundry status error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': f'Failed to update item status: {str(e)}'}), 500
+
+# ======================
+# WARDROBE INTELLIGENCE ROUTES
+# ======================
+
+@app.route('/api/intelligence/collections', methods=['GET'])
+@login_required
+def get_smart_collections():
+    try:
+        collections = WardrobeIntelligenceService.get_smart_collections(current_user.id)
+        return jsonify(collections)
+    except Exception as e:
+        print(f"Smart collections error: {str(e)}")
+        return jsonify({'error': f'Failed to get smart collections: {str(e)}'}), 500
+
+@app.route('/api/intelligence/gaps', methods=['GET'])
+@login_required
+def get_wardrobe_gaps():
+    try:
+        gaps = WardrobeIntelligenceService.get_wardrobe_gaps(current_user.id)
+        return jsonify(gaps)
+    except Exception as e:
+        print(f"Wardrobe gaps error: {str(e)}")
+        return jsonify({'error': f'Failed to analyze wardrobe gaps: {str(e)}'}), 500
+
+@app.route('/api/intelligence/enhanced-suggestions', methods=['POST'])
+@login_required
+def get_enhanced_outfit_suggestions():
+    try:
+        data = request.get_json()
+        mood = data.get('mood', 'casual')
+        weather = data.get('weather', 'mild')
+        
+        suggestions = WardrobeIntelligenceService.get_enhanced_outfit_suggestions(
+            current_user.id, mood, weather
+        )
+        return jsonify(suggestions)
+    except Exception as e:
+        print(f"Enhanced suggestions error: {str(e)}")
+        return jsonify({'error': f'Failed to get enhanced suggestions: {str(e)}'}), 500
+
+# ======================
+# ANALYTICS ROUTES
+# ======================
+
+@app.route('/api/analytics/usage', methods=['GET'])
+@login_required
+def get_usage_analytics():
+    try:
+        analytics = AnalyticsService.get_usage_analytics(current_user.id)
+        return jsonify(analytics)
+    except Exception as e:
+        print(f"Usage analytics error: {str(e)}")
+        return jsonify({'error': f'Failed to get usage analytics: {str(e)}'}), 500
+
+@app.route('/api/analytics/style-dna', methods=['GET'])
+@login_required
+def get_style_dna():
+    try:
+        # This will be a comprehensive style personality analysis
+        items = ClothingItem.query.filter_by(user_id=current_user.id).all()
+        outfits = Outfit.query.filter_by(user_id=current_user.id).all()
+        
+        # Style consistency analysis
+        style_counts = Counter(item.style for item in items if item.style)
+        color_counts = Counter(item.color for item in items if item.color)
+        brand_counts = Counter(item.brand for item in items if item.brand)
+        
+        # Most worn combinations
+        outfit_combos = []
+        for outfit in outfits[-10:]:  # Last 10 outfits
+            combo = {
+                'mood': outfit.mood,
+                'items': [item.type for item in outfit.clothing_items],
+                'colors': [item.color for item in outfit.clothing_items if item.color],
+                'date': outfit.date.isoformat()
+            }
+            outfit_combos.append(combo)
+        
+        style_dna = {
+            'dominant_style': style_counts.most_common(1)[0] if style_counts else None,
+            'color_personality': dict(color_counts.most_common(5)),
+            'brand_loyalty': dict(brand_counts.most_common(5)),
+            'style_diversity': len(style_counts),
+            'recent_combinations': outfit_combos,
+            'risk_tolerance': 'conservative' if len(style_counts) < 3 else 'adventurous'
+        }
+        
+        return jsonify(style_dna)
+    except Exception as e:
+        print(f"Style DNA error: {str(e)}")
+        return jsonify({'error': f'Failed to analyze style DNA: {str(e)}'}), 500
+
+# ======================
+# WEATHER ROUTE
+# ======================
+
+@app.route('/api/weather', methods=['GET'])
+@login_required
+def get_weather():
+    try:
+        location = request.args.get('location') or current_user.location
+        if not location:
+            return jsonify({'error': 'No location specified'}), 400
+        
+        weather_data = weather_service.get_current_weather(location)
+        weather_str = weather_service.get_weather_description(weather_data)
+        weather_advice = weather_service.get_outfit_weather_advice(weather_data)
+        
+        return jsonify({
+            'weather_data': weather_data,
+            'weather_description': weather_str,
+            'outfit_advice': weather_advice
+        })
+        
+    except Exception as e:
+        print(f"Weather error: {str(e)}")
+        return jsonify({'error': f'Failed to get weather: {str(e)}'}), 500
+
+# ======================
+# IMAGE UPLOAD ROUTE
+# ======================
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def resize_image(image_path, max_size=(800, 800)):
+    """Resize image to reduce file size while maintaining aspect ratio"""
+    try:
+        from PIL import Image
+        with Image.open(image_path) as img:
+            # Convert RGBA to RGB if necessary
+            if img.mode in ('RGBA', 'LA'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+            
+            # Resize maintaining aspect ratio
+            img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            # Save with optimization
+            img.save(image_path, 'JPEG', quality=85, optimize=True)
+            
+        return True
+    except Exception as e:
+        print(f"Error resizing image: {e}")
+        return False
+
+@app.route('/api/upload-image', methods=['POST'])
+def upload_image():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        if not allowed_file(file.filename):
+            return jsonify({'error': 'File type not allowed'}), 400
+        
+        # Check file size
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size > MAX_FILE_SIZE:
+            return jsonify({'error': 'File too large (max 5MB)'}), 400
+        
+        # Generate unique filename
+        import uuid
+        file_extension = file.filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4().hex}_{int(datetime.now().timestamp())}.{file_extension}"
+        
+        # Save file
+        upload_folder = app.config['UPLOAD_FOLDER']
+        file_path = os.path.join(upload_folder, unique_filename)
+        file.save(file_path)
+        
+        # Resize image
+        if not resize_image(file_path):
+            os.remove(file_path)
+            return jsonify({'error': 'Error processing image'}), 500
+        
+        # Return URL
+        image_url = f"/uploads/{unique_filename}"
+        
+        return jsonify({
+            'message': 'Image uploaded successfully',
+            'image_url': image_url,
+            'filename': unique_filename
+        })
+        
+    except Exception as e:
+        print(f"Upload error: {e}")
+        return jsonify({'error': 'Upload failed'}), 500
+
+# ======================
+# STATIC FILE SERVING
+# ======================
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# ======================
+# APP INITIALIZATION
+# ======================
+
+if __name__ == '__main__':
+    with app.app_context():
+        print("Creating database tables...")
+        db.create_all()
+        print("Database tables created successfully!")
+        
+        # Test database connection
+        try:
+            users_count = User.query.count()
+            print(f"Database connected. Current users count: {users_count}")
+        except Exception as e:
+            print(f"Database connection error: {e}")
+    
+    print("Starting Flask app...")
+    app.run(debug=True, host='0.0.0.0', port=5000)

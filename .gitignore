@@ -1,0 +1,27 @@
+# Node.js
+node_modules/
+.env
+build/
+dist/
+.parcel-cache/
+
+# Python
+__pycache__/
+*.pyc
+.Python/
+venv/
+env/
+*.env
+.pytest_cache/
+.vscode/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE files (e.g., VS Code)
+.vscode/
+
+# Secrets (add more if you have them)
+*.env
+*.key
