@@ -75,13 +75,8 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
-    # Removed login_manager.login_view as we handle unauthorized via API response
+    login_manager.login_view
     
-    # Custom unauthorized handler for API
-    @login_manager.unauthorized_handler
-    def unauthorized():
-        return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
-
     # --- CORS Configuration ---
     # Define allowed origins explicitly for production
     # frontend_url_base should be set as an environment variable on Railway
