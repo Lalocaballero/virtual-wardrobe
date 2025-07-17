@@ -18,10 +18,14 @@ from utils.weather_service import WeatherService
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
-# Database configuration
+# Database configuration - add this near the top after app initialization
 if os.environ.get('DATABASE_URL'):
-    # Production (Railway/Render)
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    # Railway provides this automatically
+    database_url = os.environ.get('DATABASE_URL')
+    # Fix postgres:// to postgresql:// if needed
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
     # Development
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
@@ -757,7 +761,11 @@ def uploaded_file(filename):
 # APP INITIALIZATION
 # ======================
 
+# At the bottom of app.py, replace the existing if __name__ == '__main__' block:
+
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    
     with app.app_context():
         print("Creating database tables...")
         db.create_all()
@@ -770,5 +778,5 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Database connection error: {e}")
     
-    print("Starting Flask app...")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print(f"Starting Flask app on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=False)
