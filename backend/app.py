@@ -80,15 +80,22 @@ def create_app():
     login_manager.login_view = 'login' # Set the login view if using @login_required redirects
 
     # --- CORS Configuration ---
-    frontend_url = os.environ.get('FRONTEND_URL', 'https://*.vercel.app')
-    print(f"CORS configured for origins: {frontend_url}")
-    print(f"Type of frontend_url: {type(frontend_url)}")
+    frontend_url_base = os.environ.get('FRONTEND_URL', 'https://*.vercel.app').rstrip('/')
+    # List all allowed origins explicitly
+    allowed_origins = [
+        'http://localhost:3000', # For local development
+        frontend_url_base,       # Your Vercel frontend URL without trailing slash
+        f"{frontend_url_base}/"  # Your Vercel frontend URL with trailing slash (just in case)
+    ]
+
+    print(f"CORS configured for origins: {allowed_origins}") # Update print to show list
+    print(f"Type of allowed_origins: {type(allowed_origins)}")
 
     CORS(app, 
-         origins=['http://localhost:3000', frontend_url],
-         supports_credentials=True,
-         allow_headers=['Content-Type', 'Authorization'],
-         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
+        origins=allowed_origins, # Use the explicit list
+        supports_credentials=True,
+        allow_headers=['Content-Type', 'Authorization'],
+        methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
 
     # Initialize services (now that app.config and env vars are loaded)
     from utils.ai_service import AIOutfitService
