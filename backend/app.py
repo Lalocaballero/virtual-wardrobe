@@ -154,23 +154,31 @@ def register():
             return jsonify({'error': 'Email and password are required'}), 400
         
         # Check if user already exists
+        print("Checking if user exists...")
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             print(f"User {email} already exists")
             return jsonify({'error': 'Email already exists'}), 400
         
         # Create new user
+        print("Creating new user...")
         user = User(
             email=email,
             password_hash=generate_password_hash(password),
             location=location
         )
         
-        print(f"Created user object: {user.email}")
+        print(f"User object created: {user.email}")
+        
+        # Test database connection before saving
+        print("Testing database connection...")
+        db.session.connection()
+        print("Database connection OK")
         
         db.session.add(user)
-        db.session.commit()
+        print("User added to session")
         
+        db.session.commit()
         print(f"User saved to database with ID: {user.id}")
         
         # Log the user in
@@ -185,8 +193,10 @@ def register():
         })
         
     except Exception as e:
-        print(f"Registration error: {str(e)}")
-        print(f"Traceback: {traceback.format_exc()}")
+        print(f"❌ Registration error: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return jsonify({'error': f'Registration failed: {str(e)}'}), 500
 
