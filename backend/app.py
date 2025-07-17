@@ -1,7 +1,7 @@
 import os
 print("🐍 Python app starting...")
 
-from flask import Flask, request, jsonify, send_from_directory, session, current_app
+from flask import Flask, request, jsonify, send_from_directory, session, current_app, make_response
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,28 +13,13 @@ import json
 import traceback
 import uuid
 
-# Import db, User, ClothingItem, Outfit from models. This is done outside create_app
-# because db needs to be imported by models.py itself, and models need to be defined
-# before db.create_all() is called.
-# However, db.init_app(app) must happen inside create_app.
-from models import db, User, ClothingItem, Outfit # Keep this import here
+# Import db, User, ClothingItem, Outfit from models.
+from models import db, User, ClothingItem, Outfit
 
-# Initialize extensions outside the function, but configure inside
-# This makes them accessible globally, but they are attached to the app instance
-# when create_app() is called.
+# Initialize extensions globally
 login_manager = LoginManager()
 
 print("📦 Flask and initial extensions imported successfully")
-
-# Import services (these can be initialized globally if they don't depend on app context directly)
-# However, if they use environment variables that might not be loaded until app context,
-# it's safer to pass them the keys or initialize them inside create_app if they need app context.
-# For simplicity and to ensure env vars are loaded, let's initialize them inside create_app.
-# from utils.ai_service import AIOutfitService
-# from utils.weather_service import WeatherService
-# from utils.laundry_service import LaundryIntelligenceService
-# from utils.wardrobe_intelligence import WardrobeIntelligenceService, AnalyticsService
-
 
 # Application Factory Function
 def create_app():
@@ -45,23 +30,20 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = 'uploads'
 
     # Session configuration
-    app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False # Use HTTPS in production
+    app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
     # --- Database configuration ---
-    # Call configure_database() inside create_app to ensure app context is ready
     try:
         database_url = os.environ.get('DATABASE_URL')
         
         if database_url:
-            # Railway PostgreSQL
             if database_url.startswith('postgres://'):
                 database_url = database_url.replace('postgres://', 'postgresql://', 1)
             app.config['SQLALCHEMY_DATABASE_URI'] = database_url
             print("✅ PostgreSQL database configured")
         else:
-            # Development SQLite
             app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
             print("✅ SQLite database configured")
             
@@ -69,7 +51,6 @@ def create_app():
         
     except Exception as e:
         print(f"⚠️ Database configuration error: {e}")
-        # Fallback to SQLite in case of error
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -77,27 +58,59 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
-    login_manager.login_view = 'login' # Set the login view if using @login_required redirects
+    login_manager.login_view = 'login'
 
     # --- CORS Configuration ---
-    frontend_url_base = os.environ.get('FRONTEND_URL', 'https://*.vercel.app').rstrip('/')
-    # List all allowed origins explicitly
-    allowed_origins = [
-        'http://localhost:3000', # For local development
-        frontend_url_base,       # Your Vercel frontend URL without trailing slash
-        f"{frontend_url_base}/"  # Your Vercel frontend URL with trailing slash (just in case)
+    # Define allowed origins explicitly, including your Vercel URL
+    # Use .rstrip('/') to handle potential trailing slash inconsistencies
+    frontend_url_base = os.environ.get('FRONTEND_URL', 'https://virtual-wardrobe-zeta.vercel.app').rstrip('/')
+    
+    allowed_origins_list = [
+        'http://localhost:3000',
+        'http://localhost:3001', # If you use another local dev port
+        frontend_url_base,       # e.g., 'https://virtual-wardrobe-zeta.vercel.app'
+        # Add any other specific Vercel preview domains if they are different
+        # e.g., 'https://virtual-wardrobe-some-branch.vercel.app'
     ]
+    
+    print(f"CORS configured for origins: {allowed_origins_list}")
+    print(f"Type of allowed_origins: {type(allowed_origins_list)}")
 
-    print(f"CORS configured for origins: {allowed_origins}") # Update print to show list
-    print(f"Type of allowed_origins: {type(allowed_origins)}")
-
+    # Initialize Flask-CORS with the explicit list
+    # automatic_options=True is default and usually fine, but our manual handler will take precedence for OPTIONS
     CORS(app, 
-        origins=allowed_origins, # Use the explicit list
-        supports_credentials=True,
-        allow_headers=['Content-Type', 'Authorization'],
-        methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
+         origins=allowed_origins_list, # Use the explicit list
+         supports_credentials=True,
+         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'], # Add X-Requested-With
+         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
 
-    # Initialize services (now that app.config and env vars are loaded)
+    # --- Manual CORS Preflight Handler (CRITICAL for stubborn CORS issues) ---
+    # This runs BEFORE flask-cors middleware for OPTIONS requests
+    @app.before_request
+    def handle_options_requests():
+        if request.method == 'OPTIONS':
+            origin = request.headers.get('Origin')
+            
+            # Check if the requesting origin is in our allowed list
+            # Normalize origin by stripping trailing slash for comparison
+            normalized_origin = origin.rstrip('/') if origin else None
+
+            if normalized_origin in [o.rstrip('/') for o in allowed_origins_list]:
+                response = make_response('') # Empty response for preflight
+                response.headers['Access-Control-Allow-Origin'] = origin # Echo the exact origin
+                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+                response.headers['Access-Control-Max-Age'] = '86400' # Cache preflight for 24 hours
+                response.headers['Access-Control-Allow-Credentials'] = 'true'
+                
+                print(f"DEBUG: Manually handled OPTIONS request from Origin: {origin} - Setting ACAO to: {origin}")
+                return response
+            else:
+                # If origin is not allowed, reject the preflight
+                print(f"DEBUG: OPTIONS request from disallowed origin: {origin}")
+                return make_response('CORS preflight failed: Origin not allowed', 403)
+
+    # --- Initialize services ---
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
     from utils.laundry_service import LaundryIntelligenceService
@@ -105,21 +118,20 @@ def create_app():
 
     ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY', 'test-key'))
     weather_service = WeatherService(os.environ.get('WEATHER_API_KEY', 'test-key'))
-    laundry_service = LaundryIntelligenceService() # Assuming it doesn't need API keys directly
-    wardrobe_intelligence_service = WardrobeIntelligenceService() # Assuming it doesn't need API keys directly
-    analytics_service = AnalyticsService() # Assuming it doesn't need API keys directly
+    laundry_service = LaundryIntelligenceService()
+    wardrobe_intelligence_service = WardrobeIntelligenceService()
+    analytics_service = AnalyticsService()
 
     # Ensure upload directory exists
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     except Exception as e:
         print(f"Error creating upload folder: {e}")
-        pass # Handle this more robustly in production
+        # In production, you might want to raise an error or log more robustly
 
-    # Flask-Login user loader - must be defined after login_manager.init_app(app)
+    # Flask-Login user loader
     @login_manager.user_loader
     def load_user(user_id):
-        # Ensure User model is imported within the context where it's used
         return User.query.get(int(user_id))
 
     # ======================
@@ -148,12 +160,8 @@ def create_app():
 
     @app.route('/api/db-status', methods=['GET'])
     def db_status():
-        """Check database status without crashing the app"""
         try:
-            # Try to connect to database
             db.engine.connect()
-            
-            # Try to query (this will fail if tables don't exist, but won't crash)
             try:
                 users_count = User.query.count()
                 tables_exist = True
@@ -177,16 +185,12 @@ def create_app():
 
     @app.route('/api/init-db', methods=['POST'])
     def init_database():
-        """Initialize database tables - call this ONCE after deployment"""
         try:
             print("🔄 Initializing database tables...")
-            
-            # Create all tables within the app context
             with app.app_context():
                 db.create_all()
             
-            # Test tables
-            with app.app_context(): # Ensure context for query
+            with app.app_context():
                 users_count = User.query.count()
                 items_count = ClothingItem.query.count()
                 outfits_count = Outfit.query.count()
@@ -241,19 +245,15 @@ def create_app():
             if not email or not password:
                 return jsonify({'error': 'Email and password are required'}), 400
             
-            # Check database connection first (optional, db.session.add will fail if not connected)
             try:
                 db.engine.connect()
             except Exception as e:
                 return jsonify({'error': 'Database connection failed. Please try again later.'}), 500
             
-            # Use app.app_context() for DB operations outside a request context if needed,
-            # but for routes, Flask handles it.
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
                 return jsonify({'error': 'Email already exists'}), 400
             
-            # Create new user
             user = User(
                 email=email,
                 password_hash=generate_password_hash(password),
@@ -263,7 +263,6 @@ def create_app():
             db.session.add(user)
             db.session.commit()
             
-            # Log the user in
             login_user(user, remember=True)
             session.permanent = True
             
@@ -433,16 +432,29 @@ def create_app():
             if not item or item.user_id != current_user.id:
                 return jsonify({'error': 'Item not found'}), 404
             
-            item.is_clean = not item.is_clean
+            status_cycle = ['clean', 'dirty', 'in_laundry', 'drying']
+            current_index = status_cycle.index(item.laundry_status) if item.laundry_status in status_cycle else 0
+            next_index = (current_index + 1) % len(status_cycle)
+            
+            item.laundry_status = status_cycle[next_index]
+            
+            if item.laundry_status == 'clean':
+                item.is_clean = True
+                item.needs_washing = False
+                item.wash_urgency = 'none'
+            elif item.laundry_status == 'dirty':
+                item.is_clean = False
+                item.needs_washing = True
+            
             db.session.commit()
             
             return jsonify({
-                'message': f'Item marked as {"clean" if item.is_clean else "dirty"}',
+                'message': f'Item status changed to {"clean" if item.is_clean else "dirty"}',
                 'item': item.to_dict()
             })
             
         except Exception as e:
-            print(f"Toggle clean status error: {str(e)}")
+            print(f"Toggle laundry status error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Failed to update item status: {str(e)}'}), 500
 
@@ -538,7 +550,7 @@ def create_app():
                 item = ClothingItem.query.get(item_id)
                 if item and item.user_id == current_user.id:
                     outfit.clothing_items.append(item)
-                    laundry_service.increment_wear_count(item_id) # Use the initialized service
+                    laundry_service.increment_wear_count(item_id)
             
             db.session.add(outfit)
             db.session.commit()
@@ -795,7 +807,6 @@ if __name__ == '__main__':
     # This block is for local development only
     port = int(os.environ.get('PORT', 5000))
     print(f"🚀 Starting Flask app locally on port {port}...")
-    # When running locally, ensure db.create_all() is called if needed
     with app.app_context():
         db.create_all() # This will create tables if running locally for dev
-    app.run(host='0.0.0.0', port=port, debug=True) # Set debug=True for local dev
+    app.run(host='0.0.0.0', port=port, debug=True)
