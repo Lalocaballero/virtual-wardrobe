@@ -71,7 +71,7 @@ print(f"CORS configured for origins: {frontend_url}") # <-- ADD THIS LINE
 print(f"Type of frontend_url: {type(frontend_url)}") # <-- ADD THIS LINE
 
 CORS(app,
-     origins=['http://localhost:3000', os.environ.get('FRONTEND_URL', 'https://*.vercel.app')],
+     origins="*",
      supports_credentials=True,
      allow_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
