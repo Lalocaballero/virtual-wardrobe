@@ -113,9 +113,25 @@ def load_user(user_id):
 # UTILITY ROUTES
 # ======================
 
+# Add this as the FIRST route after all imports and configurations
+@app.route('/')
+def home():
+    return jsonify({'message': 'Virtual Wardrobe API is running!', 'status': 'ok'})
+
 @app.route('/api/test', methods=['GET'])
 def test():
-    return jsonify({'message': 'Backend is working!', 'timestamp': datetime.now().isoformat()})
+    try:
+        return jsonify({
+            'message': 'Backend is working!', 
+            'timestamp': datetime.now().isoformat(),
+            'database_connected': bool(os.environ.get('DATABASE_URL'))
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'healthy'}), 200
 
 @app.route('/api/check-auth', methods=['GET'])
 def check_auth():
@@ -815,22 +831,21 @@ def uploaded_file(filename):
 # APP INITIALIZATION
 # ======================
 
-# At the bottom of app.py, replace the existing if __name__ == '__main__' block:
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     
-    with app.app_context():
-        print("Creating database tables...")
-        db.create_all()
-        print("Database tables created successfully!")
-        
-        # Test database connection
-        try:
-            users_count = User.query.count()
-            print(f"Database connected. Current users count: {users_count}")
-        except Exception as e:
-            print(f"Database connection error: {e}")
+    print(f"🚀 Starting app on port {port}")
+    print(f"📊 Database URL configured: {bool(os.environ.get('DATABASE_URL'))}")
     
-    print(f"Starting Flask app on port {port}...")
+    # Only create tables in development, not in production startup
+    if not os.environ.get('RAILWAY_ENVIRONMENT'):
+        print("Development mode - creating tables...")
+        with app.app_context():
+            try:
+                db.create_all()
+                print("✅ Tables created")
+            except Exception as e:
+                print(f"⚠️  Table creation error: {e}")
+    
+    # Start the app
     app.run(host='0.0.0.0', port=port, debug=False)
