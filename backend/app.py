@@ -155,7 +155,7 @@ def init_database():
         print("🔄 Initializing database tables...")
         
         # Create all tables
-        db.create_all()
+        # db.create_all()
         
         # Test tables
         users_count = User.query.count()
