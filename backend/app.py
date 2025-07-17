@@ -66,15 +66,20 @@ configure_database()
 db.init_app(app)
 
 # CORS Configuration
-CORS(app, 
-     origins=['http://localhost:3000', os.environ.get('FRONTEND_URL', 'https://*.vercel.app')],
+frontend_url = os.environ.get('FRONTEND_URL', 'https://*.vercel.app')
+print(f"CORS configured for origins: {frontend_url}") # <-- ADD THIS LINE
+print(f"Type of frontend_url: {type(frontend_url)}") # <-- ADD THIS LINE
+
+CORS(app,
+     origins=[
+         'http://localhost:3000',
+         frontend_url # Use the variable here
+     ],
      supports_credentials=True,
      allow_headers=['Content-Type', 'Authorization'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
 
 login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.session_protection = "strong"
 
 # Initialize services
 ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY', 'test-key'))
