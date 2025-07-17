@@ -18,17 +18,6 @@ from utils.weather_service import WeatherService
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
-# Database configuration - add this near the top after app initialization
-if os.environ.get('DATABASE_URL'):
-    # Railway provides this automatically
-    database_url = os.environ.get('DATABASE_URL')
-    # Fix postgres:// to postgresql:// if needed
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-else:
-    # Development
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
@@ -54,6 +43,61 @@ login_manager.session_protection = "strong"
 # Initialize services
 ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY', 'test-key'))
 weather_service = WeatherService(os.environ.get('WEATHER_API_KEY', 'test-key'))
+
+# Add this after your app initialization but before routes
+def get_database_url():
+    """Get the correct database URL for Railway PostgreSQL"""
+    database_url = os.environ.get('DATABASE_URL')
+    
+    if database_url:
+        # Railway sometimes uses postgres:// which SQLAlchemy doesn't like
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        print(f"Using PostgreSQL database")
+        return database_url
+    else:
+        print("Using SQLite database (development)")
+        return 'sqlite:///wardrobe.db'
+
+# Update your database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Add database connection test
+def test_database_connection():
+    """Test if database connection is working"""
+    try:
+        with app.app_context():
+            # Try to connect to database
+            db.engine.connect()
+            print("✅ Database connection successful!")
+            return True
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        return False
+
+# Update the bottom of app.py
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    
+    print("Testing database connection...")
+    if test_database_connection():
+        with app.app_context():
+            print("Creating database tables...")
+            try:
+                db.create_all()
+                print("✅ Database tables created successfully!")
+                
+                # Test table creation
+                users_count = User.query.count()
+                print(f"✅ Database working. Current users count: {users_count}")
+            except Exception as e:
+                print(f"❌ Database table creation error: {e}")
+    else:
+        print("⚠️  Database connection failed - app may not work properly")
+    
+    print(f"Starting Flask app on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_ENV') != 'production')
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
