@@ -58,7 +58,12 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
-    login_manager.login_view = 'login'
+    #login_manager.login_view = 'login'
+    
+    # Custom unauthorized handler for API
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
 
     # --- CORS Configuration ---
     # Define allowed origins explicitly, including your Vercel URL
