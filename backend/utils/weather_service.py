@@ -6,7 +6,7 @@ class WeatherService:
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "http://api.openweathermap.org/data/2.5"
-        self.client_available = api_key and api_key != 'test-key'
+        self.client_available = api_key
         
         if not self.client_available:
             print("⚠️  Weather API key not provided - using mock weather data")

@@ -1,5 +1,6 @@
 import os
-print("🐍 Python app starting...")
+# Removed initial print for cleaner production logs, or make conditional
+# print("🐍 Python app starting...")
 
 from flask import Flask, request, jsonify, send_from_directory, session, current_app, make_response
 from flask_cors import CORS
@@ -19,38 +20,54 @@ from models import db, User, ClothingItem, Outfit
 # Initialize extensions globally
 login_manager = LoginManager()
 
-print("📦 Flask and initial extensions imported successfully")
+# Removed initial print for cleaner production logs, or make conditional
+# print("📦 Flask and initial extensions imported successfully")
 
 # Application Factory Function
 def create_app():
     app = Flask(__name__)
 
     # --- Application Configuration ---
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_very_secret_key_that_should_be_changed_in_production')
+    # Ensure SECRET_KEY is set via environment variable in production
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+    if not app.config['SECRET_KEY']:
+        # Fallback for development, but in production, this should always be set
+        # Consider raising an error in production if SECRET_KEY is missing
+        print("WARNING: SECRET_KEY not set! Using a default. Set FLASK_SECRET_KEY in production.")
+        app.config['SECRET_KEY'] = 'a_fallback_secret_key_for_dev_only'
+
     app.config['UPLOAD_FOLDER'] = 'uploads'
 
     # Session configuration
+    # Set SESSION_COOKIE_SECURE to True in production (when using HTTPS)
+    # Ensure FLASK_ENV is set to 'production' on Railway
     app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # 'Lax' is generally good for cross-site requests
 
     # --- Database configuration ---
     try:
         database_url = os.environ.get('DATABASE_URL')
         
         if database_url:
+            # Railway PostgreSQL URL requires 'postgresql://' scheme
             if database_url.startswith('postgres://'):
                 database_url = database_url.replace('postgres://', 'postgresql://', 1)
             app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-            print("✅ PostgreSQL database configured")
+            if app.debug: # Only print in debug mode
+                print("✅ PostgreSQL database configured")
         else:
+            # Fallback to SQLite for local development if DATABASE_URL is not set
             app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
-            print("✅ SQLite database configured")
+            if app.debug: # Only print in debug mode
+                print("✅ SQLite database configured (DATABASE_URL not found)")
             
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         
     except Exception as e:
-        print(f"⚠️ Database configuration error: {e}")
+        if app.debug: # Only print in debug mode
+            print(f"⚠️ Database configuration error: {e}")
+        # Fallback to SQLite in case of error (more robust for unexpected DB issues)
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -58,7 +75,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
-    #login_manager.login_view = 'login'
+    # Removed login_manager.login_view as we handle unauthorized via API response
     
     # Custom unauthorized handler for API
     @login_manager.unauthorized_handler
@@ -66,53 +83,54 @@ def create_app():
         return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
 
     # --- CORS Configuration ---
-    # Define allowed origins explicitly, including your Vercel URL
-    # Use .rstrip('/') to handle potential trailing slash inconsistencies
-    frontend_url_base = os.environ.get('FRONTEND_URL', 'https://virtual-wardrobe-zeta.vercel.app').rstrip('/')
+    # Define allowed origins explicitly for production
+    # frontend_url_base should be set as an environment variable on Railway
+    frontend_url_base = os.environ.get('FRONTEND_URL') # Expect FRONTEND_URL to be set in production
     
-    allowed_origins_list = [
-        'http://localhost:3000',
-        'http://localhost:3001', # If you use another local dev port
-        frontend_url_base,       # e.g., 'https://virtual-wardrobe-zeta.vercel.app'
-        # Add any other specific Vercel preview domains if they are different
+    allowed_origins_list = []
+    if frontend_url_base:
+        allowed_origins_list.append(frontend_url_base.rstrip('/'))
+        # Add any other specific Vercel preview domains if they are different and needed
         # e.g., 'https://virtual-wardrobe-some-branch.vercel.app'
-    ]
     
-    print(f"CORS configured for origins: {allowed_origins_list}")
-    print(f"Type of allowed_origins: {type(allowed_origins_list)}")
+    # Add localhost for local development only
+    if os.environ.get('FLASK_ENV') == 'development' or app.debug:
+        allowed_origins_list.append('http://localhost:3000')
+        allowed_origins_list.append('http://localhost:3001') # If you use another local dev port
+
+    if app.debug: # Only print in debug mode
+        print(f"CORS configured for origins: {allowed_origins_list}")
+        print(f"Type of allowed_origins: {type(allowed_origins_list)}")
 
     # Initialize Flask-CORS with the explicit list
-    # automatic_options=True is default and usually fine, but our manual handler will take precedence for OPTIONS
     CORS(app, 
          origins=allowed_origins_list, # Use the explicit list
          supports_credentials=True,
-         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'], # Add X-Requested-With
+         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
          methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
 
     # --- Manual CORS Preflight Handler (CRITICAL for stubborn CORS issues) ---
-    # This runs BEFORE flask-cors middleware for OPTIONS requests
     @app.before_request
     def handle_options_requests():
         if request.method == 'OPTIONS':
             origin = request.headers.get('Origin')
             
-            # Check if the requesting origin is in our allowed list
-            # Normalize origin by stripping trailing slash for comparison
             normalized_origin = origin.rstrip('/') if origin else None
 
             if normalized_origin in [o.rstrip('/') for o in allowed_origins_list]:
-                response = make_response('') # Empty response for preflight
-                response.headers['Access-Control-Allow-Origin'] = origin # Echo the exact origin
+                response = make_response('')
+                response.headers['Access-Control-Allow-Origin'] = origin
                 response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
                 response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-                response.headers['Access-Control-Max-Age'] = '86400' # Cache preflight for 24 hours
+                response.headers['Access-Control-Max-Age'] = '86400'
                 response.headers['Access-Control-Allow-Credentials'] = 'true'
                 
-                print(f"DEBUG: Manually handled OPTIONS request from Origin: {origin} - Setting ACAO to: {origin}")
+                if app.debug: # Only print in debug mode
+                    print(f"DEBUG: Manually handled OPTIONS request from Origin: {origin} - Setting ACAO to: {origin}")
                 return response
             else:
-                # If origin is not allowed, reject the preflight
-                print(f"DEBUG: OPTIONS request from disallowed origin: {origin}")
+                if app.debug: # Only print in debug mode
+                    print(f"DEBUG: OPTIONS request from disallowed origin: {origin}")
                 return make_response('CORS preflight failed: Origin not allowed', 403)
 
     # --- Initialize services ---
@@ -121,8 +139,8 @@ def create_app():
     from utils.laundry_service import LaundryIntelligenceService
     from utils.wardrobe_intelligence import WardrobeIntelligenceService, AnalyticsService
 
-    ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY', 'test-key'))
-    weather_service = WeatherService(os.environ.get('WEATHER_API_KEY', 'test-key'))
+    ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY'))
+    weather_service = WeatherService(os.environ.get('WEATHER_API_KEY'))
     laundry_service = LaundryIntelligenceService()
     wardrobe_intelligence_service = WardrobeIntelligenceService()
     analytics_service = AnalyticsService()
@@ -131,8 +149,8 @@ def create_app():
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     except Exception as e:
-        print(f"Error creating upload folder: {e}")
-        # In production, you might want to raise an error or log more robustly
+        if app.debug: # Only print in debug mode
+            print(f"Error creating upload folder: {e}")
 
     # Flask-Login user loader
     @login_manager.user_loader
@@ -191,7 +209,8 @@ def create_app():
     @app.route('/api/init-db', methods=['POST'])
     def init_database():
         try:
-            print("🔄 Initializing database tables...")
+            if app.debug: # Only print in debug mode
+                print("🔄 Initializing database tables...")
             with app.app_context():
                 db.create_all()
             
@@ -200,7 +219,8 @@ def create_app():
                 items_count = ClothingItem.query.count()
                 outfits_count = Outfit.query.count()
             
-            print("✅ Database initialized successfully!")
+            if app.debug: # Only print in debug mode
+                print("✅ Database initialized successfully!")
             
             return jsonify({
                 'success': True,
@@ -212,7 +232,8 @@ def create_app():
             })
             
         except Exception as e:
-            print(f"❌ Database initialization failed: {e}")
+            if app.debug: # Only print in debug mode
+                print(f"❌ Database initialization failed: {e}")
             return jsonify({
                 'success': False,
                 'error': str(e),
@@ -237,7 +258,8 @@ def create_app():
     @app.route('/api/register', methods=['POST'])
     def register():
         try:
-            print("=== REGISTRATION REQUEST ===")
+            if app.debug: # Only print in debug mode
+                print("=== REGISTRATION REQUEST ===")
             data = request.get_json()
             
             if not data:
@@ -278,7 +300,8 @@ def create_app():
             })
             
         except Exception as e:
-            print(f"Registration error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Registration error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Registration failed: {str(e)}'}), 500
 
@@ -310,7 +333,8 @@ def create_app():
             return jsonify({'error': 'Invalid credentials'}), 401
             
         except Exception as e:
-            print(f"Login error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Login error: {str(e)}")
             return jsonify({'error': f'Login failed: {str(e)}'}), 500
 
     @app.route('/api/logout', methods=['POST'])
@@ -351,7 +375,8 @@ def create_app():
             
             return jsonify({'message': 'Item added successfully', 'item': item.to_dict()})
         except Exception as e:
-            print(f"Add item error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Add item error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Failed to add item: {str(e)}'}), 500
 
@@ -362,7 +387,8 @@ def create_app():
             items = ClothingItem.query.filter_by(user_id=current_user.id).all()
             return jsonify({'items': [item.to_dict() for item in items]})
         except Exception as e:
-            print(f"Get wardrobe error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Get wardrobe error: {str(e)}")
             return jsonify({'error': f'Failed to get wardrobe: {str(e)}'}), 500
 
     @app.route('/api/update-item/<int:item_id>', methods=['PUT'])
@@ -397,7 +423,8 @@ def create_app():
             return jsonify({'message': 'Item updated successfully', 'item': item.to_dict()})
             
         except Exception as e:
-            print(f"Update item error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Update item error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Failed to update item: {str(e)}'}), 500
 
@@ -424,7 +451,8 @@ def create_app():
             return jsonify({'message': 'Item deleted successfully'})
             
         except Exception as e:
-            print(f"Delete item error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Delete item error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Failed to delete item: {str(e)}'}), 500
 
@@ -459,7 +487,8 @@ def create_app():
             })
             
         except Exception as e:
-            print(f"Toggle laundry status error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Toggle laundry status error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Failed to update item status: {str(e)}'}), 500
 
@@ -531,7 +560,8 @@ def create_app():
             })
             
         except Exception as e:
-            print(f"Get outfit error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Get outfit error: {str(e)}")
             return jsonify({'error': f'Failed to generate outfit: {str(e)}'}), 500
 
     @app.route('/api/save-outfit', methods=['POST'])
@@ -562,7 +592,8 @@ def create_app():
             
             return jsonify({'message': 'Outfit saved successfully', 'outfit': outfit.to_dict()})
         except Exception as e:
-            print(f"Save outfit error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Save outfit error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Failed to save outfit: {str(e)}'}), 500
 
@@ -584,7 +615,8 @@ def create_app():
                 'current_page': page
             })
         except Exception as e:
-            print(f"Get outfit history error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Get outfit history error: {str(e)}")
             return jsonify({'error': f'Failed to get outfit history: {str(e)}'}), 500
 
     # ======================
@@ -598,7 +630,8 @@ def create_app():
             alerts = laundry_service.get_laundry_alerts(current_user.id)
             return jsonify(alerts)
         except Exception as e:
-            print(f"Laundry alerts error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Laundry alerts error: {str(e)}")
             return jsonify({'error': f'Failed to get laundry alerts: {str(e)}'}), 500
 
     @app.route('/api/laundry/health-score', methods=['GET'])
@@ -608,7 +641,8 @@ def create_app():
             health = laundry_service.get_wardrobe_health_score(current_user.id)
             return jsonify(health)
         except Exception as e:
-            print(f"Wardrobe health error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Wardrobe health error: {str(e)}")
             return jsonify({'error': f'Failed to get wardrobe health: {str(e)}'}), 500
 
     @app.route('/api/laundry/mark-washed', methods=['POST'])
@@ -637,7 +671,8 @@ def create_app():
                 return jsonify({'error': 'Failed to mark items as washed'}), 500
                 
         except Exception as e:
-            print(f"Mark washed error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Mark washed error: {str(e)}")
             return jsonify({'error': f'Failed to mark items as washed: {str(e)}'}), 500
 
     @app.route('/api/laundry/toggle-status/<int:item_id>', methods=['PATCH'])
@@ -666,12 +701,13 @@ def create_app():
             db.session.commit()
             
             return jsonify({
-                'message': f'Item status changed to {item.laundry_status}',
+                'message': f'Item status changed to {"clean" if item.is_clean else "dirty"}',
                 'item': item.to_dict()
             })
             
         except Exception as e:
-            print(f"Toggle laundry status error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Toggle laundry status error: {str(e)}")
             db.session.rollback()
             return jsonify({'error': f'Failed to update item status: {str(e)}'}), 500
 
@@ -686,7 +722,8 @@ def create_app():
             collections = wardrobe_intelligence_service.get_smart_collections(current_user.id)
             return jsonify(collections)
         except Exception as e:
-            print(f"Smart collections error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Smart collections error: {str(e)}")
             return jsonify({'error': f'Failed to get smart collections: {str(e)}'}), 500
 
     @app.route('/api/intelligence/gaps', methods=['GET'])
@@ -696,7 +733,8 @@ def create_app():
             gaps = wardrobe_intelligence_service.get_wardrobe_gaps(current_user.id)
             return jsonify(gaps)
         except Exception as e:
-            print(f"Wardrobe gaps error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Wardrobe gaps error: {str(e)}")
             return jsonify({'error': f'Failed to analyze wardrobe gaps: {str(e)}'}), 500
 
     # ======================
@@ -710,7 +748,8 @@ def create_app():
             analytics = analytics_service.get_usage_analytics(current_user.id)
             return jsonify(analytics)
         except Exception as e:
-            print(f"Usage analytics error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Usage analytics error: {str(e)}")
             return jsonify({'error': f'Failed to get usage analytics: {str(e)}'}), 500
 
     @app.route('/api/analytics/style-dna', methods=['GET'])
@@ -745,7 +784,8 @@ def create_app():
             
             return jsonify(style_dna)
         except Exception as e:
-            print(f"Style DNA error: {str(e)}")
+            if app.debug: # Only print in debug mode
+                print(f"Style DNA error: {str(e)}")
             return jsonify({'error': f'Failed to analyze style DNA: {str(e)}'}), 500
 
     # ======================
@@ -794,7 +834,8 @@ def create_app():
             })
             
         except Exception as e:
-            print(f"Upload error: {e}")
+            if app.debug: # Only print in debug mode
+                print(f"Upload error: {e}")
             return jsonify({'error': 'Upload failed'}), 500
 
     @app.route('/uploads/<filename>')
@@ -803,15 +844,9 @@ def create_app():
 
     return app
 
-# --- For Gunicorn/WSGI and Local Development ---
+# --- For Gunicorn/WSGI ---
 # This ensures create_app() is called to get the app instance
 # when Gunicorn (or your local development server) starts.
 app = create_app()
 
-if __name__ == '__main__':
-    # This block is for local development only
-    port = int(os.environ.get('PORT', 5000))
-    print(f"🚀 Starting Flask app locally on port {port}...")
-    with app.app_context():
-        db.create_all() # This will create tables if running locally for dev
-    app.run(host='0.0.0.0', port=port, debug=True)
+# No if __name__ == '__main__': block for production deployment

@@ -7,7 +7,7 @@ import time
 
 class AIOutfitService:
     def __init__(self, api_key: str):
-        if api_key and api_key != 'test-key':
+        if api_key:
             openai.api_key = api_key
             self.client_available = True
         else:
