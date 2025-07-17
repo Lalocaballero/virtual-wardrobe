@@ -4,7 +4,7 @@
   },
   "deploy": {
     "startCommand": "gunicorn wsgi:app",
-    "healthcheckPath": "/api/test",
+    "healthcheckPath": "/api/",
     "healthcheckTimeout": 100
   }
 }
