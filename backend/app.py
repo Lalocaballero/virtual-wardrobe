@@ -98,6 +98,10 @@ def load_user(user_id):
 def home():
     return jsonify({'message': 'Virtual Wardrobe API is running!', 'status': 'ok'})
 
+@app.route('/api/')
+def api_root():
+    return jsonify({'message': 'Virtual Wardrobe API', 'status': 'ok', 'version': '1.0'})
+
 @app.route('/api/test', methods=['GET'])
 def test():
     return jsonify({
