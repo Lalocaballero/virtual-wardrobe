@@ -39,11 +39,15 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = 'uploads'
 
     # Session configuration
-    # Set SESSION_COOKIE_SECURE to True in production (when using HTTPS)
-    # Ensure FLASK_ENV is set to 'production' on Railway
-    app.config['SESSION_COOKIE_SECURE'] = True if os.environ.get('FLASK_ENV') == 'production' else False
+    # For HTTPS deployments (like Render), SESSION_COOKIE_SECURE MUST be True.
+    # Set SameSite to 'None' for cross-site cookie sending, which REQUIRES Secure=True.
+    app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # 'Lax' is generally good for cross-site requests
+    app.config['SESSION_COOKIE_SAMESITE'] = 'None' # <-- Change from 'Lax' to 'None'
+
+    # Add debug prints to confirm the settings in production logs
+    print(f"DEBUG: SESSION_COOKIE_SECURE is explicitly set to {app.config['SESSION_COOKIE_SECURE']}")
+    print(f"DEBUG: SESSION_COOKIE_SAMESITE is explicitly set to '{app.config['SESSION_COOKIE_SAMESITE']}'")
 
     # --- Database configuration ---
     try:
