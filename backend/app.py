@@ -38,34 +38,50 @@ def create_app():
 
     app.config['UPLOAD_FOLDER'] = 'uploads'
 
-    # Session configuration
-    # For HTTPS deployments (like Render), SESSION_COOKIE_SECURE MUST be True.
-    # Set SameSite to 'None' for cross-site cookie sending, which REQUIRES Secure=True.
-    app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'None' # <-- Change from 'Lax' to 'None'
-    # --- NEW: Explicitly set SESSION_COOKIE_DOMAIN ---
-    # This should be the common top-level domain for both frontend and backend
-    # For Render, this is typically '.onrender.com'
-    backend_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME') # Render provides this env var
-    if backend_hostname:
-        # Extract the base domain like '.onrender.com' from 'your-service.onrender.com'
-        parts = backend_hostname.split('.')
-        if len(parts) >= 2:
-            # This handles cases like 'your-service.onrender.com' -> '.onrender.com'
-            # or 'your-service.us-east-1.render.com' -> '.render.com' (if applicable)
-            app.config['SESSION_COOKIE_DOMAIN'] = f".{parts[-2]}.{parts[-1]}"
+    # --- IMPROVED Session Configuration ---
+    # Check if we're in development or production
+    is_production = os.environ.get('FLASK_ENV') != 'development' and not app.debug
+    
+    if is_production:
+        # Production settings (HTTPS required)
+        app.config['SESSION_COOKIE_SECURE'] = True
+        app.config['SESSION_COOKIE_HTTPONLY'] = True
+        # Use 'Lax' instead of 'None' for better mobile compatibility
+        app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+        
+        # Set domain more carefully
+        backend_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+        if backend_hostname:
+            # Only set domain if it's actually a subdomain scenario
+            parts = backend_hostname.split('.')
+            if len(parts) >= 3:  # e.g., 'your-service.onrender.com'
+                app.config['SESSION_COOKIE_DOMAIN'] = f".{'.'.join(parts[-2:])}"
+            else:
+                # Don't set domain for simple hostnames
+                app.config['SESSION_COOKIE_DOMAIN'] = None
         else:
-            # Fallback for very simple hostnames (e.g., 'localhost')
-            app.config['SESSION_COOKIE_DOMAIN'] = backend_hostname
+            app.config['SESSION_COOKIE_DOMAIN'] = None
     else:
-        # Fallback for local development if RENDER_EXTERNAL_HOSTNAME isn't set
-        app.config['SESSION_COOKIE_DOMAIN'] = 'localhost'
+        # Development settings (HTTP allowed)
+        app.config['SESSION_COOKIE_SECURE'] = False
+        app.config['SESSION_COOKIE_HTTPONLY'] = True
+        app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+        app.config['SESSION_COOKIE_DOMAIN'] = None
 
-    # Add debug prints to confirm the settings in production logs
+    # Set session lifetime
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+    
+    # Add session timeout handling
+    @app.before_request
+    def make_session_permanent():
+        session.permanent = True
+        session.modified = True
+    
+    print(f"DEBUG: Production mode: {is_production}")
     print(f"DEBUG: SESSION_COOKIE_SECURE: {app.config['SESSION_COOKIE_SECURE']}")
     print(f"DEBUG: SESSION_COOKIE_SAMESITE: '{app.config['SESSION_COOKIE_SAMESITE']}'")
-    print(f"DEBUG: SESSION_COOKIE_DOMAIN: '{app.config['SESSION_COOKIE_DOMAIN']}'")
+    print(f"DEBUG: SESSION_COOKIE_DOMAIN: {app.config['SESSION_COOKIE_DOMAIN']}")
+    print(f"DEBUG: SESSION_LIFETIME: {app.config['PERMANENT_SESSION_LIFETIME']}")
 
     # --- Database configuration ---
     try:
@@ -132,23 +148,37 @@ def create_app():
         if request.method == 'OPTIONS':
             origin = request.headers.get('Origin')
             
-            normalized_origin = origin.rstrip('/') if origin else None
-
-            if normalized_origin in [o.rstrip('/') for o in allowed_origins_list]:
-                response = make_response('')
-                response.headers['Access-Control-Allow-Origin'] = origin
-                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-                response.headers['Access-Control-Max-Age'] = '86400'
-                response.headers['Access-Control-Allow-Credentials'] = 'true'
+            if origin:
+                normalized_origin = origin.rstrip('/')
+                normalized_allowed = [o.rstrip('/') for o in allowed_origins_list]
                 
-                if app.debug: # Only print in debug mode
-                    print(f"DEBUG: Manually handled OPTIONS request from Origin: {origin} - Setting ACAO to: {origin}")
-                return response
-            else:
-                if app.debug: # Only print in debug mode
-                    print(f"DEBUG: OPTIONS request from disallowed origin: {origin}")
-                return make_response('CORS preflight failed: Origin not allowed', 403)
+                if normalized_origin in normalized_allowed:
+                    response = make_response('')
+                    response.headers['Access-Control-Allow-Origin'] = origin
+                    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+                    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+                    response.headers['Access-Control-Max-Age'] = '86400'
+                    response.headers['Access-Control-Allow-Credentials'] = 'true'
+                    
+                    if app.debug:
+                        print(f"DEBUG: OPTIONS request from {origin} - ALLOWED")
+                    return response
+                else:
+                    if app.debug:
+                        print(f"DEBUG: OPTIONS request from {origin} - DENIED")
+                        print(f"DEBUG: Allowed origins: {normalized_allowed}")
+                    return make_response('CORS preflight failed', 403)
+                
+    @app.route('/api/session-status', methods=['GET'])
+    def session_status():
+        return jsonify({
+            'session_id': session.get('_id', 'No session'),
+            'user_authenticated': current_user.is_authenticated if hasattr(current_user, 'is_authenticated') else False,
+            'session_permanent': session.permanent,
+            'cookie_secure': app.config['SESSION_COOKIE_SECURE'],
+            'cookie_samesite': app.config['SESSION_COOKIE_SAMESITE'],
+            'cookie_domain': app.config['SESSION_COOKIE_DOMAIN']
+        })
 
     # --- Initialize services ---
     from utils.ai_service import AIOutfitService
@@ -259,14 +289,49 @@ def create_app():
 
     @app.route('/api/check-auth', methods=['GET'])
     def check_auth():
-        if current_user.is_authenticated:
+        try:
+            # Check multiple authentication methods
+            auth_methods = {
+                'flask_login': current_user.is_authenticated,
+                'session_logged_in': session.get('logged_in', False),
+                'session_user_id': session.get('user_id') is not None,
+                'mobile_cookie': request.cookies.get('session_mobile_check') == 'active'
+            }
+            
+            # If any method confirms authentication, verify user exists
+            if any(auth_methods.values()):
+                user_id = None
+                if current_user.is_authenticated:
+                    user_id = current_user.id
+                elif session.get('user_id'):
+                    user_id = session.get('user_id')
+                
+                if user_id:
+                    user = User.query.get(user_id)
+                    if user:
+                        # Refresh session
+                        session.permanent = True
+                        session['user_id'] = user.id
+                        session['logged_in'] = True
+                        
+                        return jsonify({
+                            'authenticated': True,
+                            'user_id': user.id,
+                            'email': user.email,
+                            'auth_methods': auth_methods,
+                            'session_id': session.get('_id', 'unknown')
+                        })
+            
             return jsonify({
-                'authenticated': True,
-                'user_id': current_user.id,
-                'email': current_user.email
-            })
-        else:
-            return jsonify({'authenticated': False}), 401
+                'authenticated': False,
+                'auth_methods': auth_methods,
+                'session_id': session.get('_id', 'no_session')
+            }), 401
+            
+        except Exception as e:
+            if app.debug:
+                print(f"Check auth error: {str(e)}")
+            return jsonify({'authenticated': False, 'error': str(e)}), 401
 
     # ======================
     # AUTHENTICATION ROUTES
@@ -339,27 +404,110 @@ def create_app():
             user = User.query.filter_by(email=email).first()
             
             if user and check_password_hash(user.password_hash, password):
-                login_user(user, remember=True)
+                # Clear any existing session data
+                session.clear()
+                
+                # Set session as permanent BEFORE login_user
                 session.permanent = True
-                return jsonify({
+                
+                # Login user with remember=True for persistent sessions
+                login_user(user, remember=True)
+                
+                # Manually set session data for additional verification
+                session['user_id'] = user.id
+                session['logged_in'] = True
+                
+                response = jsonify({
                     'message': 'Login successful', 
                     'user_id': user.id,
-                    'email': user.email
+                    'email': user.email,
+                    'session_id': session.get('_id', 'generated')
                 })
+                
+                # For mobile compatibility, explicitly set cookie headers
+                if request.user_agent.platform in ['android', 'ios', 'iphone']:
+                    response.set_cookie(
+                        'session_mobile_check', 
+                        'active',
+                        max_age=timedelta(days=7),
+                        secure=app.config['SESSION_COOKIE_SECURE'],
+                        httponly=False,  # Allow JS to check this cookie
+                        samesite=app.config['SESSION_COOKIE_SAMESITE']
+                    )
+                
+                return response
             
             return jsonify({'error': 'Invalid credentials'}), 401
             
         except Exception as e:
-            if app.debug: # Only print in debug mode
+            if app.debug:
                 print(f"Login error: {str(e)}")
             return jsonify({'error': f'Login failed: {str(e)}'}), 500
 
+    @app.route('/api/refresh-session', methods=['POST'])
+    def refresh_session():
+        try:
+            if current_user.is_authenticated or session.get('logged_in'):
+                session.permanent = True
+                session.modified = True
+                
+                return jsonify({
+                    'message': 'Session refreshed',
+                    'user_id': current_user.id if current_user.is_authenticated else session.get('user_id'),
+                    'session_id': session.get('_id', 'refreshed')
+                })
+            else:
+                return jsonify({'error': 'Not authenticated'}), 401
+                
+        except Exception as e:
+            if app.debug:
+                print(f"Refresh session error: {str(e)}")
+            return jsonify({'error': 'Session refresh failed'}), 500
+
+    # 4. Add middleware to handle mobile-specific session issues
+    @app.before_request
+    def handle_mobile_session():
+        # Skip for static files and non-API routes
+        if not request.path.startswith('/api/') or request.path.startswith('/uploads/'):
+            return
+        
+        # Check if this is a mobile request
+        user_agent = request.user_agent
+        is_mobile = user_agent.platform in ['android', 'ios', 'iphone'] or 'Mobile' in str(user_agent)
+        
+        if is_mobile:
+            # For mobile, be more lenient with session validation
+            if not current_user.is_authenticated and session.get('logged_in'):
+                user_id = session.get('user_id')
+                if user_id:
+                    user = User.query.get(user_id)
+                    if user:
+                        login_user(user, remember=True)
+                        if app.debug:
+                            print(f"DEBUG: Re-authenticated mobile user {user.id}")
+
+    # 5. Enhanced logout for mobile
     @app.route('/api/logout', methods=['POST'])
-    @login_required
     def logout():
-        logout_user()
-        session.clear()
-        return jsonify({'message': 'Logged out successfully'})
+        try:
+            # Clear Flask-Login session
+            if current_user.is_authenticated:
+                logout_user()
+            
+            # Clear all session data
+            session.clear()
+            
+            response = jsonify({'message': 'Logged out successfully'})
+            
+            # Clear the mobile check cookie
+            response.set_cookie('session_mobile_check', '', expires=0)
+            
+            return response
+            
+        except Exception as e:
+            if app.debug:
+                print(f"Logout error: {str(e)}")
+            return jsonify({'error': 'Logout failed'}), 500
 
     # ======================
     # WARDROBE ROUTES

@@ -1,11 +1,6 @@
 import { create } from 'zustand';
-import axios from 'axios';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// Configure axios to always send credentials
-axios.defaults.withCredentials = true;
-axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 const useWardrobeStore = create((set, get) => ({
   user: null,
@@ -28,19 +23,63 @@ const useWardrobeStore = create((set, get) => ({
   intelligenceLoading: false,
   analyticsLoading: false,
 
-  // Auth actions (keep existing)
+  // Helper function to handle fetch responses and errors
+  // This centralizes error handling and JSON parsing
+  fetchApi: async (url, options = {}) => {
+    try {
+      const defaultHeaders = {
+        'Content-Type': 'application/json',
+      };
+
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...defaultHeaders,
+          ...options.headers, // Allow custom headers to override defaults
+        },
+        credentials: 'include', // IMPORTANT: Send cookies with cross-origin requests
+      });
+
+      if (response.status === 401) {
+        // Handle session expiration globally
+        set({ user: null, error: 'Session expired. Please login again.' });
+        localStorage.removeItem('wardrobeUser');
+        throw new Error('Unauthorized'); // Propagate error to specific action catch blocks
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown API error' }));
+        throw new Error(errorData.error || `API Error: ${response.status} ${response.statusText}`);
+      }
+
+      // Handle cases where response might be empty (e.g., DELETE, POST without content)
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      }
+      return {}; // Return empty object for non-JSON responses (e.g., 204 No Content)
+
+    } catch (error) {
+      console.error('API call error:', error);
+      // Re-throw to be caught by individual action's catch blocks
+      throw error; 
+    }
+  },
+
+  // Auth actions
   login: async (email, password) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post(`${API_BASE}/login`, { email, password });
-      const userData = { email, id: response.data.user_id };
+      const data = await get().fetchApi(`${API_BASE}/login`, {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      const userData = { email, id: data.user_id };
       set({ user: userData, loading: false });
-      
       localStorage.setItem('wardrobeUser', JSON.stringify(userData));
       return true;
     } catch (error) {
-      console.error('Login error:', error);
-      set({ error: error.response?.data?.error || 'Login failed', loading: false });
+      set({ error: error.message || 'Login failed', loading: false });
       return false;
     }
   },
@@ -48,24 +87,27 @@ const useWardrobeStore = create((set, get) => ({
   register: async (email, password, location) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post(`${API_BASE}/register`, { email, password, location });
-      const userData = { email, id: response.data.user_id };
+      const data = await get().fetchApi(`${API_BASE}/register`, {
+        method: 'POST',
+        body: JSON.stringify({ email, password, location }),
+      });
+      const userData = { email, id: data.user_id };
       set({ user: userData, loading: false });
-      
       localStorage.setItem('wardrobeUser', JSON.stringify(userData));
       return true;
     } catch (error) {
-      console.error('Register error:', error);
-      set({ error: error.response?.data?.error || 'Registration failed', loading: false });
+      set({ error: error.message || 'Registration failed', loading: false });
       return false;
     }
   },
 
   logout: async () => {
     try {
-      await axios.post(`${API_BASE}/logout`);
+      await get().fetchApi(`${API_BASE}/logout`, {
+        method: 'POST',
+      });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout error:', error); // Log, but don't block UI reset
     } finally {
       set({ 
         user: null, 
@@ -85,9 +127,11 @@ const useWardrobeStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
-      const response = await axios.get(`${API_BASE}/check-auth`);
-      if (response.data.authenticated) {
-        const userData = { email: response.data.email, id: response.data.user_id };
+      const data = await get().fetchApi(`${API_BASE}/check-auth`, {
+        method: 'GET',
+      });
+      if (data.authenticated) {
+        const userData = { email: data.email, id: data.user_id };
         set({ user: userData });
         localStorage.setItem('wardrobeUser', JSON.stringify(userData));
         return true;
@@ -101,6 +145,7 @@ const useWardrobeStore = create((set, get) => ({
       }
     } catch (error) {
       console.error('Auth check error:', error);
+      // The fetchApi helper handles 401, so we just clear local state if an error occurred
       set({ user: null });
       localStorage.removeItem('wardrobeUser');
       return false;
@@ -108,76 +153,56 @@ const useWardrobeStore = create((set, get) => ({
   },
 
   initUser: async () => {
-    const isAuthenticated = await get().checkAuth();
-    
-    if (!isAuthenticated) {
-      const storedUser = localStorage.getItem('wardrobeUser');
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          const isValid = await get().checkAuth();
-          if (!isValid) {
-            localStorage.removeItem('wardrobeUser');
-            set({ user: null });
-          }
-        } catch (error) {
-          console.error('Error parsing stored user:', error);
-          localStorage.removeItem('wardrobeUser');
-          set({ user: null });
-        }
-      }
-    }
+    // initUser now primarily relies on checkAuth to determine user status
+    await get().checkAuth();
+    // The rest of the logic in initUser is largely redundant if checkAuth is robust
+    // and correctly clears user/localStorage on 401 or network errors.
   },
 
-  // Existing wardrobe actions (keep all existing code)
+  // Existing wardrobe actions
   fetchWardrobe: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/get-wardrobe`);
-      set({ wardrobe: response.data.items, loading: false });
+      const data = await get().fetchApi(`${API_BASE}/get-wardrobe`, {
+        method: 'GET',
+      });
+      set({ wardrobe: data.items, loading: false });
     } catch (error) {
-      console.error('Fetch wardrobe error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch wardrobe', loading: false });
-      }
+      set({ error: error.message || 'Failed to fetch wardrobe', loading: false });
     }
   },
 
   addClothingItem: async (itemData) => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
-      const response = await axios.post(`${API_BASE}/add-item`, itemData);
-      const newItem = response.data.item;
+      const data = await get().fetchApi(`${API_BASE}/add-item`, {
+        method: 'POST',
+        body: JSON.stringify(itemData),
+      });
+      const newItem = data.item;
       set(state => ({
         wardrobe: [...state.wardrobe, newItem],
         loading: false
       }));
       
-      // Refresh intelligence data when wardrobe changes
       get().fetchSmartCollections();
       get().fetchWardrobeGaps();
       
       return true;
     } catch (error) {
-      console.error('Add item error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to add item', loading: false });
-      }
+      set({ error: error.message || 'Failed to add item', loading: false });
       return false;
     }
   },
 
   updateClothingItem: async (itemId, itemData) => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
-      const response = await axios.put(`${API_BASE}/update-item/${itemId}`, itemData);
-      const updatedItem = response.data.item;
+      const data = await get().fetchApi(`${API_BASE}/update-item/${itemId}`, {
+        method: 'PUT',
+        body: JSON.stringify(itemData),
+      });
+      const updatedItem = data.item;
       
       set(state => ({
         wardrobe: state.wardrobe.map(item => 
@@ -187,46 +212,37 @@ const useWardrobeStore = create((set, get) => ({
       }));
       return true;
     } catch (error) {
-      console.error('Update item error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to update item', loading: false });
-      }
+      set({ error: error.message || 'Failed to update item', loading: false });
       return false;
     }
   },
 
   deleteClothingItem: async (itemId) => {
     try {
-      await axios.delete(`${API_BASE}/delete-item/${itemId}`);
+      await get().fetchApi(`${API_BASE}/delete-item/${itemId}`, {
+        method: 'DELETE',
+      });
       
       set(state => ({
         wardrobe: state.wardrobe.filter(item => item.id !== itemId)
       }));
       
-      // Refresh intelligence data when wardrobe changes
       get().fetchSmartCollections();
       get().fetchWardrobeGaps();
       
       return true;
     } catch (error) {
-      console.error('Delete item error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to delete item' });
-      }
+      set({ error: error.message || 'Failed to delete item' });
       return false;
     }
   },
 
   toggleCleanStatus: async (itemId) => {
     try {
-      const response = await axios.patch(`${API_BASE}/toggle-clean/${itemId}`);
-      const updatedItem = response.data.item;
+      const data = await get().fetchApi(`${API_BASE}/toggle-clean/${itemId}`, {
+        method: 'PATCH',
+      });
+      const updatedItem = data.item;
       
       set(state => ({
         wardrobe: state.wardrobe.map(item => 
@@ -235,53 +251,42 @@ const useWardrobeStore = create((set, get) => ({
       }));
       return true;
     } catch (error) {
-      console.error('Toggle clean error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to update item status' });
-      }
+      set({ error: error.message || 'Failed to update item status' });
       return false;
     }
   },
 
-  // Laundry tracking actions (keep existing)
+  // Laundry tracking actions
   fetchLaundryAlerts: async () => {
-    set({ laundryLoading: true });
+    set({ laundryLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/laundry/alerts`);
-      set({ laundryAlerts: response.data, laundryLoading: false });
+      const data = await get().fetchApi(`${API_BASE}/laundry/alerts`, {
+        method: 'GET',
+      });
+      set({ laundryAlerts: data, laundryLoading: false });
     } catch (error) {
-      console.error('Fetch laundry alerts error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch laundry alerts', laundryLoading: false });
-      }
+      set({ error: error.message || 'Failed to fetch laundry alerts', laundryLoading: false });
     }
   },
 
   fetchWardrobeHealth: async () => {
-    set({ laundryLoading: true });
+    set({ laundryLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/laundry/health-score`);
-      set({ wardrobeHealth: response.data, laundryLoading: false });
+      const data = await get().fetchApi(`${API_BASE}/laundry/health-score`, {
+        method: 'GET',
+      });
+      set({ wardrobeHealth: data, laundryLoading: false });
     } catch (error) {
-      console.error('Fetch wardrobe health error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch wardrobe health', laundryLoading: false });
-      }
+      set({ error: error.message || 'Failed to fetch wardrobe health', laundryLoading: false });
     }
   },
 
   markItemsWashed: async (itemIds) => {
     try {
-      await axios.post(`${API_BASE}/laundry/mark-washed`, { item_ids: itemIds });
+      await get().fetchApi(`${API_BASE}/laundry/mark-washed`, {
+        method: 'POST',
+        body: JSON.stringify({ item_ids: itemIds }),
+      });
       
       set(state => ({
         wardrobe: state.wardrobe.map(item => 
@@ -302,21 +307,17 @@ const useWardrobeStore = create((set, get) => ({
       
       return true;
     } catch (error) {
-      console.error('Mark washed error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to mark items as washed' });
-      }
+      set({ error: error.message || 'Failed to mark items as washed' });
       return false;
     }
   },
 
   toggleLaundryStatus: async (itemId) => {
     try {
-      const response = await axios.patch(`${API_BASE}/laundry/toggle-status/${itemId}`);
-      const updatedItem = response.data.item;
+      const data = await get().fetchApi(`${API_BASE}/laundry/toggle-status/${itemId}`, {
+        method: 'PATCH',
+      });
+      const updatedItem = data.item;
       
       set(state => ({
         wardrobe: state.wardrobe.map(item => 
@@ -327,105 +328,83 @@ const useWardrobeStore = create((set, get) => ({
       get().fetchLaundryAlerts();
       return true;
     } catch (error) {
-      console.error('Toggle laundry status error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to update laundry status' });
-      }
+      set({ error: error.message || 'Failed to update laundry status' });
       return false;
     }
   },
 
-  // NEW: Intelligence actions
+  // Intelligence actions
   fetchSmartCollections: async () => {
-    set({ intelligenceLoading: true });
+    set({ intelligenceLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/intelligence/collections`);
-      set({ smartCollections: response.data, intelligenceLoading: false });
+      const data = await get().fetchApi(`${API_BASE}/intelligence/collections`, {
+        method: 'GET',
+      });
+      set({ smartCollections: data, intelligenceLoading: false });
     } catch (error) {
-      console.error('Fetch smart collections error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch smart collections', intelligenceLoading: false });
-      }
+      set({ error: error.message || 'Failed to fetch smart collections', intelligenceLoading: false });
     }
   },
 
   fetchWardrobeGaps: async () => {
-    set({ intelligenceLoading: true });
+    set({ intelligenceLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/intelligence/gaps`);
-      set({ wardrobeGaps: response.data, intelligenceLoading: false });
+      const data = await get().fetchApi(`${API_BASE}/intelligence/gaps`, {
+        method: 'GET',
+      });
+      set({ wardrobeGaps: data, intelligenceLoading: false });
     } catch (error) {
-      console.error('Fetch wardrobe gaps error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch wardrobe gaps', intelligenceLoading: false });
-      }
+      set({ error: error.message || 'Failed to fetch wardrobe gaps', intelligenceLoading: false });
     }
   },
 
-  // NEW: Analytics actions
+  // Analytics actions
   fetchUsageAnalytics: async () => {
-    set({ analyticsLoading: true });
+    set({ analyticsLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/analytics/usage`);
-      set({ usageAnalytics: response.data, analyticsLoading: false });
+      const data = await get().fetchApi(`${API_BASE}/analytics/usage`, {
+        method: 'GET',
+      });
+      set({ usageAnalytics: data, analyticsLoading: false });
     } catch (error) {
-      console.error('Fetch usage analytics error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch usage analytics', analyticsLoading: false });
-      }
+      set({ error: error.message || 'Failed to fetch usage analytics', analyticsLoading: false });
     }
   },
 
   fetchStyleDNA: async () => {
-    set({ analyticsLoading: true });
+    set({ analyticsLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/analytics/style-dna`);
-      set({ styleDNA: response.data, analyticsLoading: false });
+      const data = await get().fetchApi(`${API_BASE}/analytics/style-dna`, {
+        method: 'GET',
+      });
+      set({ styleDNA: data, analyticsLoading: false });
     } catch (error) {
-      console.error('Fetch style DNA error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch style DNA', analyticsLoading: false });
-      }
+      set({ error: error.message || 'Failed to fetch style DNA', analyticsLoading: false });
     }
   },
 
-  // Outfit actions (keep existing but update to refresh analytics)
+  // Outfit actions
   generateOutfit: async (mood) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.post(`${API_BASE}/get-outfit`, { mood });
-      set({ currentOutfit: response.data, loading: false });
+      const data = await get().fetchApi(`${API_BASE}/get-outfit`, {
+        method: 'POST',
+        body: JSON.stringify({ mood }),
+      });
+      set({ currentOutfit: data, loading: false });
     } catch (error) {
-      console.error('Generate outfit error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.', loading: false });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to generate outfit', loading: false });
-      }
+      set({ error: error.message || 'Failed to generate outfit', loading: false });
     }
   },
 
   saveOutfit: async (outfitData) => {
     try {
-      const response = await axios.post(`${API_BASE}/save-outfit`, outfitData);
+      const data = await get().fetchApi(`${API_BASE}/save-outfit`, {
+        method: 'POST',
+        body: JSON.stringify(outfitData),
+      });
       set(state => ({
-        outfitHistory: [response.data.outfit, ...state.outfitHistory]
+        outfitHistory: [data.outfit, ...state.outfitHistory]
       }));
       
       // Refresh all analytics when outfits are saved
@@ -437,30 +416,20 @@ const useWardrobeStore = create((set, get) => ({
       
       return true;
     } catch (error) {
-      console.error('Save outfit error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to save outfit' });
-      }
+      set({ error: error.message || 'Failed to save outfit' });
       return false;
     }
   },
 
   fetchOutfitHistory: async () => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE}/outfit-history`);
-      set({ outfitHistory: response.data.outfits, loading: false });
+      const data = await get().fetchApi(`${API_BASE}/outfit-history`, {
+        method: 'GET',
+      });
+      set({ outfitHistory: data.outfits, loading: false });
     } catch (error) {
-      console.error('Fetch history error:', error);
-      if (error.response?.status === 401) {
-        set({ user: null, error: 'Session expired. Please login again.', loading: false });
-        localStorage.removeItem('wardrobeUser');
-      } else {
-        set({ error: 'Failed to fetch outfit history', loading: false });
-      }
+      set({ error: error.message || 'Failed to fetch outfit history', loading: false });
     }
   },
 
