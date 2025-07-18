@@ -44,10 +44,28 @@ def create_app():
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'None' # <-- Change from 'Lax' to 'None'
+    # --- NEW: Explicitly set SESSION_COOKIE_DOMAIN ---
+    # This should be the common top-level domain for both frontend and backend
+    # For Render, this is typically '.onrender.com'
+    backend_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME') # Render provides this env var
+    if backend_hostname:
+        # Extract the base domain like '.onrender.com' from 'your-service.onrender.com'
+        parts = backend_hostname.split('.')
+        if len(parts) >= 2:
+            # This handles cases like 'your-service.onrender.com' -> '.onrender.com'
+            # or 'your-service.us-east-1.render.com' -> '.render.com' (if applicable)
+            app.config['SESSION_COOKIE_DOMAIN'] = f".{parts[-2]}.{parts[-1]}"
+        else:
+            # Fallback for very simple hostnames (e.g., 'localhost')
+            app.config['SESSION_COOKIE_DOMAIN'] = backend_hostname
+    else:
+        # Fallback for local development if RENDER_EXTERNAL_HOSTNAME isn't set
+        app.config['SESSION_COOKIE_DOMAIN'] = 'localhost'
 
     # Add debug prints to confirm the settings in production logs
-    print(f"DEBUG: SESSION_COOKIE_SECURE is explicitly set to {app.config['SESSION_COOKIE_SECURE']}")
-    print(f"DEBUG: SESSION_COOKIE_SAMESITE is explicitly set to '{app.config['SESSION_COOKIE_SAMESITE']}'")
+    print(f"DEBUG: SESSION_COOKIE_SECURE: {app.config['SESSION_COOKIE_SECURE']}")
+    print(f"DEBUG: SESSION_COOKIE_SAMESITE: '{app.config['SESSION_COOKIE_SAMESITE']}'")
+    print(f"DEBUG: SESSION_COOKIE_DOMAIN: '{app.config['SESSION_COOKIE_DOMAIN']}'")
 
     # --- Database configuration ---
     try:
