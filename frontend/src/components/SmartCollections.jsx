@@ -9,6 +9,9 @@ import {
   SparklesIcon
 } from '@heroicons/react/24/outline';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const backendRootUrl = API_BASE.replace('/api', '');
+
 const SmartCollections = () => {
   const { 
     smartCollections, 
@@ -111,7 +114,7 @@ const SmartCollections = () => {
                     <div key={item.id} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                       {item.image_url ? (
                         <img
-                          src={item.image_url.startsWith('http') ? item.image_url : `http://localhost:5000${item.image_url}`}
+                          src={item.image_url.startsWith('http') ? item.image_url : `${backendRootUrl}${item.image_url}`} 
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />

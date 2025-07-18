@@ -7,6 +7,9 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const backendRootUrl = API_BASE.replace('/api', '');
+
 const UsageAnalytics = () => {
   const { 
     usageAnalytics, 
@@ -120,7 +123,7 @@ const UsageAnalytics = () => {
                   <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                     {item.image_url ? (
                       <img
-                        src={item.image_url.startsWith('http') ? item.image_url : `http://localhost:5000${item.image_url}`}
+                        src={item.image_url.startsWith('http') ? item.image_url : `${backendRootUrl}${item.image_url}`} 
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />
@@ -156,7 +159,7 @@ const UsageAnalytics = () => {
                   <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                     {item.image_url ? (
                       <img
-                        src={item.image_url.startsWith('http') ? item.image_url : `http://localhost:5000${item.image_url}`}
+                        src={item.image_url.startsWith('http') ? item.image_url : `${backendRootUrl}${item.image_url}`}
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />
@@ -196,7 +199,7 @@ const UsageAnalytics = () => {
                     <div className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                       {item.image_url ? (
                         <img
-                          src={item.image_url.startsWith('http') ? item.image_url : `http://localhost:5000${item.image_url}`}
+                          src={item.image_url.startsWith('http') ? item.image_url : `${backendRootUrl}${item.image_url}`}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
@@ -232,7 +235,7 @@ const UsageAnalytics = () => {
                       <div className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                         {item.image_url ? (
                           <img
-                            src={item.image_url.startsWith('http') ? item.image_url : `http://localhost:5000${item.image_url}`}
+                            src={item.image_url.startsWith('http') ? item.image_url : `${backendRootUrl}${item.image_url}`}
                             alt={item.name}
                             className="w-full h-full object-cover"
                           />

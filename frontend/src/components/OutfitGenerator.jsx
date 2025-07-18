@@ -1,6 +1,9 @@
 import React from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const backendRootUrl = API_BASE.replace('/api', '');
+
 const OutfitGenerator = ({ outfit, mood }) => {
   const { saveOutfit, generateOutfit, loading } = useWardrobeStore();
 
@@ -23,7 +26,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return null;
     if (imageUrl.startsWith('http')) return imageUrl;
-    return `http://localhost:5000${imageUrl}`;
+    return `${backendRootUrl}${imageUrl}`; 
   };
 
   if (loading) {
