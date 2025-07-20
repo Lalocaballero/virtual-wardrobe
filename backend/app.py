@@ -118,16 +118,25 @@ def create_app():
             res.headers['Access-Control-Allow-Credentials'] = 'true'
             return res
         
-     # --- Cloudinary Configuration ---
-    # Make sure CLOUDINARY_URL is set in your Render environment variables
-    if 'CLOUDINARY_URL' in os.environ:
-        print("✅ Cloudinary configured")
-        cloudinary.config(
-        cloud_api_key = os.environ.get('CLOUDINARY_API_KEY'),
-        cloud_api_secret = os.environ.get('CLOUDINARY_API_SECRET'),
-        cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
-        secure=True
-        )    
+    # --- Cloudinary Configuration ---
+    # This is the new, more robust configuration block.
+    cloudinary_url = os.environ.get('CLOUDINARY_URL')
+    if cloudinary_url:
+        print("✅ CLOUDINARY_URL found, configuring...")
+        try:
+            # Parse the URL to extract the components
+            parsed_url = urlparse(cloudinary_url)
+            cloudinary.config(
+                cloud_name = parsed_url.hostname,
+                api_key = parsed_url.username,
+                api_secret = parsed_url.password,
+                secure=True
+            )
+            print("✅ Cloudinary configured successfully!")
+        except Exception as e:
+            print(f"⚠️ Failed to configure Cloudinary from URL: {e}")
+    else:
+        print("⚠️ CLOUDINARY_URL environment variable not found. Image uploads will fail.")    
 
     # --- Initialize services ---
     from utils.ai_service import AIOutfitService
