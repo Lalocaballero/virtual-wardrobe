@@ -112,13 +112,13 @@ const OutfitGenerator = ({ outfit, mood }) => {
         {outfit.items?.map(item => (
           <div key={item.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
             <div className="aspect-square bg-gray-100 relative">
-              {getImageUrl(item.image_url) ? (
+              {(item.image_url) ? (
                 <img
                   src={item.image_url}
                   alt={item.name}
                   className="h-full w-full object-cover"
                   onError={(e) => {
-                    console.error(`Failed to load image: ${getImageUrl(item.image_url)}`);
+                    console.error(`Failed to load image: ${(item.image_url)}`);
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'flex';
                   }}
@@ -126,7 +126,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
               ) : null}
               <div 
                 className="h-full w-full flex items-center justify-center text-gray-400"
-                style={{ display: getImageUrl(item.image_url) ? 'none' : 'flex' }}
+                style={{ display: (item.image_url) ? 'none' : 'flex' }}
               >
                 <svg className="h-8 w-8 md:h-16 md:w-16" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
