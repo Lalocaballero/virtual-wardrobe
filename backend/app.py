@@ -22,44 +22,47 @@ def create_app():
     app = Flask(__name__)
 
     # --- Application Configuration ---
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-    if not app.config['SECRET_KEY']:
-        print("WARNING: SECRET_KEY not set! Using a default. Set FLASK_SECRET_KEY in production.")
-        app.config['SECRET_KEY'] = 'a_fallback_secret_key_for_dev_only'
-
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_fallback_secret_key_for_dev_only')
     app.config['UPLOAD_FOLDER'] = 'uploads'
 
     # --- Session Configuration (CRITICAL for Cross-Site HTTPS) ---
-    is_production = os.environ.get('FLASK_ENV') == 'production' 
-    
-    app.config['SESSION_COOKIE_SECURE'] = True if is_production else False # MUST be True for HTTPS
+    is_production = os.environ.get('FLASK_ENV') == 'production'
+
     app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'None' # <-- CRITICAL: Set to 'None' for cross-site cookies
-    
-    # Set domain for production, or None for development/localhost
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+
+    # Use secure cookies in production, and a more relaxed policy for development
+    if is_production:
+        print("INFO: Configuring session for PRODUCTION environment.")
+        app.config['SESSION_COOKIE_SECURE'] = True
+        app.config['SESSION_COOKIE_SAMESITE'] = 'None' # Necessary for cross-domain requests over HTTPS
+    else:
+        print("INFO: Configuring session for DEVELOPMENT environment.")
+        app.config['SESSION_COOKIE_SECURE'] = False
+        app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # 'Lax' is best for localhost development
+
+    # Set cookie domain for production to allow sharing across subdomains
     backend_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
     if is_production and backend_hostname:
-        # Extract the base domain like '.onrender.com'
         parts = backend_hostname.split('.')
-        if len(parts) >= 2: # e.g., 'your-service.onrender.com'
-            app.config['SESSION_COOKIE_DOMAIN'] = f".{'.'.join(parts[-2:])}" 
+        if len(parts) >= 2:
+            app.config['SESSION_COOKIE_DOMAIN'] = f".{'.'.join(parts[-2:])}"
         else:
-            app.config['SESSION_COOKIE_DOMAIN'] = None # Don't set domain for simple hostnames
+            app.config['SESSION_COOKIE_DOMAIN'] = None
     else:
-        app.config['SESSION_COOKIE_DOMAIN'] = None # For local dev
+        app.config['SESSION_COOKIE_DOMAIN'] = None
 
-    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
-    
     @app.before_request
     def make_session_permanent():
         session.permanent = True
-        session.modified = True
-    
-    print(f"DEBUG: Production mode: {is_production}")
-    print(f"DEBUG: SESSION_COOKIE_SECURE: {app.config['SESSION_COOKIE_SECURE']}")
-    print(f"DEBUG: SESSION_COOKIE_SAMESITE: '{app.config['SESSION_COOKIE_SAMESITE']}'")
-    print(f"DEBUG: SESSION_COOKIE_DOMAIN: {app.config['SESSION_COOKIE_DOMAIN']}")
-    print(f"DEBUG: SESSION_LIFETIME: {app.config['PERMANENT_SESSION_LIFETIME']}")
+        
+    print("--- Session Cookie Configuration ---")
+    print(f"Production mode: {is_production}")
+    print(f"SESSION_COOKIE_SECURE: {app.config['SESSION_COOKIE_SECURE']}")
+    print(f"SESSION_COOKIE_SAMESITE: '{app.config['SESSION_COOKIE_SAMESITE']}'")
+    print(f"SESSION_COOKIE_DOMAIN: {app.config['SESSION_COOKIE_DOMAIN']}")
+    print("------------------------------------")
+
 
     # --- Database configuration ---
     try:
@@ -85,60 +88,28 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
-    # Removed login_manager.login_view as we handle unauthorized via API response
     
-    # --- CRITICAL: Custom unauthorized handler for API ---
     @login_manager.unauthorized_handler
     def unauthorized():
         return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
 
     # --- CORS Configuration ---
-    # Ensure FRONTEND_URL is set correctly on Render backend environment variables
-    frontend_url_base = os.environ.get('FRONTEND_URL') 
+    frontend_url_base = os.environ.get('FRONTEND_URL')
     
     allowed_origins_list = []
     if frontend_url_base:
         allowed_origins_list.append(frontend_url_base.rstrip('/'))
     
-    # Add localhost for local development only
-    if os.environ.get('FLASK_ENV') == 'development' or app.debug:
-        allowed_origins_list.append('http://localhost:3000')
-        allowed_origins_list.append('http://localhost:3001')
+    if not is_production:
+        allowed_origins_list.extend(['http://localhost:3000', 'http://localhost:3001'])
 
     if app.debug:
         print(f"CORS configured for origins: {allowed_origins_list}")
-        print(f"Type of allowed_origins: {type(allowed_origins_list)}")
 
     CORS(app, 
          origins=allowed_origins_list,
-         supports_credentials=True,
-         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
-         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
-
-    # --- Manual CORS Preflight Handler ---
-    @app.before_request
-    def handle_options_requests():
-        if request.method == 'OPTIONS':
-            origin = request.headers.get('Origin')
-            if origin:
-                normalized_origin = origin.rstrip('/')
-                normalized_allowed = [o.rstrip('/') for o in allowed_origins_list]
-                if normalized_origin in normalized_allowed:
-                    response = make_response('')
-                    response.headers['Access-Control-Allow-Origin'] = origin
-                    response.headers['Access-Control-Allow-Methods'] = 'GET, POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'
-                    response.headers['Access-Control-Allow-Headers'] = 'Content-Type', 'Authorization', 'X-Requested-With'
-                    response.headers['Access-Control-Max-Age'] = '86400'
-                    response.headers['Access-Control-Allow-Credentials'] = 'true'
-                    if app.debug:
-                        print(f"DEBUG: OPTIONS request from {origin} - ALLOWED")
-                    return response
-                else:
-                    if app.debug:
-                        print(f"DEBUG: OPTIONS request from {origin} - DENIED")
-                        print(f"DEBUG: Allowed origins: {normalized_allowed}")
-                    return make_response('CORS preflight failed', 403)
-                
+         supports_credentials=True)
+                  
     # --- Initialize services ---
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
