@@ -41,17 +41,6 @@ def create_app():
         app.config['SESSION_COOKIE_SECURE'] = False
         app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # 'Lax' is best for localhost development
 
-    # Set cookie domain for production to allow sharing across subdomains
-    backend_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-    if is_production and backend_hostname:
-        parts = backend_hostname.split('.')
-        if len(parts) >= 2:
-            app.config['SESSION_COOKIE_DOMAIN'] = f".{'.'.join(parts[-2:])}"
-        else:
-            app.config['SESSION_COOKIE_DOMAIN'] = None
-    else:
-        app.config['SESSION_COOKIE_DOMAIN'] = None
-
     @app.before_request
     def make_session_permanent():
         session.permanent = True
@@ -60,7 +49,6 @@ def create_app():
     print(f"Production mode: {is_production}")
     print(f"SESSION_COOKIE_SECURE: {app.config['SESSION_COOKIE_SECURE']}")
     print(f"SESSION_COOKIE_SAMESITE: '{app.config['SESSION_COOKIE_SAMESITE']}'")
-    print(f"SESSION_COOKIE_DOMAIN: {app.config['SESSION_COOKIE_DOMAIN']}")
     print("------------------------------------")
 
 
