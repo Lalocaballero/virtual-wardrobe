@@ -11,6 +11,9 @@ from collections import Counter
 import json
 import traceback
 import uuid
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Import db, User, ClothingItem, Outfit from models.
 from models import db, User, ClothingItem, Outfit
@@ -114,7 +117,18 @@ def create_app():
             res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
             res.headers['Access-Control-Allow-Credentials'] = 'true'
             return res
-              
+        
+     # --- Cloudinary Configuration ---
+    # Make sure CLOUDINARY_URL is set in your Render environment variables
+    if 'CLOUDINARY_URL' in os.environ:
+        print("✅ Cloudinary configured")
+        cloudinary.config(
+        cloud_api_key = os.environ.get('CLOUDINARY_API_KEY'),
+        cloud_api_secret = os.environ.get('CLOUDINARY_API_SECRET'),
+        cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        secure=True
+        )    
+
     # --- Initialize services ---
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
@@ -709,38 +723,37 @@ def create_app():
 
     @app.route('/api/upload-image', methods=['POST'])
     def upload_image():
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
         try:
-            if 'file' not in request.files:
-                return jsonify({'error': 'No file provided'}), 400
-            file = request.files['file']
-            if file.filename == '':
-                return jsonify({'error': 'No file selected'}), 400
-            if not allowed_file(file.filename):
-                return jsonify({'error': 'File type not allowed'}), 400
-            file.seek(0, os.SEEK_END)
-            file_size = file.tell()
-            file.seek(0)
-            if file_size > MAX_FILE_SIZE:
-                return jsonify({'error': 'File too large (max 5MB)'}), 400
-            file_extension = file.filename.rsplit('.', 1)[1].lower()
-            unique_filename = f"{uuid.uuid4().hex}_{int(datetime.now().timestamp())}.{file_extension}"
-            upload_folder = app.config['UPLOAD_FOLDER']
-            file_path = os.path.join(upload_folder, unique_filename)
-            file.save(file_path)
-            image_url = f"/uploads/{unique_filename}"
+            # Upload the file to Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                file,
+                folder="virtual-wardrobe", # Optional: organizes uploads in Cloudinary
+                transformation=[
+                    {'width': 1000, 'height': 1000, 'crop': 'limit'}, # Resize to max 1000x1000
+                    {'quality': 'auto'} # Automatically adjust quality to save space
+                ]
+            )
+            
+            # Cloudinary returns a secure URL (https://...)
+            secure_url = upload_result.get('secure_url')
+
             return jsonify({
-                'message': 'Image uploaded successfully',
-                'image_url': image_url,
-                'filename': unique_filename
+                'message': 'Image uploaded successfully to Cloudinary',
+                # IMPORTANT: We now return the full, absolute URL from Cloudinary
+                'image_url': secure_url, 
+                'filename': upload_result.get('public_id')
             })
+
         except Exception as e:
             if app.debug:
-                print(f"Upload error: {e}")
-            return jsonify({'error': 'Upload failed'}), 500
-
-    @app.route('/uploads/<filename>')
-    def uploaded_file(filename):
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+                print(f"Cloudinary Upload error: {e}")
+            return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
     return app
 
