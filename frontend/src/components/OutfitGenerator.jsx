@@ -23,12 +23,6 @@ const OutfitGenerator = ({ outfit, mood }) => {
     generateOutfit(mood);
   };
 
-  const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return null;
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return `${backendRootUrl}${imageUrl}`; 
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-48 md:h-64">
@@ -120,7 +114,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
             <div className="aspect-square bg-gray-100 relative">
               {getImageUrl(item.image_url) ? (
                 <img
-                  src={getImageUrl(item.image_url)}
+                  src={item.image_url}
                   alt={item.name}
                   className="h-full w-full object-cover"
                   onError={(e) => {

@@ -116,10 +116,10 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
         throw new Error(errorData.error || 'Upload failed');
       }
 
-      const data = await response.json();
-      
-      const backendRootUrl = API_BASE.replace('/api', '');
-      setPreview(`${backendRootUrl}${data.image_url}`);
+      const data = await response.json(); // data.image_url is now a full https://... URL
+
+      // Directly use the full URL from the response for both preview and saving
+      setPreview(data.image_url);
       
       if (onImageUploaded) {
         onImageUploaded(data.image_url);

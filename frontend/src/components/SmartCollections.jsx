@@ -114,7 +114,7 @@ const SmartCollections = () => {
                     <div key={item.id} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                       {item.image_url ? (
                         <img
-                          src={item.image_url.startsWith('http') ? item.image_url : `${backendRootUrl}${item.image_url}`} 
+                          src={item.image_url} 
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
