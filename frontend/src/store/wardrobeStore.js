@@ -79,7 +79,7 @@ const useWardrobeStore = create((set, get) => ({
       localStorage.setItem('wardrobeUser', JSON.stringify(userData));
       return true;
     } catch (error) {
-      set({ error: error.message || 'Login failed', loading: false });
+      set({ error: error.message || 'Looks like you are not registered. Try that again :)', loading: false });
       return false;
     }
   },
@@ -96,7 +96,7 @@ const useWardrobeStore = create((set, get) => ({
       localStorage.setItem('wardrobeUser', JSON.stringify(userData));
       return true;
     } catch (error) {
-      set({ error: error.message || 'Registration failed', loading: false });
+      set({ error: error.message || 'Opsi... There has been a problem, please try again.', loading: false });
       return false;
     }
   },
@@ -168,7 +168,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ wardrobe: data.items, loading: false });
     } catch (error) {
-      set({ error: error.message || 'Failed to fetch wardrobe', loading: false });
+      set({ error: error.message || 'Ups, we are having problems fetching your wardrobe.', loading: false });
     }
   },
 
@@ -190,7 +190,7 @@ const useWardrobeStore = create((set, get) => ({
       
       return true;
     } catch (error) {
-      set({ error: error.message || 'Failed to add item', loading: false });
+      set({ error: error.message || 'Give us a second, we are trying to add that item.', loading: false });
       return false;
     }
   },
@@ -212,7 +212,7 @@ const useWardrobeStore = create((set, get) => ({
       }));
       return true;
     } catch (error) {
-      set({ error: error.message || 'Failed to update item', loading: false });
+      set({ error: error.message || 'We are so sorry we run on squirrels.', loading: false });
       return false;
     }
   },
@@ -232,7 +232,7 @@ const useWardrobeStore = create((set, get) => ({
       
       return true;
     } catch (error) {
-      set({ error: error.message || 'Failed to delete item' });
+      set({ error: error.message || 'You sure you want to delete that item?' });
       return false;
     }
   },
@@ -251,7 +251,7 @@ const useWardrobeStore = create((set, get) => ({
       }));
       return true;
     } catch (error) {
-      set({ error: error.message || 'Failed to update item status' });
+      set({ error: error.message || 'Is it really clean?' });
       return false;
     }
   },
@@ -265,7 +265,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ laundryAlerts: data, laundryLoading: false });
     } catch (error) {
-      set({ error: error.message || 'Failed to fetch laundry alerts', laundryLoading: false });
+      set({ error: error.message || 'Looks like our pigeons got lost on the way.', laundryLoading: false });
     }
   },
 
@@ -277,7 +277,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ wardrobeHealth: data, laundryLoading: false });
     } catch (error) {
-      set({ error: error.message || 'Failed to fetch wardrobe health', laundryLoading: false });
+      set({ error: error.message || 'Sorry, we think your wardrobe is a bit sick.', laundryLoading: false });
     }
   },
 

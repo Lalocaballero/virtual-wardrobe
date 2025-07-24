@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 import { 
   SunIcon, 
   CloudIcon, 
@@ -22,6 +23,14 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('outfit');
   const [mood, setMood] = useState('casual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove(theme === 'light' ? 'dark' : 'light');
+    root.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+  
   const { 
     currentOutfit, 
     generateOutfit, 
@@ -30,6 +39,10 @@ const Dashboard = () => {
     laundryAlerts,
     usageAnalytics 
   } = useWardrobeStore();
+
+  const toggleTheme = () => {
+     setTheme(theme === 'light' ? 'dark' : 'light');
+  };
 
   const moodOptions = [
     { value: 'casual', label: 'Casual', emoji: '😌' },
@@ -129,7 +142,7 @@ const Dashboard = () => {
                 <BeakerIcon className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg md:text-2xl font-bold text-gray-900">Virtual Wardrobe</h1>
+                <h1 className="text-lg md:text-2xl font-bold text-gray-900">WeWear</h1>
                 <p className="text-xs text-gray-500 hidden sm:block">AI-Powered Style Intelligence</p>
               </div>
             </div>
@@ -157,6 +170,16 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {theme === 'light' ? (
+                  <MoonIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+                ) : (
+                  <SunIcon className="h-6 w-6 text-yellow-500" />
+                )}
+              </button>
 
               {/* Mobile Menu Toggle */}
               <button
