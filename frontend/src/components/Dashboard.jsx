@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 import { 
   SunIcon,
   MoonIcon, 
