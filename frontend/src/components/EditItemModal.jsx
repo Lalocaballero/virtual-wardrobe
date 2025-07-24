@@ -41,10 +41,10 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Item</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Item</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
@@ -77,7 +77,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
             
@@ -118,7 +118,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 type="text"
                 value={formData.color}
                 onChange={(e) => setFormData({...formData, color: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
@@ -168,7 +168,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 type="text"
                 value={formData.brand}
                 onChange={(e) => setFormData({...formData, brand: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
@@ -180,7 +180,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 type="text"
                 value={formData.fabric}
                 onChange={(e) => setFormData({...formData, fabric: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
@@ -227,7 +227,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                   onClick={() => handleMoodTagsChange(tag)}
                   className={`px-3 py-1 rounded-full text-sm border transition-colors ${
                     formData.mood_tags.includes(tag)
-                      ? 'bg-indigo-100 border-indigo-300 text-indigo-800'
+                      ? 'bg-indigo-100 border-indigo-300 text-indigo-800 dark:hover:bg-gray-600'
                       : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -249,7 +249,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center space-x-2"
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center space-x-2"
             >
               {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
               <span>{loading ? 'Saving...' : 'Save Changes'}</span>

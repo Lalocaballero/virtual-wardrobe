@@ -125,13 +125,13 @@ const Dashboard = () => {
     } else if (parseInt(badge) > 0) {
       return 'bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center';
     }
-    return 'bg-indigo-100 text-indigo-800 text-xs px-1.5 py-0.5 rounded-full';
+    return 'bg-indigo-100 text-indigo-800 text-xs px-1.5 py-0.5 dark:hover:bg-gray-600 rounded-full';
   };
 
   const activeTabData = tabs.find(tab => tab.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
+    <div className="min-h-screen pb-16 md:pb-0">
       {/* Mobile-First Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -142,8 +142,8 @@ const Dashboard = () => {
                 <BeakerIcon className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg md:text-2xl font-bold text-gray-900">WeWear</h1>
-                <p className="text-xs text-gray-500 hidden sm:block">AI-Powered Style Intelligence</p>
+                <h1 className="text-lg md:text-2xl font-bold">WeWear</h1>
+                <p className="text-xs  hidden sm:block dark:">AI-Powered Style Intelligence</p>
               </div>
             </div>
 
@@ -172,10 +172,10 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="btn .btn-primary"
               >
                 {theme === 'light' ? (
-                  <MoonIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+                  <MoonIcon className="h-6 w-6  dark:" />
                 ) : (
                   <SunIcon className="h-6 w-6 text-yellow-500" />
                 )}
@@ -184,19 +184,19 @@ const Dashboard = () => {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+                className="btn .btn-primary"
               >
                 {mobileMenuOpen ? (
-                  <XMarkIcon className="h-6 w-6 text-gray-600" />
+                  <XMarkIcon className="h-6 w-6 " />
                 ) : (
-                  <Bars3Icon className="h-6 w-6 text-gray-600" />
+                  <Bars3Icon className="h-6 w-6 " />
                 )}
               </button>
 
               {/* Desktop Logout */}
               <button
                 onClick={handleLogout}
-                className="hidden md:block bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
+                className="btn .btn-secondary"
               >
                 Logout
               </button>
@@ -216,8 +216,8 @@ const Dashboard = () => {
                     }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left ${
                       activeTab === tab.id
-                        ? 'bg-indigo-50 text-indigo-600'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-indigo-50 text-indigo-600 dark:hover:bg-gray-600'
+                        : ' hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -305,8 +305,8 @@ const Dashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-3 px-4 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap transition-colors ${
                   activeTab === tab.id
-                    ? 'border-indigo-500 text-indigo-600 bg-indigo-50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-indigo-500 text-indigo-600 bg-indigo-50 dark:hover:bg-gray-600'
+                    : 'border-transparent  hover: hover:border-gray-300'
                 }`}
               >
                 <tab.icon className="h-5 w-5" />
@@ -331,8 +331,8 @@ const Dashboard = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors min-w-0 flex-1 ${
                 activeTab === tab.id
-                  ? 'text-indigo-600 bg-indigo-50'
-                  : 'text-gray-500'
+                  ? 'text-indigo-600 bg-indigo-50 dark:hover:bg-gray-600'
+                  : ''
               }`}
             >
               <div className="relative">
@@ -351,7 +351,7 @@ const Dashboard = () => {
           {/* More button for remaining tabs */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center py-2 px-1 text-gray-500 min-w-0"
+            className="flex flex-col items-center py-2 px-1  min-w-0"
           >
             <Bars3Icon className="h-5 w-5" />
             <span className="text-xs mt-1">More</span>

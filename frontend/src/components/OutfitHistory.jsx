@@ -19,14 +19,14 @@ const OutfitHistory = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Outfit History</h2>
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Outfit History</h2>
       
       {outfitHistory.length === 0 ? (
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-gray-100">
             No saved outfits yet
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Generate and save some outfits to see them here!
           </p>
         </div>
@@ -36,10 +36,10 @@ const OutfitHistory = () => {
             <div key={outfit.id} className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {format(new Date(outfit.date), 'MMMM d, yyyy')}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-400">
                     {outfit.weather} • {outfit.mood} mood
                   </p>
                 </div>
@@ -66,14 +66,14 @@ const OutfitHistory = () => {
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-gray-600">{item.name}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{item.name}</p>
                   </div>
                 ))}
               </div>
               
               {outfit.reason_text && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-700">{outfit.reason_text}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-400">{outfit.reason_text}</p>
                 </div>
               )}
             </div>

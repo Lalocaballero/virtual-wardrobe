@@ -126,8 +126,8 @@ const WardrobeManager = () => {
       {/* Header with Search and Filter */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">My Wardrobe</h2>
-          <p className="text-gray-600">{wardrobe.length} items</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Wardrobe</h2>
+          <p className="text-gray-600 dark:text-gray-400">{wardrobe.length} items</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -139,7 +139,7 @@ const WardrobeManager = () => {
               placeholder="Search items..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
             />
           </div>
           
@@ -162,7 +162,7 @@ const WardrobeManager = () => {
           
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 whitespace-nowrap"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-600 whitespace-nowrap"
           >
             {showAddForm ? 'Cancel' : 'Add Item'}
           </button>
@@ -171,7 +171,7 @@ const WardrobeManager = () => {
 
       {/* Add Item Form - Keep existing form code */}
       {showAddForm && (
-        <div className="bg-white rounded-lg shadow-lg p-6 border">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border">
           <h3 className="text-lg font-medium text-gray-900 mb-6">Add New Item</h3>
           
           <form onSubmit={handleAddItem} className="space-y-6">
@@ -197,7 +197,7 @@ const WardrobeManager = () => {
                   required
                   value={newItem.name}
                   onChange={(e) => setNewItem({...newItem, name: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="e.g., Blue Denim Jacket"
                 />
               </div>
@@ -239,7 +239,7 @@ const WardrobeManager = () => {
                   type="text"
                   value={newItem.color}
                   onChange={(e) => setNewItem({...newItem, color: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="e.g., Navy Blue"
                 />
               </div>
@@ -290,7 +290,7 @@ const WardrobeManager = () => {
                   type="text"
                   value={newItem.brand}
                   onChange={(e) => setNewItem({...newItem, brand: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="e.g., Zara, H&M"
                 />
               </div>
@@ -303,7 +303,7 @@ const WardrobeManager = () => {
                   type="text"
                   value={newItem.fabric}
                   onChange={(e) => setNewItem({...newItem, fabric: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="e.g., Cotton, Wool, Polyester"
                 />
               </div>
@@ -322,7 +322,7 @@ const WardrobeManager = () => {
                     onClick={() => handleMoodTagsChange(tag)}
                     className={`px-3 py-1 rounded-full text-sm border transition-colors ${
                       newItem.mood_tags.includes(tag)
-                        ? 'bg-indigo-100 border-indigo-300 text-indigo-800'
+                        ? 'bg-indigo-100 border-indigo-300 dark:hover:bg-gray-600 text-indigo-800'
                         : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -336,7 +336,7 @@ const WardrobeManager = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center space-x-2"
+                className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center space-x-2"
               >
                 {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
                 <span>{loading ? 'Adding...' : 'Add Item'}</span>
@@ -406,7 +406,7 @@ const WardrobeManager = () => {
               
                   <div className="p-4">
                       <h3 className="font-medium text-gray-900 mb-1 truncate">{item.name}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{item.type} • {item.color}</p>
+                      <p className="text-sm text-gray-600 mb-2 dark:text-gray-400">{item.type} • {item.color}</p>
                 
                       <div className="flex justify-between items-center text-sm text-gray-500">
                           <span>{item.brand || 'No brand'}</span>
@@ -443,7 +443,7 @@ const WardrobeManager = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             {searchTerm || filterType !== 'all' ? 'No items match your filters' : 'Your wardrobe is empty'}
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 mb-4 dark:text-gray-400">
             {searchTerm || filterType !== 'all' 
               ? 'Try adjusting your search or filter criteria'
               : 'Add some clothes to start getting outfit suggestions!'
@@ -452,7 +452,7 @@ const WardrobeManager = () => {
           {!searchTerm && filterType === 'all' && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-600"
             >
               Add Your First Item
             </button>

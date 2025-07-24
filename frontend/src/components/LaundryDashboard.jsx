@@ -63,21 +63,21 @@ const LaundryDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">🧺 Smart Laundry Assistant</h2>
-        <p className="text-gray-600">Keep your wardrobe fresh and organized</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">🧺 Smart Laundry Assistant</h2>
+        <p className="text-gray-600 dark:text-gray-400">Keep your wardrobe fresh and organized</p>
       </div>
 
       {/* Wardrobe Health Score */}
       {wardrobeHealth && (
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 mb-4">
               <span className={`text-2xl font-bold ${getHealthScoreColor(wardrobeHealth.score)}`}>
                 {wardrobeHealth.score}
               </span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Wardrobe Health Score</h3>
-            <p className="text-gray-600 mb-4">{wardrobeHealth.message}</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2 dark:text-gray-100">Wardrobe Health Score</h3>
+            <p className="text-gray-600 mb-4 dark:text-gray-400">{wardrobeHealth.message}</p>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="text-center">
@@ -130,9 +130,9 @@ const LaundryDashboard = () => {
                     {item.wear_count_since_wash} wears
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">{item.type} • {item.color}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{item.type} • {item.color}</p>
                 {item.last_worn && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
                     Last worn: {new Date(item.last_worn).toLocaleDateString()}
                   </p>
                 )}
@@ -152,10 +152,10 @@ const LaundryDashboard = () => {
 
       {/* Laundry Load Suggestions */}
       {laundryAlerts?.laundry_suggestions && laundryAlerts.laundry_suggestions.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
           <div className="flex items-center space-x-3 mb-4">
             <SparklesIcon className="h-6 w-6 text-indigo-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Smart Laundry Loads</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Smart Laundry Loads</h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -176,7 +176,7 @@ const LaundryDashboard = () => {
                 <div className="text-sm text-gray-600 mb-3">
                   <p>Temperature: <span className="font-medium">{load.temperature}</span></p>
                   {load.special_care && (
-                    <p className="text-orange-600">⚠️ Requires special care</p>
+                    <p className="text-orange-600 dark:text-gray-400">⚠️ Requires special care</p>
                   )}
                 </div>
                 
@@ -195,7 +195,7 @@ const LaundryDashboard = () => {
                 
                 <button
                   onClick={() => handleMarkWashed(load.items.map(item => item.id))}
-                  className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 text-sm"
+                  className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-600 text-sm"
                 >
                   Start This Load
                 </button>
@@ -210,7 +210,7 @@ const LaundryDashboard = () => {
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <ClockIcon className="h-6 w-6 text-orange-600" />
-            <h3 className="text-lg font-semibold text-orange-900">
+            <h3 className="text-lg font-semibold text-orange-900 dark:text-gray-100">
               High Priority ({laundryAlerts.high_priority.length} items)
             </h3>
           </div>
@@ -234,12 +234,12 @@ const LaundryDashboard = () => {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <BoltIcon className="h-6 w-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-blue-900">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-gray-100">
               Forgotten Items ({laundryAlerts.overdue_items.length} items)
             </h3>
           </div>
           
-          <p className="text-blue-800 mb-4">
+          <p className="text-blue-800 mb-4 dark:text-gray-400">
             These items haven't been worn in over 30 days. Consider incorporating them into your outfits!
           </p>
           
@@ -258,7 +258,7 @@ const LaundryDashboard = () => {
           </div>
           
           {laundryAlerts.overdue_items.length > 8 && (
-            <p className="text-center text-blue-600 text-sm mt-3">
+            <p className="text-center text-blue-600 text-sm mt-3 dark:text-gray-400">
               +{laundryAlerts.overdue_items.length - 8} more items
             </p>
           )}
@@ -272,10 +272,10 @@ const LaundryDashboard = () => {
        wardrobeHealth?.score >= 90 && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
           <FaceSmileIcon className="h-12 w-12 text-green-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-green-900 mb-2">
+          <h3 className="text-lg font-semibold text-green-900 mb-2 dark:text-gray-100">
             Excellent Wardrobe Management! 🎉
           </h3>
-          <p className="text-green-800">
+          <p className="text-green-800 dark:text-gray-400">
             Your clothes are well-maintained and your wardrobe is in great shape. Keep it up!
           </p>
         </div>

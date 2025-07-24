@@ -2,18 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* 
+  --- 1. BASE STYLES using @layer base ---
+  Here we define the default look for basic HTML elements.
+  This is the perfect place for our global dark mode settings.
+*/
+@layer base {
+  /* Default background and text colors for the whole app */
+  body {
+    @apply bg-gray-50 text-gray-800; /* Light Mode */
+    @apply dark:bg-gray-900 dark:text-gray-300; /* Dark Mode */
+
+    /* Keep your original font settings */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Consistent heading styles */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 dark:text-white;
+  }
+
+  /* Consistent link styles */
+  a {
+    @apply text-indigo-600 hover:underline dark:text-indigo-400;
+  }
+
+  /* Default form input styles */
+  input, select, textarea {
+    @apply bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg;
+  }
+
+  /* Default checkbox styles */
+  [type='checkbox'] {
+    @apply h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-indigo-600 focus:ring-indigo-500;
+  }
+  
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* 
+  --- 2. REUSABLE COMPONENT CLASSES using @layer components ---
+  This is where we can create our own custom utility classes, like .btn
+  This is the CSS-based alternative to creating a <Button> component.
+*/
+@layer components {
+  /* Base button styles */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 whitespace-nowrap;
+  }
+
+  /* Button variants */
+  .btn-primary {
+    @apply btn bg-indigo-600 hover:bg-indigo-700 text-white;
+  }
+  .btn-secondary {
+    @apply btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200;
+  }
+  .btn-danger {
+    @apply btn bg-red-600 hover:bg-red-700 text-white;
+  }
+}
+
+
+/* 
+  --- 3. YOUR EXISTING CUSTOM UTILITIES AND ANIMATIONS ---
+  These can remain as they are. No changes needed here.
+*/
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 /* Custom animations */
@@ -30,17 +105,6 @@ code {
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
-}
-
-/* Loading spinner */
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -67,7 +131,6 @@ code {
   }
 }
 
-/* Gradient text */
 .gradient-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
@@ -75,20 +138,21 @@ code {
   background-clip: text;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+/* 
+  --- 4. DARK MODE AWARE SCROLLBAR ---
+  The ::-webkit-scrollbar pseudo-element doesn't work with Tailwind's `dark:` variant.
+  So we use a standard media query to detect the OS-level color scheme.
+*/
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
+/* Light mode scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track { background: #2d3748; } /* A dark gray */
+  ::-webkit-scrollbar-thumb { background: #4a5568; } /* A slightly lighter gray */
+  ::-webkit-scrollbar-thumb:hover { background: #718096; }
 }

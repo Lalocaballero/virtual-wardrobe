@@ -62,14 +62,14 @@ const SmartCollections = () => {
     return (
       <div className="text-center py-12">
         <SparklesIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-gray-100">
           Building Your Smart Collections
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 mb-4 dark:text-gray-400">
           Add more clothes and save some outfits to see intelligent collections!
         </p>
         <div className="bg-blue-50 rounded-lg p-4 max-w-md mx-auto">
-          <p className="text-sm text-blue-800">
+          <p className="text-sm text-blue-800 dark:text-gray-400">
             💡 Smart collections automatically organize your clothes by style, occasion, and usage patterns
           </p>
         </div>
@@ -81,8 +81,8 @@ const SmartCollections = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">🧠 Smart Collections</h2>
-        <p className="text-gray-600">AI-organized wardrobe based on your style patterns</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">🧠 Smart Collections</h2>
+        <p className="text-gray-600 dark:text-gray-400">AI-organized wardrobe based on your style patterns</p>
       </div>
 
       {/* Collections Grid */}
@@ -98,15 +98,15 @@ const SmartCollections = () => {
                 <div className="flex items-center space-x-3">
                   <IconComponent className="h-6 w-6" />
                   <div>
-                    <h3 className="font-semibold">{collection.name}</h3>
-                    <p className="text-sm opacity-90">{collection.count} items</p>
+                    <h3 className="font-semibold dark:text-gray-100">{collection.name}</h3>
+                    <p className="text-sm opacity-90 dark:text-gray-400">{collection.count} items</p>
                   </div>
                 </div>
               </div>
 
               {/* Collection Content */}
               <div className="p-4">
-                <p className="text-sm text-gray-600 mb-4">{collection.description}</p>
+                <p className="text-sm text-gray-600 mb-4 dark:text-gray-400">{collection.description}</p>
                 
                 {/* Item Preview Grid */}
                 <div className="grid grid-cols-4 gap-2 mb-4">
@@ -151,9 +151,9 @@ const SmartCollections = () => {
 
       {/* Collections Insights */}
       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-100">
-        <h3 className="font-semibold text-indigo-900 mb-3">🔍 Collection Insights</h3>
+        <h3 className="font-semibold text-indigo-900 mb-3 dark:text-gray-100">🔍 Collection Insights</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="bg-white rounded-lg p-3">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
             <div className="text-indigo-700 font-medium">Most Active Collection</div>
             <div className="text-gray-600">
               {Object.entries(smartCollections).reduce((max, [id, collection]) => {
@@ -162,7 +162,7 @@ const SmartCollections = () => {
               }, {}).name || 'No data yet'}
             </div>
           </div>
-          <div className="bg-white rounded-lg p-3">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
             <div className="text-indigo-700 font-medium">Largest Collection</div>
             <div className="text-gray-600">
               {Object.entries(smartCollections).reduce((max, [id, collection]) => 

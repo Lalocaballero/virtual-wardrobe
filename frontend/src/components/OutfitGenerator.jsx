@@ -41,15 +41,15 @@ const OutfitGenerator = ({ outfit, mood }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v6a2 2 0 002 2h4a2 2 0 002-2V5z" />
             </svg>
           </div>
-          <h3 className="text-lg md:text-xl font-medium text-gray-900 mb-4">
+          <h3 className="text-lg md:text-xl font-medium text-gray-900 mb-4 dark:text-gray-100">
             Ready to create your perfect outfit?
           </h3>
-          <p className="text-gray-600 mb-6 text-sm md:text-base">
+          <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm md:text-base">
             Select your mood and generate AI-powered style suggestions!
           </p>
         </div>
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 md:p-6 max-w-md mx-auto">
-          <p className="text-sm text-indigo-700 font-medium mb-2">💡 Pro Tips:</p>
+          <p className="text-sm text-indigo-700 font-medium mb-2 dark:text-gray-400">💡 Pro Tips:</p>
           <ul className="text-sm text-indigo-600 space-y-1 text-left">
             <li>• Add photos to your wardrobe items</li>
             <li>• Set your location for weather-based suggestions</li>
@@ -64,10 +64,10 @@ const OutfitGenerator = ({ outfit, mood }) => {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Weather & Mood Info - Mobile Optimized */}
-      <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-3 sm:space-y-0">
           <div className="flex-1">
-            <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Today's Outfit</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">Today's Outfit</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-sm text-gray-600">
               <div>
                 <span className="font-medium text-gray-700">Weather:</span> {outfit.weather}
@@ -96,7 +96,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
             </button>
             <button
               onClick={handleSaveOutfit}
-              className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center space-x-2 text-sm"
+              className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-600 flex items-center justify-center space-x-2 text-sm"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -148,7 +148,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
             </div>
             
             <div className="p-2 md:p-4">
-              <h3 className="font-medium text-gray-900 mb-1 truncate text-sm md:text-base">{item.name}</h3>
+              <h3 className="font-medium text-gray-900 mb-1 truncate text-sm md:text-base dark:text-gray-100">{item.name}</h3>
               <div className="text-xs md:text-sm text-gray-600 space-y-1">
                 <p>{item.color} • {item.style || 'No style'}</p>
                 <p className="text-gray-500 truncate">{item.brand || 'No brand'}</p>
@@ -189,8 +189,8 @@ const OutfitGenerator = ({ outfit, mood }) => {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-indigo-900 mb-2 text-sm md:text-base">Why this outfit works:</h3>
-                  <p className="text-indigo-800 leading-relaxed text-sm md:text-base">{outfit.suggestion.reasoning}</p>
+                  <h3 className="font-medium text-indigo-900 mb-2 text-sm md:text-base dark:text-gray-100">Why this outfit works:</h3>
+                  <p className="text-indigo-800 leading-relaxed text-sm md:text-base dark:text-gray-400">{outfit.suggestion.reasoning}</p>
                 </div>
               </div>
             </div>
@@ -205,8 +205,8 @@ const OutfitGenerator = ({ outfit, mood }) => {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-purple-900 mb-2 text-sm md:text-base">Style tips:</h3>
-                  <p className="text-purple-800 leading-relaxed text-sm md:text-base">{outfit.suggestion.style_notes}</p>
+                  <h3 className="font-medium text-purple-900 mb-2 text-sm md:text-base dark:text-gray-100">Style tips:</h3>
+                  <p className="text-purple-800 leading-relaxed text-sm md:text-base dark:text-gray-400">{outfit.suggestion.style_notes}</p>
                 </div>
               </div>
             </div>
