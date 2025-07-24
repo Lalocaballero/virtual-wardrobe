@@ -40,26 +40,20 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
   if (!item) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold  dark:text-white">Edit Item</h2>
-          <button
-            onClick={onClose}
-            className=" hover:"
-          >
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold">Edit Item</h2>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Image Upload */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
           <div>
-            <label className="block text-sm font-medium  mb-2">
-              Photo
-            </label>
+            <label className="block text-sm font-medium mb-2">Photo</label>
             <ImageUpload
               onImageUploaded={handleImageUpload}
               currentImage={formData.image_url}
@@ -67,29 +61,24 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Basic Info */}
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Item Name *
-              </label>
+              <label className="block text-sm font-medium mb-2">Item Name *</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Type *
-              </label>
+              <label className="block text-sm font-medium mb-2">Type *</label>
               <select
                 required
                 value={formData.type}
                 onChange={(e) => setFormData({...formData, type: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               >
                 <option value="">Select type</option>
                 <option value="shirt">Shirt</option>
@@ -111,25 +100,21 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Color
-              </label>
+              <label className="block text-sm font-medium mb-2">Color</label>
               <input
                 type="text"
                 value={formData.color}
                 onChange={(e) => setFormData({...formData, color: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Style
-              </label>
+              <label className="block text-sm font-medium mb-2">Style</label>
               <select
                 value={formData.style}
                 onChange={(e) => setFormData({...formData, style: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               >
                 <option value="">Select style</option>
                 <option value="casual">Casual</option>
@@ -144,13 +129,11 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Season
-              </label>
+              <label className="block text-sm font-medium mb-2">Season</label>
               <select
                 value={formData.season}
                 onChange={(e) => setFormData({...formData, season: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               >
                 <option value="all">All seasons</option>
                 <option value="spring">Spring</option>
@@ -161,37 +144,31 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Brand
-              </label>
+              <label className="block text-sm font-medium mb-2">Brand</label>
               <input
                 type="text"
                 value={formData.brand}
                 onChange={(e) => setFormData({...formData, brand: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Fabric
-              </label>
+              <label className="block text-sm font-medium mb-2">Fabric</label>
               <input
                 type="text"
                 value={formData.fabric}
                 onChange={(e) => setFormData({...formData, fabric: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium  mb-2">
-                Condition
-              </label>
+              <label className="block text-sm font-medium mb-2">Condition</label>
               <select
                 value={formData.condition}
                 onChange={(e) => setFormData({...formData, condition: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full"
               >
                 <option value="excellent">Excellent</option>
                 <option value="good">Good</option>
@@ -201,24 +178,19 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
           </div>
 
-          {/* Clean Status */}
           <div>
             <label className="flex items-center">
               <input
                 type="checkbox"
                 checked={formData.is_clean}
                 onChange={(e) => setFormData({...formData, is_clean: e.target.checked})}
-                className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
               />
-              <span className="ml-2 text-sm ">Item is clean</span>
+              <span className="ml-2 text-sm">Item is clean</span>
             </label>
           </div>
 
-          {/* Mood Tags */}
           <div>
-            <label className="block text-sm font-medium  mb-2">
-              Mood Tags
-            </label>
+            <label className="block text-sm font-medium mb-2">Mood Tags</label>
             <div className="flex flex-wrap gap-2">
               {moodTags.map(tag => (
                 <button
@@ -227,8 +199,8 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                   onClick={() => handleMoodTagsChange(tag)}
                   className={`px-3 py-1 rounded-full text-sm border transition-colors ${
                     formData.mood_tags.includes(tag)
-                      ? 'bg-indigo-100 border-indigo-300 text-indigo-800 dark:hover:bg-gray-600'
-                      : 'bg-gray-100 border-gray-300  hover:bg-gray-200'
+                      ? 'bg-indigo-100 border-indigo-300 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-700'
+                      : 'bg-gray-100 border-gray-300 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
                   }`}
                 >
                   {tag}
@@ -236,26 +208,23 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
               ))}
             </div>
           </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center space-x-2"
-            >
-              {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
-              <span>{loading ? 'Saving...' : 'Save Changes'}</span>
-            </button>
-          </div>
         </form>
+
+        {/* Buttons */}
+        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="btn btn-primary"
+          >
+            {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
+            <span>{loading ? 'Saving...' : 'Save Changes'}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
