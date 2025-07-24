@@ -202,7 +202,39 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-
+      
+      {/* --- Page-Specific Controls --- */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        {activeTab === 'outfit' && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="w-full sm:w-auto">
+              <label htmlFor="mood-select" className="sr-only">Select your mood</label>
+              <select
+                id="mood-select"
+                value={mood}
+                onChange={(e) => setMood(e.target.value)}
+                className="w-full" // The base input styles from index.css will apply
+              >
+                {moodOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.emoji} {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleGenerateOutfit}
+              disabled={loading}
+              // Here we use a special gradient button that doesn't fit our standard .btn classes
+              className="w-full sm:w-auto flex items-center justify-center px-6 py-2 rounded-lg font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
+              <span>{loading ? 'Generating...' : 'Generate Outfit'}</span>
+            </button>
+          </div>
+        )}
+      </div>
+      
       {/* --- Main Content --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         <div className="transition-all duration-300 ease-in-out">
