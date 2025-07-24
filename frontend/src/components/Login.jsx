@@ -13,7 +13,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (isLogin) {
       await login(formData.email, formData.password);
     } else {
@@ -22,20 +21,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    // The main background color is now inherited from the body tag in index.css
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold  dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
           </h2>
-          <p className="mt-2 text-center text-sm  ">
+          <p className="mt-2 text-center text-sm">
             Virtual Intelligent Wardrobe
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium ">
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
                 Email address
               </label>
               <input
@@ -43,14 +43,14 @@ const Login = () => {
                 name="email"
                 type="email"
                 required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500  rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full" // All styling comes from index.css
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
             </div>
             
             <div>
-              <label htmlFor="password" className="block text-sm font-medium ">
+              <label htmlFor="password" className="block text-sm font-medium mb-1">
                 Password
               </label>
               <input
@@ -58,7 +58,7 @@ const Login = () => {
                 name="password"
                 type="password"
                 required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500  rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full" // All styling comes from index.css
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
               />
@@ -66,7 +66,7 @@ const Login = () => {
 
             {!isLogin && (
               <div>
-                <label htmlFor="location" className="block text-sm font-medium ">
+                <label htmlFor="location" className="block text-sm font-medium mb-1">
                   Location (for weather)
                 </label>
                 <input
@@ -74,7 +74,7 @@ const Login = () => {
                   name="location"
                   type="text"
                   placeholder="e.g., New York, NY"
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500  dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full" // All styling comes from index.css
                   value={formData.location}
                   onChange={(e) => setFormData({...formData, location: e.target.value})}
                 />
@@ -83,7 +83,7 @@ const Login = () => {
           </div>
 
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-500/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
@@ -92,7 +92,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center btn btn-primary"
             >
               {loading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Sign up')}
             </button>
@@ -102,7 +102,8 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-indigo-600 hover:text-indigo-500"
+              // The default 'a' tag styling from index.css will apply here
+              className="font-medium"
             >
               {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
             </button>
