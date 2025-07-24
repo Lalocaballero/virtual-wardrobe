@@ -172,7 +172,7 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={toggleTheme}
-                className="btn .btn-primary"
+                className="btn btn-primary"
               >
                 {theme === 'light' ? (
                   <MoonIcon className="h-6 w-6  dark:" />
@@ -184,7 +184,7 @@ const Dashboard = () => {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="btn .btn-primary"
+                className="btn btn-primary"
               >
                 {mobileMenuOpen ? (
                   <XMarkIcon className="h-6 w-6 " />
@@ -196,7 +196,7 @@ const Dashboard = () => {
               {/* Desktop Logout */}
               <button
                 onClick={handleLogout}
-                className="btn .btn-secondary"
+                className="btn btn-secondary"
               >
                 Logout
               </button>
@@ -331,8 +331,8 @@ const Dashboard = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors min-w-0 flex-1 ${
                 activeTab === tab.id
-                  ? 'text-indigo-600 bg-indigo-50 dark:hover:bg-gray-600'
-                  : ''
+                  ? 'bg-indigo-100 text-indigo-700 dark:bg-gray-700 dark:text-indigo-400'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
               }`}
             >
               <div className="relative">

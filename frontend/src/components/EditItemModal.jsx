@@ -41,13 +41,13 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Item</h2>
+          <h2 className="text-xl font-semibold  dark:text-white">Edit Item</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className=" hover:"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -57,7 +57,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium  mb-2">
               Photo
             </label>
             <ImageUpload
@@ -69,7 +69,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Basic Info */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Item Name *
               </label>
               <input
@@ -77,12 +77,12 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Type *
               </label>
               <select
@@ -111,19 +111,19 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Color
               </label>
               <input
                 type="text"
                 value={formData.color}
                 onChange={(e) => setFormData({...formData, color: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Style
               </label>
               <select
@@ -144,7 +144,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Season
               </label>
               <select
@@ -161,31 +161,31 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Brand
               </label>
               <input
                 type="text"
                 value={formData.brand}
                 onChange={(e) => setFormData({...formData, brand: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Fabric
               </label>
               <input
                 type="text"
                 value={formData.fabric}
                 onChange={(e) => setFormData({...formData, fabric: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700   focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium  mb-2">
                 Condition
               </label>
               <select
@@ -210,13 +210,13 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 onChange={(e) => setFormData({...formData, is_clean: e.target.checked})}
                 className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
               />
-              <span className="ml-2 text-sm text-gray-700">Item is clean</span>
+              <span className="ml-2 text-sm ">Item is clean</span>
             </label>
           </div>
 
           {/* Mood Tags */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium  mb-2">
               Mood Tags
             </label>
             <div className="flex flex-wrap gap-2">
@@ -228,7 +228,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                   className={`px-3 py-1 rounded-full text-sm border transition-colors ${
                     formData.mood_tags.includes(tag)
                       ? 'bg-indigo-100 border-indigo-300 text-indigo-800 dark:hover:bg-gray-600'
-                      : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                      : 'bg-gray-100 border-gray-300  hover:bg-gray-200'
                   }`}
                 >
                   {tag}
@@ -242,7 +242,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              className="btn btn-secondary"
             >
               Cancel
             </button>

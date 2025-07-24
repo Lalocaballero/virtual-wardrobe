@@ -25,7 +25,7 @@ const UsageAnalytics = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        <span className="ml-3 text-gray-600">Crunching your style data...</span>
+        <span className="ml-3 ">Crunching your style data...</span>
       </div>
     );
   }
@@ -33,11 +33,11 @@ const UsageAnalytics = () => {
   if (!usageAnalytics) {
     return (
       <div className="text-center py-12">
-        <ChartBarIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <ChartBarIcon className="mx-auto h-12 w-12  mb-4" />
+        <h3 className="text-lg font-medium  mb-2">
           Building Your Style Analytics
         </h3>
-        <p className="text-gray-600 mb-4 dark:text-gray-400">
+        <p className=" mb-4 ">
           Save more outfits to see detailed usage patterns and insights!
         </p>
       </div>
@@ -59,8 +59,8 @@ const UsageAnalytics = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">📊 Usage Analytics</h2>
-        <p className="text-gray-600 dark:text-gray-400">Deep insights into your wardrobe patterns</p>
+        <h2 className="text-2xl font-bold  dark:text-white mb-2">📊 Usage Analytics</h2>
+        <p className=" ">Deep insights into your wardrobe patterns</p>
       </div>
 
       {/* Key Metrics */}
@@ -68,8 +68,8 @@ const UsageAnalytics = () => {
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm dark:text-gray-400">Utilization Rate</p>
-              <p className="text-2xl font-bold dark:text-gray-400">{efficiency_metrics?.utilization_rate || 0}%</p>
+              <p className="text-green-100 text-sm ">Utilization Rate</p>
+              <p className="text-2xl font-bold ">{efficiency_metrics?.utilization_rate || 0}%</p>
             </div>
             <ChartBarIcon className="h-8 w-8 text-green-200" />
           </div>
@@ -78,8 +78,8 @@ const UsageAnalytics = () => {
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm dark:text-gray-400">Avg Cost/Wear</p>
-              <p className="text-2xl font-bold dark:text-gray-400">${wardrobe_value?.average_cost_per_wear || 0}</p>
+              <p className="text-blue-100 text-sm ">Avg Cost/Wear</p>
+              <p className="text-2xl font-bold ">${wardrobe_value?.average_cost_per_wear || 0}</p>
             </div>
             <CurrencyDollarIcon className="h-8 w-8 text-blue-200" />
           </div>
@@ -88,8 +88,8 @@ const UsageAnalytics = () => {
         <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm dark:text-gray-400">Total Wears</p>
-              <p className="text-2xl font-bold dark:text-gray-400">{wardrobe_value?.total_wears || 0}</p>
+              <p className="text-purple-100 text-sm ">Total Wears</p>
+              <p className="text-2xl font-bold ">{wardrobe_value?.total_wears || 0}</p>
             </div>
             <TrophyIcon className="h-8 w-8 text-purple-200" />
           </div>
@@ -98,8 +98,8 @@ const UsageAnalytics = () => {
         <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100 text-sm dark:text-gray-400">Outfits/Week</p>
-              <p className="text-2xl font-bold dark:text-gray-400">{efficiency_metrics?.outfits_per_week || 0}</p>
+              <p className="text-orange-100 text-sm ">Outfits/Week</p>
+              <p className="text-2xl font-bold ">{efficiency_metrics?.outfits_per_week || 0}</p>
             </div>
             <ChartBarIcon className="h-8 w-8 text-orange-200" />
           </div>
@@ -109,10 +109,10 @@ const UsageAnalytics = () => {
       {/* Most & Least Worn Items */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Most Worn */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border p-6">
           <div className="flex items-center space-x-2 mb-4">
             <TrophyIcon className="h-5 w-5 text-yellow-600" />
-            <h3 className="font-semibold text-gray-900">🏆 Most Worn Items</h3>
+            <h3 className="font-semibold ">🏆 Most Worn Items</h3>
           </div>
           
           {most_worn_items && most_worn_items.length > 0 ? (
@@ -128,28 +128,28 @@ const UsageAnalytics = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      <div className="w-full h-full flex items-center justify-center  text-xs">
                         {item.type}
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{item.name}</div>
-                    <div className="text-sm text-gray-600">{item.wear_count} wears</div>
+                    <div className="font-medium ">{item.name}</div>
+                    <div className="text-sm ">{item.wear_count} wears</div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-sm dark:text-gray-400">Save some outfits to see your favorites!</p>
+            <p className=" text-sm ">Save some outfits to see your favorites!</p>
           )}
         </div>
 
         {/* Least Worn */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+        <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border p-6">
           <div className="flex items-center space-x-2 mb-4">
             <ExclamationTriangleIcon className="h-5 w-5 text-orange-600" />
-            <h3 className="font-semibold text-gray-900">💤 Underused Items</h3>
+            <h3 className="font-semibold ">💤 Underused Items</h3>
           </div>
           
           {least_worn_items && least_worn_items.length > 0 ? (
@@ -164,20 +164,20 @@ const UsageAnalytics = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      <div className="w-full h-full flex items-center justify-center  text-xs">
                         {item.type}
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{item.name}</div>
+                    <div className="font-medium ">{item.name}</div>
                     <div className="text-sm text-orange-600">Never worn - try it next!</div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-sm dark:text-gray-400">Great! You're using all your clothes well.</p>
+            <p className=" text-sm ">Great! You're using all your clothes well.</p>
           )}
         </div>
       </div>
@@ -186,10 +186,10 @@ const UsageAnalytics = () => {
       {best_value_items && best_value_items.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Best Value */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-2 mb-4">
               <CurrencyDollarIcon className="h-5 w-5 text-green-600" />
-              <h3 className="font-semibold text-gray-900">💚 Best Value Items</h3>
+              <h3 className="font-semibold ">💚 Best Value Items</h3>
             </div>
             
             <div className="space-y-3">
@@ -204,14 +204,14 @@ const UsageAnalytics = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                        <div className="w-full h-full flex items-center justify-center  text-xs">
                           {item.type}
                         </div>
                       )}
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900 text-sm">{item.name}</div>
-                      <div className="text-xs text-gray-600">{item.wear_count} wears</div>
+                      <div className="font-medium  text-sm">{item.name}</div>
+                      <div className="text-xs ">{item.wear_count} wears</div>
                     </div>
                   </div>
                   <div className="text-green-600 font-bold">${item.cost_per_wear}</div>
@@ -222,10 +222,10 @@ const UsageAnalytics = () => {
 
           {/* Worst Value */}
           {worst_value_items && worst_value_items.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+            <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border p-6">
               <div className="flex items-center space-x-2 mb-4">
                 <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
-                <h3 className="font-semibold text-gray-900">💸 Needs More Love</h3>
+                <h3 className="font-semibold ">💸 Needs More Love</h3>
               </div>
               
               <div className="space-y-3">
@@ -240,14 +240,14 @@ const UsageAnalytics = () => {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                          <div className="w-full h-full flex items-center justify-center  text-xs">
                             {item.type}
                           </div>
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900 text-sm">{item.name}</div>
-                        <div className="text-xs text-gray-600">{item.wear_count} wears</div>
+                        <div className="font-medium  text-sm">{item.name}</div>
+                        <div className="text-xs ">{item.wear_count} wears</div>
                       </div>
                     </div>
                     <div className="text-red-600 font-bold">${item.cost_per_wear}</div>
@@ -263,8 +263,8 @@ const UsageAnalytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Color Preferences */}
         {color_preferences && Object.keys(color_preferences).length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">🎨 Color Preferences</h3>
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border p-6">
+            <h3 className="font-semibold  mb-4">🎨 Color Preferences</h3>
             <div className="space-y-2">
               {Object.entries(color_preferences).slice(0, 5).map(([color, count]) => (
                 <div key={color} className="flex items-center justify-between">
@@ -275,7 +275,7 @@ const UsageAnalytics = () => {
                     ></div>
                     <span className="text-sm capitalize">{color}</span>
                   </div>
-                  <span className="text-sm text-gray-600">{count} wears</span>
+                  <span className="text-sm ">{count} wears</span>
                 </div>
               ))}
             </div>
@@ -284,8 +284,8 @@ const UsageAnalytics = () => {
 
         {/* Mood Preferences */}
         {mood_preferences && Object.keys(mood_preferences).length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">😊 Mood Patterns</h3>
+          <div className="bg-white dark:bg-gray-800  rounded-lg shadow-sm border p-6">
+            <h3 className="font-semibold  mb-4">😊 Mood Patterns</h3>
             <div className="space-y-2">
               {Object.entries(mood_preferences).map(([mood, count]) => (
                 <div key={mood} className="flex items-center justify-between">
@@ -299,7 +299,7 @@ const UsageAnalytics = () => {
                         }}
                       ></div>
                     </div>
-                    <span className="text-sm text-gray-600">{count}</span>
+                    <span className="text-sm ">{count}</span>
                   </div>
                 </div>
               ))}

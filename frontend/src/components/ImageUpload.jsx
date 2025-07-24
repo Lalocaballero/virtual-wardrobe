@@ -172,7 +172,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
           </button>
           {uploading && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-              <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2">
+              <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
                 <span className="text-sm">Uploading...</span>
               </div>
@@ -191,16 +191,16 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
           `}
         >
           <input {...getInputProps()} />
-          <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <PhotoIcon className="mx-auto h-12 w-12 " />
           <div className="mt-2">
             {isDragActive ? (
-              <p className="text-sm text-indigo-600 dark:text-gray-400">Drop the image here...</p>
+              <p className="text-sm text-indigo-600 ">Drop the image here...</p>
             ) : (
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm  ">
                   Drag & drop an image here, or click to select
                 </p>
-                <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
+                <p className="text-xs  mt-1 ">
                   PNG, JPG, GIF up to 5MB (will be compressed)
                 </p>
               </div>
@@ -209,7 +209,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
           {uploading && (
             <div className="mt-2 flex items-center justify-center">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-              <span className="ml-2 text-sm text-gray-600">Uploading...</span>
+              <span className="ml-2 text-sm ">Uploading...</span>
             </div>
           )}
         </div>
