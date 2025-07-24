@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
 import ImageUpload from './ImageUpload';
 import EditItemModal from './EditItemModal';
+import SkeletonCard from './SkeletonCard';
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon, 
@@ -107,6 +108,15 @@ const WardrobeManager = () => {
     const matchesType = filterType === 'all' || item.type === filterType;
     return matchesSearch && matchesType;
   });
+
+  const LoadingSkeleton = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Create an array of 8 items to map over for the skeleton */}
+        {[...Array(8)].map((_, index) => (
+            <SkeletonCard key={index} />
+        ))}
+    </div>
+);
 
   const clothingTypes = [...new Set(wardrobe.map(item => item.type))];
   const moodTags = ['casual', 'formal', 'sporty', 'cozy', 'elegant', 'trendy', 'vintage'];
@@ -336,89 +346,96 @@ const WardrobeManager = () => {
         </div>
       )}
 
-      {/* Enhanced Wardrobe Grid with Edit/Delete Actions */}
+      {/* Wardrobe Grid or Loading Skeleton */}
+  {loading && wardrobe.length === 0 ? (
+      // Show skeleton only on the initial load when the wardrobe is empty
+      <LoadingSkeleton />
+  ) : (
+      // Otherwise, show the actual wardrobe grid
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredWardrobe.map(item => (
-          <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group">
-            <div className="aspect-square bg-gray-100 relative">
-              {item.image_url ? (
-                <img
-                  src={item.image_url} 
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <PhotoIcon className="h-16 w-16" />
-                </div>
-              )}
-              
-              {/* Clean/Dirty Status - Clickable */}
-              <button
-                onClick={() => handleToggleClean(item.id)}
-                className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium transition-all hover:scale-105 ${
-                  item.is_clean 
-                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                    : 'bg-red-100 text-red-800 hover:bg-red-200'
-                }`}
-                title={`Click to mark as ${item.is_clean ? 'dirty' : 'clean'}`}
-              >
-                {item.is_clean ? (
-                  <><CheckCircleIcon className="h-3 w-3 inline mr-1" />Clean</>
-                ) : (
-                  <><XCircleIcon className="h-3 w-3 inline mr-1" />Dirty</>
-                )}
-              </button>
+          {filteredWardrobe.map(item => (
+              <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group">
+                  <div className="aspect-square bg-gray-100 relative">
+                      {item.image_url ? (
+                          <img
+                              src={item.image_url} 
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                          />
+                      ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <PhotoIcon className="h-16 w-16" />
+                          </div>
+                      )}
+                
+                      {/* Clean/Dirty Status - Clickable */}
+                      <button
+                          onClick={() => handleToggleClean(item.id)}
+                          className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium transition-all hover:scale-105 ${
+                              item.is_clean 
+                                  ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                                  : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          }`}
+                          title={`Click to mark as ${item.is_clean ? 'dirty' : 'clean'}`}
+                      >
+                          {item.is_clean ? (
+                              <><CheckCircleIcon className="h-3 w-3 inline mr-1" />Clean</>
+                          ) : (
+                              <><XCircleIcon className="h-3 w-3 inline mr-1" />Dirty</>
+                          )}
+                      </button>
 
-              {/* Action Buttons - Show on Hover */}
-              <div className="absolute bottom-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => setEditingItem(item)}
-                  className="p-2 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-md transition-all hover:scale-105"
-                  title="Edit item"
-                >
-                  <PencilIcon className="h-4 w-4 text-indigo-600" />
-                </button>
-                <button
-                  onClick={() => handleDeleteItem(item.id)}
-                  className="p-2 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-md transition-all hover:scale-105"
-                  title="Delete item"
-                >
-                  <TrashIcon className="h-4 w-4 text-red-600" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-4">
-              <h3 className="font-medium text-gray-900 mb-1 truncate">{item.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">{item.type} • {item.color}</p>
+                      {/* Action Buttons - Show on Hover */}
+                      <div className="absolute bottom-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                              onClick={() => setEditingItem(item)}
+                              className="p-2 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-md transition-all hover:scale-105"
+                              title="Edit item"
+                          >
+                              <PencilIcon className="h-4 w-4 text-indigo-600" />
+                          </button>
+                          <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="p-2 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-md transition-all hover:scale-105"
+                              title="Delete item"
+                          >
+                              <TrashIcon className="h-4 w-4 text-red-600" />
+                          </button>
+                      </div>
+                  </div>
               
-              <div className="flex justify-between items-center text-sm text-gray-500">
-                <span>{item.brand || 'No brand'}</span>
-                <span className="capitalize">{item.season}</span>
-              </div>
-              
-              {item.mood_tags && item.mood_tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {item.mood_tags.slice(0, 3).map(tag => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                  {item.mood_tags.length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                      +{item.mood_tags.length - 3}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+                  <div className="p-4">
+                      <h3 className="font-medium text-gray-900 mb-1 truncate">{item.name}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{item.type} • {item.color}</p>
+                
+                      <div className="flex justify-between items-center text-sm text-gray-500">
+                          <span>{item.brand || 'No brand'}</span>
+                          <span className="capitalize">{item.season}</span>
+                      </div>
+                
+                      {item.mood_tags && item.mood_tags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                              {item.mood_tags.slice(0, 3).map(tag => (
+                                  <span
+                                      key={tag}
+                                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                                  >
+                                      {tag}
+                                  </span>
+                              ))}
+                              {item.mood_tags.length > 3 && (
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                      +{item.mood_tags.length - 3}
+                                  </span>
+                              )}
+                          </div>
+                      )}
+                  </div>
+              </div> // This div closes the item card
+          ))} 
+          {/* ^^^ The closing parenthesis and curly brace for the .map() should be here! */}
       </div>
+  )}
 
       {filteredWardrobe.length === 0 && !loading && (
         <div className="text-center py-12">
