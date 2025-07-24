@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 import { 
-  SunIcon, 
+  SunIcon,
+  MoonIcon, 
   CloudIcon, 
   UserIcon, 
   SparklesIcon,
