@@ -125,11 +125,11 @@ class ClothingItem(db.Model):
         """Get intelligent wash recommendation based on item type and wear count"""
         # Default thresholds by clothing type
         thresholds = {
-            't-shirt': 2,
-            'shirt': 2,
-            'blouse': 2,
-            'tank-top': 2,
-            'dress': 2,
+            't-shirt': 1,
+            'shirt': 1,
+            'blouse': 1,
+            'tank-top': 1,
+            'dress': 1,
             'underwear': 1,
             'socks': 1,
             'workout': 1,
@@ -137,7 +137,7 @@ class ClothingItem(db.Model):
             'pants': 3,
             'shorts': 3,
             'skirt': 3,
-            'sweater': 4,
+            'sweater': 5,
             'jacket': 8,
             'coat': 10,
             'cardigan': 4,
