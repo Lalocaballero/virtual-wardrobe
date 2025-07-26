@@ -249,7 +249,7 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
-  toggleCleanStatus: async (itemId) => {
+toggleCleanStatus: async (itemId) => {
     try {
       const data = await get().fetchApi(`${API_BASE}/toggle-clean/${itemId}`, {
         method: 'PATCH',
@@ -261,12 +261,19 @@ const useWardrobeStore = create((set, get) => ({
           item.id === itemId ? updatedItem : item
         )
       }));
-      toast.success('Clean!');
+
+      if (updatedItem.is_clean) {
+        toast.success(`'${updatedItem.name}' is now clean! ✨`);
+      } else {
+        toast(`'${updatedItem.name}' marked as dirty. Time for a wash! 🧺`);
+      }
+      
       return true;
     } catch (error) {
       const errorMessage = error.message || 'Opsi dopsi... try that again please.';
-      set({ error: errorMessage, loading: false });
+      set({ error: errorMessage });
       toast.error(errorMessage);
+      return false;
     }
   },
 
@@ -286,17 +293,27 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
-  fetchWardrobeHealth: async () => {
+fetchWardrobeHealth: async () => {
     set({ laundryLoading: true, error: null });
     try {
       const data = await get().fetchApi(`${API_BASE}/laundry/health-score`, {
         method: 'GET',
       });
       set({ wardrobeHealth: data, laundryLoading: false });
-      toast.success('Your wardrobe health score is good to go!');
+
+      if (data && data.message) {
+        if (data.score >= 75) {
+          toast.success(data.message);
+        } else if (data.score >= 40) {
+          toast(data.message); 
+        } else {
+          toast.error(data.message); 
+        }
+      }
+
     } catch (error) {
       const errorMessage = error.message || 'Sorry, we think your wardrobe is a bit sick.';
-      set({ error: errorMessage, loading: false });
+      set({ error: errorMessage, laundryLoading: false });
       toast.error(errorMessage);
     }
   },
