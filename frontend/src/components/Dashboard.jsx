@@ -11,6 +11,7 @@ import {
   Bars3Icon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { Toaster } from 'react-hot-toast';
 import useWardrobeStore from '../store/wardrobeStore';
 import OutfitGenerator from './OutfitGenerator';
 import WardrobeManager from './WardrobeManager';
@@ -85,6 +86,34 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen pb-16 md:pb-0">
+      <Toaster
+      position="top-center"
+      reverseOrder={false}
+      toastOptions={{
+        // Define default options
+        className: '',
+        duration: 5000,
+        style: {
+          background: '#ffffff',
+          color: '#374151',
+        },
+        // Default options for specific types
+        success: {
+          duration: 3000,
+          theme: {
+            primary: 'green',
+            secondary: 'black',
+          },
+        },
+         // Style for dark mode
+        dark: {
+          style: {
+            background: '#1f2937', // gray-800
+            color: '#ffffff',
+          }
+        }
+      }}
+    />
       {/* --- Header --- */}
       <header className="bg-white dark:bg-gray-800/50 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="px-4 sm:px-6 lg:px-8">
