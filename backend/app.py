@@ -3,6 +3,7 @@ import os
 from flask import Flask, request, jsonify, send_from_directory, session, current_app, make_response
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse
@@ -20,6 +21,7 @@ from models import db, User, ClothingItem, Outfit
 
 # Initialize extensions globally
 login_manager = LoginManager()
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
@@ -65,9 +67,9 @@ def create_app():
             if app.debug:
                 print("✅ PostgreSQL database configured")
         else:
-            app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wardrobe.db'
-            if app.debug:
-                print("✅ SQLite database configured (DATABASE_URL not found)")
+            local_db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'wardrobe.db')
+            app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + local_db_path
+            print(f"✅ SQLite database configured for local development at: {local_db_path}")
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     except Exception as e:
         if app.debug:
@@ -77,6 +79,7 @@ def create_app():
 
     # Initialize extensions with the app instance
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
     

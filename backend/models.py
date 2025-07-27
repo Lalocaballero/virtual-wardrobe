@@ -1,5 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.types import JSON
 from datetime import datetime
 import json
 
@@ -17,7 +19,12 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     location = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    display_name = db.Column(db.String(80), nullable=True)
+    profile_image_url = db.Column(db.String(255), nullable=True)
+
+    settings = db.Column(JSON, nullable=True)
+
     # User preferences for laundry thresholds
     laundry_preferences = db.Column(db.Text)  # JSON string of preferences
     
@@ -120,54 +127,68 @@ class ClothingItem(db.Model):
         if not self.purchase_cost or not self.wear_count or self.wear_count == 0:
             return None
         return round(self.purchase_cost / self.wear_count, 2)
-    
-    def get_wash_recommendation(self):
-        """Get intelligent wash recommendation based on item type and wear count"""
-        # Default thresholds by clothing type
-        thresholds = {
-            't-shirt': 1,
-            'shirt': 1,
-            'blouse': 1,
-            'tank-top': 1,
-            'dress': 1,
-            'underwear': 1,
-            'socks': 1,
-            'workout': 1,
-            'jeans': 5,
-            'pants': 3,
-            'shorts': 3,
-            'skirt': 3,
-            'sweater': 5,
-            'jacket': 8,
-            'coat': 10,
-            'cardigan': 4,
-            'shoes': 20,  # Different meaning - more about cleaning
-            'accessories': 10
+
+    def get_laundry_thresholds(self):
+        """
+        Returns the user's custom thresholds, falling back to system defaults.
+        """
+        # System-wide default thresholds
+        default_thresholds = {
+            't-shirt': 1, 'shirt': 1, 'blouse': 1, 'tank-top': 1,
+            'dress': 1, 'underwear': 1, 'socks': 1, 'workout': 1,
+            'jeans': 5, 'pants': 3, 'shorts': 3, 'skirt': 3,
+            'sweater': 5, 'jacket': 8, 'coat': 10, 'cardigan': 4,
+            'shoes': 20, 'accessories': 10
         }
         
-        # Get threshold for this item type
-        threshold = thresholds.get(self.type.lower(), 3)
+        # If the user has saved custom settings, merge them with the defaults.
+        # The user's settings will override the defaults.
+        if self.settings and 'laundry_thresholds' in self.settings:
+            # Create a new dictionary starting with the defaults
+            user_thresholds = default_thresholds.copy()
+            # Update it with the user's custom values
+            user_thresholds.update(self.settings['laundry_thresholds'])
+            return user_thresholds
         
-        # Adjust based on fabric (if available)
+        # Otherwise, just return the system defaults
+        return default_thresholds
+    
+    def get_wash_recommendation(self):
+        """
+        Get intelligent wash recommendation based on item type, wear count, fabric,
+        and the owner's custom laundry thresholds.
+        """
+        
+        if not self.owner:
+            return 'none'
+            
+        thresholds = self.owner.get_laundry_thresholds()
+
+        threshold = thresholds.get(self.type.lower(), 3)
+      
         if self.fabric:
             fabric_lower = self.fabric.lower()
             if 'cotton' in fabric_lower and 'blend' not in fabric_lower:
-                threshold = max(1, threshold - 1)  # Pure cotton needs more frequent washing
+                threshold = max(1, threshold - 1) 
             elif 'wool' in fabric_lower:
-                threshold = threshold + 2  # Wool can go longer
+                threshold = threshold + 2
             elif 'synthetic' in fabric_lower or 'polyester' in fabric_lower:
-                threshold = max(1, threshold - 1)  # Synthetic holds odors
+                threshold = max(1, threshold - 1)
         
         wear_count = self.wear_count_since_wash or 0
         
-        # Calculate urgency
-        if wear_count >= threshold:
+        if threshold <= 0:
+            return 'none'
+
+        wear_percentage = (float(wear_count) / threshold) * 100
+        
+        if wear_percentage >= 100:
             return 'urgent'
-        elif wear_count >= threshold * 0.8:
+        elif wear_percentage >= 80:
             return 'high'
-        elif wear_count >= threshold * 0.6:
+        elif wear_percentage >= 60:
             return 'medium'
-        elif wear_count >= threshold * 0.4:
+        elif wear_percentage >= 40:
             return 'low'
         else:
             return 'none'
