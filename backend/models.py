@@ -31,6 +31,26 @@ class User(UserMixin, db.Model):
     # Relationships
     clothing_items = db.relationship('ClothingItem', backref='owner', lazy=True)
     outfits = db.relationship('Outfit', backref='user', lazy=True)
+    
+    def get_laundry_thresholds(self):
+        """
+        Returns the user's custom thresholds, falling back to system defaults.
+        """
+        # System-wide default thresholds
+        default_thresholds = {
+            't-shirt': 1, 'shirt': 1, 'blouse': 1, 'tank-top': 1,
+            'dress': 1, 'underwear': 1, 'socks': 1, 'workout': 1,
+            'jeans': 5, 'pants': 3, 'shorts': 3, 'skirt': 3,
+            'sweater': 5, 'jacket': 8, 'coat': 10, 'cardigan': 4,
+            'shoes': 20, 'accessories': 10
+        }
+        
+        if self.settings and 'laundry_thresholds' in self.settings:
+            user_thresholds = default_thresholds.copy()
+            user_thresholds.update(self.settings['laundry_thresholds'])
+            return user_thresholds
+        
+        return default_thresholds
 
 class ClothingItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
