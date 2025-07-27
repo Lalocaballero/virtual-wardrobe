@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  SunIcon,
-  MoonIcon, 
-  CloudIcon, 
-  UserIcon, 
-  SparklesIcon,
-  ChartBarIcon,
-  CubeIcon,
-  BeakerIcon,
-  Bars3Icon,
-  XMarkIcon
+  SunIcon, MoonIcon, CloudIcon, UserIcon, SparklesIcon,
+  ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Toaster } from 'react-hot-toast';
 import useWardrobeStore from '../store/wardrobeStore';
@@ -19,13 +11,15 @@ import OutfitHistory from './OutfitHistory';
 import LaundryDashboard from './LaundryDashboard';
 import SmartCollections from './SmartCollections';
 import UsageAnalytics from './UsageAnalytics';
+import UserProfile from './UserProfile';
 
 const Dashboard = () => {
   // --- State and Hooks ---
   const [activeTab, setActiveTab] = useState('outfit');
   const [mood, setMood] = useState('casual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   useEffect(() => {
     const root = window.document.documentElement;
@@ -34,7 +28,11 @@ const Dashboard = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
   
+  // Destructure all needed state and actions from the store
   const { 
+    user, // Get the basic user object for email display
+    profile, // Get the full profile for the profile image
+    fetchProfile, // Action to fetch the profile
     currentOutfit, 
     generateOutfit, 
     loading, 
@@ -43,11 +41,16 @@ const Dashboard = () => {
     usageAnalytics 
   } = useWardrobeStore();
 
-  // --- Helper Functions ---
-  const toggleTheme = () => {
-     setTheme(theme === 'light' ? 'dark' : 'light');
-  };
+  // --- CRITICAL FIX: Fetch profile data as soon as the user is logged in ---
+  useEffect(() => {
+    // If we have a user but no profile data yet, fetch it.
+    if (user && !profile) {
+      fetchProfile();
+    }
+  }, [user, profile, fetchProfile]); // This hook runs when the user logs in
 
+  // --- Helper Functions ---
+  const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
   const handleGenerateOutfit = () => generateOutfit(mood);
   const handleLogout = () => logout();
 
@@ -58,6 +61,7 @@ const Dashboard = () => {
   }
   
   const getBadgeStyle = (badge) => {
+    // ... no changes needed here, your function is perfect
     if (!badge) return '';
     if (badge === 'AI') return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1.5 py-0.5 rounded-full';
     if (badge === 'NEW') return 'bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full';
@@ -86,10 +90,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen pb-16 md:pb-0">
-      <Toaster
-      position="top-center"
-      reverseOrder={false}
-      toastOptions={{
+      <Toaster position="top-center" reverseOrder={false} toastOptions={{
         // Define default options
         className: '',
         duration: 5000,
@@ -118,8 +119,6 @@ const Dashboard = () => {
       <header className="bg-white dark:bg-gray-800/50 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 md:py-4">
-            
-            {/* Logo */}
             <div className="flex items-center space-x-2 md:space-x-3">
               <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-1.5 md:p-2 rounded-lg">
                 <BeakerIcon className="h-5 w-5 md:h-6 md:w-6 text-white" />
@@ -130,23 +129,34 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Header Buttons */}
             <div className="flex items-center space-x-2">
               <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                {theme === 'light' ? (
-                  <MoonIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-                ) : (
-                  <SunIcon className="h-6 w-6 text-yellow-500" />
-                )}
+                {theme === 'light' ? <MoonIcon className="h-6 w-6" /> : <SunIcon className="h-6 w-6 text-yellow-500" />}
               </button>
-
               <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 md:hidden">
                 {mobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
               </button>
 
-              <button onClick={handleLogout} className="hidden md:block btn btn-danger">
-                Logout
-              </button>
+              <div className="relative">
+                <button onClick={() => setProfileMenuOpen(!profileMenuOpen)} className="w-9 h-9 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+                  {/* --- CORRECTED LOGIC: Use `profile` object for the image --- */}
+                  {profile && profile.profile_image_url ? (
+                    <img src={profile.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserIcon className="h-6 w-6" />
+                  )}
+                </button>
+                {profileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-200 dark:border-gray-700 animate-fadeIn" onMouseLeave={() => setProfileMenuOpen(false)}>
+                    <div className="px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-700">
+                      <p className="font-semibold">Signed in as</p>
+                      <p className="truncate">{user?.email}</p>
+                    </div>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('profile'); setProfileMenuOpen(false); }} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">My Profile</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); setProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50">Logout</a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -272,6 +282,7 @@ const Dashboard = () => {
           {activeTab === 'collections' && <div className="animate-fadeIn"><SmartCollections /></div>}
           {activeTab === 'analytics' && <div className="animate-fadeIn"><UsageAnalytics /></div>}
           {activeTab === 'laundry' && <div className="animate-fadeIn"><LaundryDashboard /></div>}
+          {activeTab === 'profile' && <div className="animate-fadeIn"><UserProfile /></div>}
           {activeTab === 'history' && <div className="animate-fadeIn"><OutfitHistory /></div>}
         </div>
       </main>

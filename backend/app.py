@@ -339,7 +339,157 @@ def create_app():
             if app.debug:
                 print(f"Logout error: {str(e)}")
             return jsonify({'error': 'Logout failed'}), 500
+        
+    # ======================
+    # USER PROFILE ROUTES
+    # ======================
 
+    @app.route('/api/profile', methods=['GET'])
+    @login_required
+    def get_profile():
+        """Fetches all profile data for the currently logged-in user."""
+        try:
+            user = current_user
+            
+            # Calculate wardrobe statistics
+            wardrobe_stats = {
+                'total_items': ClothingItem.query.filter_by(user_id=user.id).count(),
+                'total_outfits': Outfit.query.filter_by(user_id=user.id).count(),
+                'items_never_worn': ClothingItem.query.filter_by(user_id=user.id, outfits=None).count()
+            }
+            
+            # Prepare the data to be sent to the frontend
+            profile_data = {
+                'id': user.id,
+                'email': user.email,
+                'display_name': user.display_name,
+                'profile_image_url': user.profile_image_url,
+                'location': user.location,
+                'laundry_thresholds': user.get_laundry_thresholds(),
+                'theme': user.settings.get('theme', 'light') if user.settings else 'light',
+                'wardrobe_stats': wardrobe_stats
+            }
+            return jsonify(profile_data)
+            
+        except Exception as e:
+            if app.debug:
+                print(f"Get profile error: {str(e)}")
+            return jsonify({'error': 'Failed to fetch profile data.'}), 500
+
+
+    @app.route('/api/profile', methods=['PUT'])
+    @login_required
+    def update_profile():
+        """Updates the profile data for the currently logged-in user."""
+        try:
+            user = current_user
+            data = request.get_json()
+
+            # Update basic fields
+            user.display_name = data.get('display_name', user.display_name)
+            user.profile_image_url = data.get('profile_image_url', user.profile_image_url)
+            user.location = data.get('location', user.location)
+            
+            # Handle all nested settings
+            settings_changed = False
+            if user.settings is None:
+                user.settings = {}
+                
+            if 'laundry_thresholds' in data:
+                user.settings['laundry_thresholds'] = data['laundry_thresholds']
+                settings_changed = True
+                
+            if 'theme' in data:
+                user.settings['theme'] = data.get('theme')
+                settings_changed = True
+
+            if settings_changed:
+                from sqlalchemy.orm.attributes import flag_modified
+                flag_modified(user, "settings")
+
+            db.session.commit()
+            return jsonify({'message': 'Profile updated successfully!'})
+
+        except Exception as e:
+            db.session.rollback()
+            if app.debug:
+                print(f"Update profile error: {str(e)}")
+            return jsonify({'error': f'Failed to update profile: {str(e)}'}), 500
+
+
+    @app.route('/api/profile/change-password', methods=['POST'])
+    @login_required
+    def change_password():
+        """Changes the password for the currently logged-in user."""
+        data = request.get_json()
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+
+        if not current_password or not new_password:
+            return jsonify({'error': 'Current and new passwords are required.'}), 400
+
+        if not check_password_hash(current_user.password_hash, current_password):
+            return jsonify({'error': 'Your current password does not match.'}), 401
+
+        current_user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        return jsonify({'message': 'Password changed successfully!'})
+
+
+    @app.route('/api/profile/export-data', methods=['GET'])
+    @login_required
+    def export_data():
+        """Generates and returns a JSON file of all the user's data."""
+        user = current_user
+        items = ClothingItem.query.filter_by(user_id=user.id).all()
+        outfits = Outfit.query.filter_by(user_id=user.id).all()
+        
+        data_export = {
+            "user_email": user.email,
+            "export_date": datetime.utcnow().isoformat(),
+            "profile_settings": user.settings,
+            "wardrobe_items": [item.to_dict() for item in items],
+            "outfit_history": [outfit.to_dict() for outfit in outfits]
+        }
+        
+        response = jsonify(data_export)
+        response.headers['Content-Disposition'] = f'attachment; filename=wewear_export_{user.id}_{datetime.utcnow().strftime("%Y%m%d")}.json'
+        return response
+
+
+    @app.route('/api/profile/delete-account', methods=['POST'])
+    @login_required
+    def delete_account():
+        """Deletes the account for the currently logged-in user."""
+        data = request.get_json()
+        password = data.get('password')
+
+        if not password:
+            return jsonify({'error': 'Password is required to delete your account.'}), 400
+        
+        if not check_password_hash(current_user.password_hash, password):
+            return jsonify({'error': 'Incorrect password.'}), 401
+
+        try:
+            user_to_delete = User.query.get(current_user.id)
+            if user_to_delete:
+                # Manually delete related items first if cascade is not fully trusted
+                Outfit.query.filter_by(user_id=user_to_delete.id).delete()
+                ClothingItem.query.filter_by(user_id=user_to_delete.id).delete()
+                
+                db.session.delete(user_to_delete)
+                db.session.commit()
+                logout_user()
+                return jsonify({'message': 'Your account and all associated data have been permanently deleted.'})
+            else:
+                return jsonify({'error': 'User not found.'}), 404
+                
+        except Exception as e:
+            db.session.rollback()
+            if app.debug:
+                print(f"Delete account error: {str(e)}")
+            return jsonify({'error': f'Failed to delete account: {str(e)}'}), 500
+        
     # ======================
     # WARDROBE ROUTES
     # ======================

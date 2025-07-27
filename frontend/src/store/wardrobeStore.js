@@ -10,7 +10,13 @@ const useWardrobeStore = create((set, get) => ({
   outfitHistory: [],
   loading: false,
   error: null,
-  
+  analyticsLoading: false,
+
+  // --- NEW PROFILE STATE ---
+  profile: null,
+  profileLoading: false,
+  // --- END NEW PROFILE STATE ---
+
   // Laundry tracking state
   laundryAlerts: null,
   wardrobeHealth: null,
@@ -164,6 +170,110 @@ const useWardrobeStore = create((set, get) => ({
     // and correctly clears user/localStorage on 401 or network errors.
   },
 
+  // ======================
+  // PROFILE ACTIONS
+  // ======================
+
+  fetchProfile: async () => {
+    set({ profileLoading: true });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/profile`, {
+        method: 'GET',
+      });
+      set({ profile: data, profileLoading: false });
+    } catch (error) {
+      const errorMessage = error.message || "Oops! We couldn't fetch your profile.";
+      set({ error: errorMessage, profileLoading: false });
+      toast.error(errorMessage);
+    }
+  },
+
+  updateProfile: async (profileData) => {
+    set({ profileLoading: true });
+    try {
+      await get().fetchApi(`${API_BASE}/profile`, {
+        method: 'PUT',
+        body: JSON.stringify(profileData),
+      });
+      // After updating, refetch the profile to get the latest data
+      await get().fetchProfile(); 
+      toast.success('Your profile has been updated!');
+    } catch (error) {
+      const errorMessage = error.message || 'There was a problem saving your profile.';
+      set({ error: errorMessage, profileLoading: false });
+      toast.error(errorMessage);
+    }
+  },
+
+  changePassword: async (passwordData) => {
+    try {
+      const data = await get().fetchApi(`${API_BASE}/profile/change-password`, {
+        method: 'POST',
+        body: JSON.stringify(passwordData),
+      });
+      toast.success(data.message || 'Password changed successfully!');
+      return true; // Indicate success
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to change password.';
+      toast.error(errorMessage);
+      return false; // Indicate failure
+    }
+  },
+
+  exportData: async () => {
+    try {
+      // fetchApi isn't ideal for file downloads, so we use a direct fetch
+      const response = await fetch(`${API_BASE}/profile/export-data`, {
+        method: 'GET',
+        credentials: 'include', // Don't forget to send cookies!
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export data.');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // Extract filename from response header if available, otherwise create one
+      const disposition = response.headers.get('content-disposition');
+      let filename = 'wewear_export.json';
+      if (disposition && disposition.indexOf('attachment') !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.success('Your data is downloading!');
+    } catch (error) {
+      const errorMessage = error.message || 'Could not export your data.';
+      toast.error(errorMessage);
+    }
+  },
+  
+  deleteAccount: async (password) => {
+    try {
+      const data = await get().fetchApi(`${API_BASE}/profile/delete-account`, {
+          method: 'POST',
+          body: JSON.stringify({ password: password }),
+      });
+      toast.success(data.message || 'Account deleted. We are sorry to see you go!');
+      // After deleting, force a logout to clear all state
+      get().logout(); 
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete account.';
+      toast.error(errorMessage);
+      return false;
+    }
+  },
+  
   // Existing wardrobe actions
   fetchWardrobe: async () => {
     set({ loading: true, error: null });
@@ -265,7 +375,7 @@ toggleCleanStatus: async (itemId) => {
       if (updatedItem.is_clean) {
         toast.success(`'${updatedItem.name}' is now clean! ✨`);
       } else {
-        toast(`'${updatedItem.name}' marked as dirty. Time for a wash! 🧺`);
+        toast(`'${updatedItem.name}' marked as dirty.`);
       }
       
       return true;
@@ -277,18 +387,26 @@ toggleCleanStatus: async (itemId) => {
     }
   },
 
-  // Laundry tracking actions
-  fetchLaundryAlerts: async () => {
+// --- Corrected pattern for fetchLaundryAlerts ---
+fetchLaundryAlerts: async () => {
     set({ laundryLoading: true, error: null });
     try {
       const data = await get().fetchApi(`${API_BASE}/laundry/alerts`, {
         method: 'GET',
       });
       set({ laundryAlerts: data, laundryLoading: false });
-      toast.success('Time to do the laundry.');
+
+      const urgentItemCount = data?.urgent_items?.length || 0;
+      const highPriorityCount = data?.high_priority?.length || 0;
+      const totalUrgentCount = urgentItemCount + highPriorityCount;
+
+      if (totalUrgentCount > 0) {
+        toast(`You have ${totalUrgentCount} items that need washing soon! 🧺`);
+      } 
+
     } catch (error) {
-      const errorMessage = error.message || 'Looks like our piggeons got lost in the way. Try that again please.';
-      set({ error: errorMessage, loading: false });
+      const errorMessage = error.message || 'Looks like our pigeons got lost on the way. Try that again please.';
+      set({ error: errorMessage, laundryLoading: false });
       toast.error(errorMessage);
     }
   },
