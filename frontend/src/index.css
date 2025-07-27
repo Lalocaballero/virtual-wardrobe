@@ -36,6 +36,18 @@
     @apply bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900  placeholder-gray-500 dark:placeholder-gray-400 rounded-lg;
   }
 
+  /* Default form input styles */
+  input, select, textarea {
+    /* --- ADD `border` TO THIS LINE --- */
+    @apply bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg; /* Light Mode */
+    
+    @apply dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400; /* Dark Mode */
+  }
+
+  p {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
   /* Default checkbox styles */
   [type='checkbox'] {
     @apply h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-indigo-600 focus:ring-indigo-500;

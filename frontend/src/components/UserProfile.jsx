@@ -186,7 +186,7 @@ const UserProfile = () => {
            <div>
               <h3 className="font-semibold">Export Your Data</h3>
               <p className="text-sm mb-2">Download a JSON file of all your wardrobe and outfit data.</p>
-              <button onClick={exportData} className="btn btn-secondary">
+              <button onClick={exportData} className="btn btn-secondary sm:min-w-[200px]">
                 <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                 Export Data
               </button>
@@ -194,7 +194,7 @@ const UserProfile = () => {
            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
              <h3 className="font-semibold text-red-600 dark:text-red-500">Delete Account</h3>
              <p className="text-sm mb-2">Permanently delete your account and all of your data. This action is irreversible.</p>
-             <button onClick={handleDeleteAccount} className="btn btn-danger">
+             <button onClick={handleDeleteAccount} className="btn btn-danger sm:min-w-[200px]">
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Delete My Account
               </button>
