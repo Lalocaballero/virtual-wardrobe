@@ -366,7 +366,7 @@ def create_app():
                 'profile_image_url': user.profile_image_url,
                 'location': user.location,
                 'laundry_thresholds': user.get_laundry_thresholds(),
-                'theme': user.settings.get('theme', 'light') if user.settings else 'light',
+                'theme': (user.settings or {}).get('theme', 'light'),
                 'wardrobe_stats': wardrobe_stats
             }
             return jsonify(profile_data)
