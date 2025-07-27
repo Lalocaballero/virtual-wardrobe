@@ -348,17 +348,32 @@ def create_app():
     @login_required
     def get_profile():
         """Fetches all profile data for the currently logged-in user."""
+        print("--- DEBUG: Entering get_profile ---")
         try:
             user = current_user
-            
+            print(f"--- DEBUG: User ID {user.id} found ---")
+
             # Calculate wardrobe statistics
-            wardrobe_stats = {
-                'total_items': ClothingItem.query.filter_by(user_id=user.id).count(),
-                'total_outfits': Outfit.query.filter_by(user_id=user.id).count(),
-                'items_never_worn': ClothingItem.query.filter_by(user_id=user.id, outfits=None).count()
-            }
+            print("--- DEBUG: Calculating stats... ---")
+            total_items = ClothingItem.query.filter_by(user_id=user.id).count()
+            print(f"--- DEBUG: Total items = {total_items} ---")
             
+            total_outfits = Outfit.query.filter_by(user_id=user.id).count()
+            print(f"--- DEBUG: Total outfits = {total_outfits} ---")
+
+            # This query is slightly different, let's check it carefully
+            items_never_worn = ClothingItem.query.filter_by(user_id=user.id, outfits=None).count()
+            print(f"--- DEBUG: Items never worn = {items_never_worn} ---")
+
+            wardrobe_stats = {
+                'total_items': total_items,
+                'total_outfits': total_outfits,
+                'items_never_worn': items_never_worn
+            }
+            print("--- DEBUG: Stats calculation complete ---")
+
             # Prepare the data to be sent to the frontend
+            print("--- DEBUG: Preparing profile data dictionary... ---")
             profile_data = {
                 'id': user.id,
                 'email': user.email,
@@ -369,13 +384,17 @@ def create_app():
                 'theme': (user.settings or {}).get('theme', 'light'),
                 'wardrobe_stats': wardrobe_stats
             }
+            print("--- DEBUG: Profile data dictionary created successfully ---")
+            
             return jsonify(profile_data)
             
         except Exception as e:
-            if app.debug:
-                print(f"Get profile error: {str(e)}")
+            # This will now print the full error to your logs
+            print(f"--- ERROR in get_profile: {str(e)} ---")
+            import traceback
+            traceback.print_exc() # This prints the full traceback
+            
             return jsonify({'error': 'Failed to fetch profile data.'}), 500
-
 
     @app.route('/api/profile', methods=['PUT'])
     @login_required
