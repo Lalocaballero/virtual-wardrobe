@@ -1,43 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import useWardrobeStore from './store/wardrobeStore';
-import Dashboard from './components/Dashboard';
+import LandingPage from './components/LandingPage';
 import Login from './components/Login';
-import './App.css';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  const { user, initUser, error } = useWardrobeStore();
-  const [isInitializing, setIsInitializing] = useState(true);
+  const { user, initUser } = useWardrobeStore();
 
+  // Check for user session on initial load
   useEffect(() => {
-    const initialize = async () => {
-      await initUser();
-      setIsInitializing(false);
-    };
-    
-    initialize();
+    initUser();
   }, [initUser]);
 
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="App">
-      {error && error.includes('Session expired') && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-          <p className="font-bold">Session Expired</p>
-          <p>Please log in again to continue.</p>
-        </div>
-      )}
-      {user ? <Dashboard /> : <Login />}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
+        <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+      </Routes>
+    </Router>
   );
 }
 
