@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import useWardrobeStore from './store/wardrobeStore';
 import LandingPage from './components/LandingPage';
