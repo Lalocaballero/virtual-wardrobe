@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { DashboardView } from '../assets/dashboard-view.webp'
+import { DashboardView } from '../frontend/src/assets/dashboard-view.webp'
 
 const LandingPage = () => {
   const currentYear = new Date().getFullYear();
