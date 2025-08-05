@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { DashboardView } from '../src/assets/dashboard-view.webp'
 
 const LandingPage = () => {
   const currentYear = new Date().getFullYear();
@@ -75,75 +76,18 @@ const LandingPage = () => {
             transition={{ duration: 1.0, delay: 0.5, ease: "easeOut" }}
             className="mt-12"
           >
-            <div className="relative mx-auto max-w-4xl">
-              {/* Phone Mockup */}
-              <div className="bg-gray-900 rounded-[3rem] p-4 shadow-2xl mx-auto w-80 md:w-96">
-                <div className="bg-white dark:bg-gray-100 rounded-[2.5rem] p-6 h-[600px] relative overflow-hidden">
-                  {/* Status Bar */}
-                  <div className="flex justify-between items-center mb-6 text-sm text-gray-800">
-                    <span className="font-semibold">9:41</span>
-                    <div className="flex space-x-1">
-                      <div className="w-4 h-2 bg-gray-300 rounded-full"></div>
-                      <div className="w-6 h-2 bg-gray-300 rounded-full"></div>
-                      <div className="w-6 h-2 bg-green-500 rounded-full"></div>
-                    </div>
-                  </div>
-                  
-                  {/* App Header */}
-                  <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold text-gray-800">Today's Outfit</h3>
-                    <p className="text-gray-600 text-sm">72°F, Partly Cloudy</p>
-                  </div>
-                  
-                  {/* Outfit Cards */}
-                  <div className="space-y-4">
-                    <div className="bg-indigo-50 rounded-2xl p-4 border-2 border-indigo-200">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-indigo-200 rounded-lg flex items-center justify-center">
-                          <span className="text-indigo-600 font-bold text-xs">👔</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">Navy Blazer</p>
-                          <p className="text-sm text-gray-600">Perfect for meetings</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-blue-50 rounded-2xl p-4 border-2 border-blue-200">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-blue-200 rounded-lg flex items-center justify-center">
-                          <span className="text-blue-600 font-bold text-xs">👕</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">White Oxford Shirt</p>
-                          <p className="text-sm text-gray-600">Classic & comfortable</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-purple-50 rounded-2xl p-4 border-2 border-purple-200">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-purple-200 rounded-lg flex items-center justify-center">
-                          <span className="text-purple-600 font-bold text-xs">👖</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">Dark Jeans</p>
-                          <p className="text-sm text-gray-600">Weather appropriate</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Action Button */}
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <Link to="/login" className="w-full bg-indigo-600 text-white rounded-xl py-3 font-semibold">
-                      I'll Wear This
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating Elements */}
+            <div className="relative mx-auto max-w-xl">
+              {/* 
+                This is where your beautiful screenshot goes.
+                The `shadow-2xl` and `rounded-2xl` classes give it a nice, clean look.
+              */}
+              <img 
+                src={DashboardView} // Using the image you imported at the top
+                alt="A preview of the WeWear application dashboard"
+                className="rounded-2xl shadow-2xl"
+              />
+
+              {/* We can still keep the cool floating elements! */}
               <motion.div
                 className="absolute -top-10 -left-10 w-20 h-20 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center"
                 animate={{ y: [0, -10, 0] }}
@@ -153,19 +97,11 @@ const LandingPage = () => {
               </motion.div>
               
               <motion.div
-                className="absolute -top-5 -right-10 w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center"
+                className="absolute -bottom-5 -right-10 w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center"
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <span className="text-xl">🌡️</span>
-              </motion.div>
-              
-              <motion.div
-                className="absolute -bottom-5 -left-5 w-14 h-14 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center"
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              >
-                <span className="text-lg">✨</span>
+                <span className="text-xl">✨</span>
               </motion.div>
             </div>
           </motion.div>
@@ -364,7 +300,7 @@ const LandingPage = () => {
               <Step 
                 number="1" 
                 title="Catalog Your Closet" 
-                description="Snap photos of your clothes or use our smart import feature to build your digital wardrobe in minutes."
+                description="Snap photos of your clothes to build your digital wardrobe in minutes."
                 delay={0.1}
               />
               <Step 
