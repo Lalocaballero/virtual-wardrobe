@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 import re
 import random
 import time
+from collections import Counter
 
 class AIOutfitService:
     def __init__(self, api_key: str):
@@ -14,7 +15,7 @@ class AIOutfitService:
             self.client_available = False
             print("⚠️  OpenAI API key not provided - using fallback outfit suggestions")
     
-    def generate_outfit_suggestion(self, wardrobe: List[Dict], weather: str, mood: str, recent_outfits: List[Dict] = None) -> Dict[str, Any]:
+    def generate_outfit_suggestion(self, wardrobe: List[Dict], weather: str, mood: str, season: str = "any", outfit_history: List[Dict] = None) -> Dict[str, Any]:
         """Generate outfit suggestion using OpenAI with enhanced prompting"""
         
         # Filter available (clean) items
@@ -33,14 +34,14 @@ class AIOutfitService:
             return self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
         
         # Create enhanced prompt with randomization
-        prompt = self._create_enhanced_outfit_prompt(available_items, weather, mood, recent_outfits)
+        prompt = self._create_enhanced_outfit_prompt(available_items, weather, mood, season, outfit_history)
         
         try:
             # Add randomization to temperature and other parameters
             temperature = random.uniform(0.7, 1.0)  # Vary temperature for different results
             
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": self._get_system_prompt()},
                     {"role": "user", "content": prompt}
@@ -79,49 +80,65 @@ class AIOutfitService:
             return self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
     
     def _get_system_prompt(self) -> str:
-        # Add variety to system prompt
-        style_focus = random.choice([
-            "Focus on color coordination and visual harmony",
-            "Emphasize comfort and practicality while maintaining style",
-            "Consider current fashion trends and seasonal appropriateness",
-            "Balance classic elements with modern touches",
-            "Prioritize versatility and mix-and-match potential"
-        ])
-        
-        return f"""You are a professional fashion stylist AI with expertise in:
-        - Color theory and coordination
-        - Seasonal and weather-appropriate dressing
-        - Style matching and outfit composition  
-        - Mood-based fashion choices
-        - Layering techniques
-        - Current fashion trends
-        
-        {style_focus}
-        
-        Your goal is to create stylish, practical, and weather-appropriate outfits that match the user's mood and available wardrobe items. Always consider comfort, practicality, and style balance.
-        
-        CREATE VARIETY: If asked multiple times, suggest different combinations and styling approaches.
-        
-        You must respond ONLY with valid JSON in the exact format specified."""
+        """Generates the comprehensive system prompt for the AI model."""
+        return """
+You are a highly intelligent, data-driven, and adaptive personal fashion stylist. Your name is WeWear AI. Your primary goal is to become a trusted style advisor for the user by learning their unique taste and providing brilliant, personalized outfit suggestions.
+
+**Your Core Task:**
+Analyze the user's request, their personal style profile (Style DNA), their outfit history, and their available wardrobe to create a stylish, practical, and appropriate outfit.
+
+**Understanding the Input You Will Receive:**
+
+You will be given a prompt with the following structure:
+
+1.  **OUTFIT REQUEST:** The user's immediate requirements for the outfit.
+    *   `Weather`: The current weather conditions. This is a critical factor.
+    *   `Mood`: The mood or occasion for the outfit (e.g., 'casual', 'professional', 'date night').
+    *   `Season`: The season the user wants an outfit for (e.g., 'Summer', 'Winter'). This is a HARD constraint.
+
+2.  **USER STYLE DNA:** A summary of the user's general preferences, calculated from their wardrobe and past choices.
+    *   `dominant_styles`: The styles the user wears most often.
+    *   `favorite_colors`: The colors that appear frequently in their wardrobe.
+    *   `preferred_brands`: Brands the user seems to favor.
+    *   **How to use this:** This is your primary guide to the user's overall taste. Prioritize items that match this profile.
+
+3.  **USER'S OUTFIT HISTORY:** Concrete examples of outfits the user has previously worn and liked.
+    *   **How to use this:** This is your most powerful learning tool. Analyze these combinations to understand what the user considers a good outfit. Identify patterns in how they pair items, styles, and colors. Use this as inspiration for new, similar combinations.
+
+4.  **AVAILABLE WARDROBE:** A categorized list of the user's currently available (clean) clothing items with detailed attributes.
+
+**Your Decision-Making Process (Hierarchy of Importance):**
+
+1.  **PRIORITY 1: Season & Weather (Non-negotiable):** The outfit MUST be appropriate for the specified `Season` and `Weather`. A winter coat is not for summer. Sandals are not for snow.
+2.  **PRIORITY 2: User's Personal Style (Crucial):** The outfit MUST align with the user's `STYLE DNA` and `OUTFIT HISTORY`. The suggestion should feel like it was made specifically for them. Refer to their dominant styles, colors, and past choices.
+3.  **PRIORITY 3: Mood & Occasion:** The `Mood` should refine the selection. A 'professional' outfit should be more formal than a 'casual' one, but still within the user's personal style.
+4.  **PRIORITY 4: Variety & Creativity:** While respecting the user's style, introduce some variety. Don't suggest the exact same outfit repeatedly. Use the `Special instruction` to guide your creativity.
+
+**Output Requirements:**
+You MUST respond ONLY with a valid JSON object. Do not include any text before or after the JSON. The JSON object must have the exact following structure:
+{
+    "selected_items": [array of integer item IDs],
+    "reasoning": "Detailed explanation of your choices. Explain HOW the outfit fits the user's Style DNA and History, and WHY it is appropriate for the season, weather, and mood.",
+    "style_notes": "Actionable styling tips (e.g., 'Tuck the shirt in', 'Roll up the sleeves', 'Consider adding a belt').",
+    "color_story": "A brief, evocative description of the color palette.",
+    "weather_notes": "Specific notes on how the outfit choice addresses the weather conditions.",
+    "confidence": 0.95
+}
+"""
     
-    def _create_enhanced_outfit_prompt(self, wardrobe: List[Dict], weather: str, mood: str, recent_outfits: List[Dict] = None) -> str:
-        # Get recently worn items
-        recent_items = []
-        if recent_outfits:
-            for outfit in recent_outfits[-5:]:  # Last 5 outfits
-                recent_items.extend([item['id'] for item in outfit.get('clothing_items', [])])
+    def _create_enhanced_outfit_prompt(self, wardrobe: List[Dict], weather: str, mood: str, season: str, outfit_history: List[Dict] = None) -> str:
+        # Get recently worn items to avoid repetition
+        recent_item_ids = []
+        if outfit_history:
+            for outfit in outfit_history[-5:]:  # Last 5 outfits
+                recent_item_ids.extend([item['id'] for item in outfit.get('clothing_items', [])])
         
         # Organize wardrobe by category for better AI understanding
         wardrobe_by_category = {
-            'tops': [],
-            'bottoms': [],
-            'outerwear': [],
-            'shoes': [],
-            'accessories': [],
-            'dresses': []
+            'tops': [], 'bottoms': [], 'outerwear': [],
+            'shoes': [], 'accessories': [], 'dresses': []
         }
-        
-        for item in wardrobe[:30]:  # Limit to prevent token overflow
+        for item in wardrobe:
             item_type = item['type'].lower()
             if item_type in ['shirt', 't-shirt', 'blouse', 'sweater', 'tank-top']:
                 wardrobe_by_category['tops'].append(item)
@@ -135,8 +152,38 @@ class AIOutfitService:
                 wardrobe_by_category['dresses'].append(item)
             else:
                 wardrobe_by_category['accessories'].append(item)
-        
-        # Create mood context with variations
+
+        # Get User's Style DNA
+        style_dna = self._get_style_dna(wardrobe, outfit_history)
+        style_dna_prompt_section = ""
+        if style_dna:
+            style_dna_prompt_section = f"USER STYLE DNA (for personalization):\n{json.dumps(style_dna, indent=2)}\n"
+
+        # --- NEW: Format Outfit History for Learning ---
+        history_prompt_section = ""
+        if outfit_history:
+            liked_outfits_examples = []
+            for outfit in outfit_history[-5:]: # Take last 5 approved outfits as examples
+                example = {
+                    "mood": outfit.get("mood"),
+                    "weather": outfit.get("weather"),
+                    "items": [
+                        {
+                            "name": item.get("name"),
+                            "type": item.get("type"),
+                            "style": item.get("style"),
+                            "color": item.get("color"),
+                        }
+                        for item in outfit.get("clothing_items", [])
+                    ],
+                }
+                liked_outfits_examples.append(example)
+
+            if liked_outfits_examples:
+                history_prompt_section = f"""USER'S OUTFIT HISTORY (Examples of what they like):
+{json.dumps(liked_outfits_examples, indent=2)}
+"""
+
         mood_contexts = {
             'casual': ['relaxed and comfortable', 'everyday and effortless', 'laid-back and easy-going'],
             'professional': ['workplace appropriate and polished', 'business attire with confidence', 'professional and sophisticated'],
@@ -147,64 +194,105 @@ class AIOutfitService:
             'elegant': ['sophisticated and refined', 'graceful and classy', 'timeless and polished'],
             'trendy': ['fashionable and current', 'stylish and modern', 'on-trend and fresh']
         }
-        
         mood_context = random.choice(mood_contexts.get(mood, ['general everyday wear']))
-        
-        # Add variety prompts
-        variety_instructions = [
-            "Try a different color combination than usual.",
-            "Experiment with layering techniques.",
-            "Consider unexpected but stylish pairings.",
-            "Focus on texture mixing for visual interest.",
+
+        variety_instruction = random.choice([
+            "Try a different color combination than usual.", "Experiment with layering techniques.",
+            "Consider unexpected but stylish pairings.", "Focus on texture mixing for visual interest.",
             "Think about proportion balance in the outfit."
-        ]
+        ])
         
-        variety_instruction = random.choice(variety_instructions)
-        
-        # Add timestamp for uniqueness
         timestamp = int(time.time())
+        item_fields_to_include = ['id', 'name', 'color', 'style', 'fabric', 'season', 'brand', 'mood_tags']
         
         prompt = f"""
 OUTFIT REQUEST #{timestamp}:
 Weather: {weather}
 Mood: {mood} ({mood_context})
-Recently worn items to avoid (IDs): {recent_items}
-Special instruction: {variety_instruction}
+Season: {season}
+
+{style_dna_prompt_section}
+{history_prompt_section}
+CONTEXT:
+- Recently worn items to avoid (IDs): {recent_item_ids}
+- Special instruction: {variety_instruction}
 
 AVAILABLE WARDROBE:
-Tops: {json.dumps([{k: v for k, v in item.items() if k in ['id', 'name', 'color', 'style', 'fabric']} for item in wardrobe_by_category['tops']], indent=2)}
-
-Bottoms: {json.dumps([{k: v for k, v in item.items() if k in ['id', 'name', 'color', 'style', 'fabric']} for item in wardrobe_by_category['bottoms']], indent=2)}
-
-Outerwear: {json.dumps([{k: v for k, v in item.items() if k in ['id', 'name', 'color', 'style', 'fabric']} for item in wardrobe_by_category['outerwear']], indent=2)}
-
-Shoes: {json.dumps([{k: v for k, v in item.items() if k in ['id', 'name', 'color', 'style']} for item in wardrobe_by_category['shoes']], indent=2)}
-
-Dresses: {json.dumps([{k: v for k, v in item.items() if k in ['id', 'name', 'color', 'style', 'fabric']} for item in wardrobe_by_category['dresses']], indent=2)}
-
-Accessories: {json.dumps([{k: v for k, v in item.items() if k in ['id', 'name', 'color', 'style']} for item in wardrobe_by_category['accessories']], indent=2)}
+Tops: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['tops']], indent=2)}
+Bottoms: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['bottoms']], indent=2)}
+Outerwear: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['outerwear']], indent=2)}
+Shoes: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['shoes']], indent=2)}
+Dresses: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['dresses']], indent=2)}
+Accessories: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['accessories']], indent=2)}
 
 REQUIREMENTS:
-1. Create a weather-appropriate outfit for {mood} mood
-2. AVOID recently worn items when possible  
-3. Ensure color coordination and style harmony
-4. Consider layering for weather conditions
-5. Include essential pieces (top + bottom OR dress, plus shoes)
-6. Add outerwear/accessories if weather/mood appropriate
-7. {variety_instruction}
-8. BE CREATIVE and suggest different combinations each time
+1. Create a weather-appropriate and SEASONALLY-APPROPRIATE outfit for a '{mood}' mood. The user's requested season is '{season}'.
+2. **Personalize the outfit based on the user's STYLE DNA and OUTFIT HISTORY.** This is crucial.
+3. AVOID recently worn items when possible (see IDs above).
+4. Ensure color coordination and style harmony.
+5. Consider layering for weather conditions.
+6. Include essential pieces (top + bottom OR dress, plus shoes).
+7. Add outerwear/accessories if weather/mood appropriate.
+8. {variety_instruction}
+9. BE CREATIVE and suggest different combinations each time.
 
 RESPONSE FORMAT (JSON only):
 {{
     "selected_items": [array of item IDs as integers],
-    "reasoning": "Detailed explanation of outfit choice, color coordination, and weather appropriateness",
-    "style_notes": "Specific styling tips, layering advice, or accessory suggestions", 
+    "reasoning": "Detailed explanation of outfit choice, how it fits the user's style DNA and history, and why it is appropriate for the season and weather.",
+    "style_notes": "Specific styling tips, layering advice, or accessory suggestions",
     "color_story": "Brief description of the color palette and why it works",
     "weather_notes": "How this outfit addresses the weather conditions",
     "confidence": 0.95
 }}
 """
         return prompt
+
+    def _get_style_dna(self, wardrobe: List[Dict], outfit_history: List[Dict]) -> Dict[str, Any]:
+        """Analyzes wardrobe and outfit history to create a user style profile."""
+
+        # Counters for different attributes
+        style_counter = Counter()
+        color_counter = Counter()
+        brand_counter = Counter()
+        fabric_counter = Counter()
+
+        # Analyze the entire wardrobe as a baseline
+        for item in wardrobe:
+            if item.get('style'):
+                style_counter[item['style']] += 1
+            if item.get('color'):
+                color_counter[item['color']] += 1
+            if item.get('brand'):
+                brand_counter[item['brand']] += 1
+            if item.get('fabric'):
+                fabric_counter[item['fabric']] += 1
+
+        # Give more weight to items that have been worn in outfits
+        if outfit_history:
+            for outfit in outfit_history:
+                for item in outfit.get('clothing_items', []):
+                    if item.get('style'):
+                        style_counter[item['style']] += 2 # Extra weight for worn items
+                    if item.get('color'):
+                        color_counter[item['color']] += 2
+                    if item.get('brand'):
+                        brand_counter[item['brand']] += 2
+                    if item.get('fabric'):
+                        fabric_counter[item['fabric']] += 2
+
+        # Construct the Style DNA profile
+        style_dna = {
+            "dominant_styles": [style for style, count in style_counter.most_common(3)],
+            "favorite_colors": [color for color, count in color_counter.most_common(3)],
+            "preferred_brands": [brand for brand, count in brand_counter.most_common(3)],
+            "common_fabrics": [fabric for fabric, count in fabric_counter.most_common(3)]
+        }
+
+        # Filter out empty lists
+        style_dna = {key: value for key, value in style_dna.items() if value}
+
+        return style_dna
 
     # Keep all other methods the same, but add randomization to fallback
     def _enhanced_fallback_outfit_suggestion(self, available_items: List[Dict], weather: str, mood: str) -> Dict[str, Any]:

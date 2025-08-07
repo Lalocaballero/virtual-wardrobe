@@ -644,6 +644,8 @@ def create_app():
         try:
             data = request.get_json()
             mood = data.get('mood', 'casual')
+            season = data.get('season', 'any') # Get season from request, default to 'any'
+
             wardrobe_items = ClothingItem.query.filter_by(user_id=current_user.id).all()
             wardrobe = [item.to_dict() for item in wardrobe_items]
             if not wardrobe:
@@ -662,15 +664,19 @@ def create_app():
                 weather_data = weather_service.get_current_weather(current_user.location)
                 weather_str = weather_service.get_weather_description(weather_data)
                 weather_advice = weather_service.get_outfit_weather_advice(weather_data)
-            recent_outfits = Outfit.query.filter_by(user_id=current_user.id)\
-                                     .filter(Outfit.date >= datetime.utcnow() - timedelta(days=7))\
-                                     .order_by(Outfit.date.desc()).all()
-            recent_outfits_data = [outfit.to_dict() for outfit in recent_outfits]
+
+            # Fetch recent "liked" outfits to help the AI learn
+            outfit_history = Outfit.query.filter_by(user_id=current_user.id, was_actually_worn=True)\
+                                       .order_by(Outfit.date.desc())\
+                                       .limit(20).all()
+            outfit_history_data = [outfit.to_dict() for outfit in outfit_history]
+
             suggestion = ai_service.generate_outfit_suggestion(
                 wardrobe=wardrobe,
                 weather=weather_str,
                 mood=mood,
-                recent_outfits=recent_outfits_data
+                season=season,
+                outfit_history=outfit_history_data
             )
             suggested_items = []
             for item_id in suggestion.get('selected_items', []):
