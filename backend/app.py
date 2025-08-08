@@ -730,11 +730,15 @@ def create_app():
     @login_required
     def get_outfit_history():
         try:
+            # Get filter parameters from request arguments
             start_date_str = request.args.get('start_date')
             end_date_str = request.args.get('end_date')
+            year = request.args.get('year', type=int)
+            month = request.args.get('month', type=int)
 
             query = Outfit.query.filter_by(user_id=current_user.id)
 
+            # Date range filter (for list view)
             if start_date_str:
                 start_date = datetime.strptime(start_date_str.split('T')[0], '%Y-%m-%d')
                 query = query.filter(Outfit.date >= start_date)
@@ -743,11 +747,19 @@ def create_app():
                 end_date = datetime.strptime(end_date_str.split('T')[0], '%Y-%m-%d')
                 end_of_day = end_date + timedelta(days=1)
                 query = query.filter(Outfit.date < end_of_day)
+            
+            # Month and Year filter (for calendar view)
+            if year and month:
+                from sqlalchemy import extract
+                query = query.filter(
+                    extract('year', Outfit.date) == year,
+                    extract('month', Outfit.date) == month
+                )
 
             query = query.order_by(Outfit.date.desc())
 
-            # If filtering by date, don't paginate. Otherwise, do.
-            if start_date_str or end_date_str:
+            # If any filter is applied, return all results without pagination
+            if start_date_str or end_date_str or (year and month):
                 outfits = query.all()
                 return jsonify({
                     'outfits': [outfit.to_dict() for outfit in outfits],
@@ -756,6 +768,7 @@ def create_app():
                     'current_page': 1
                 })
             else:
+                # Default paginated view
                 page = request.args.get('page', 1, type=int)
                 per_page = request.args.get('per_page', 10, type=int)
                 paginated_outfits = query.paginate(page=page, per_page=per_page, error_out=False)
