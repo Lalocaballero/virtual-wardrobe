@@ -598,17 +598,22 @@ fetchWardrobeHealth: async () => {
 
   fetchOutfitHistory: async (filters = {}) => {
     set({ loading: true, error: null });
-    const { startDate, endDate } = filters;
+    const { startDate, endDate, year, month } = filters;
     try {
       const params = new URLSearchParams();
       if (startDate) {
-        // Format date to YYYY-MM-DD
         params.append('start_date', startDate.toISOString().split('T')[0]);
       }
       if (endDate) {
-        // Format date to YYYY-MM-DD
         params.append('end_date', endDate.toISOString().split('T')[0]);
       }
+      if (year) {
+        params.append('year', year);
+      }
+      if (month) {
+        params.append('month', month);
+      }
+
       const queryString = params.toString();
       const url = `${API_BASE}/outfit-history${queryString ? `?${queryString}` : ''}`;
       
@@ -618,6 +623,7 @@ fetchWardrobeHealth: async () => {
 
       set({ outfitHistory: data.outfits, loading: false });
       
+      // Only show toast for manual date range filtering, not for calendar navigation
       if (startDate || endDate) {
         toast.success(`Showing ${data.outfits.length} outfits for the selected range.`);
       }
