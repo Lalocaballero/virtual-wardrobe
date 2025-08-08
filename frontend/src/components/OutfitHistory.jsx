@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { format, parse, startOfWeek, getDay, startOfDay } from 'date-fns';
 import useWardrobeStore from '../store/wardrobeStore';
 import { PhotoIcon, CalendarIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import DatePicker from 'react-datepicker';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import OutfitDetailModal from './OutfitDetailModal'; // Import the new modal
 import "react-datepicker/dist/react-datepicker.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import toast from 'react-hot-toast';
@@ -20,22 +21,34 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-const CustomOutfitEvent = ({ event }) => (
-  <div className="h-full w-full flex items-center justify-center overflow-hidden">
-    {event.outfit.clothing_items && event.outfit.clothing_items.length > 0 ? (
-      <img 
-        src={event.outfit.clothing_items[0].image_url} 
-        alt={event.outfit.clothing_items[0].name}
-        className="h-full w-full object-cover"
-      />
-    ) : (
-      <span className="text-xs p-1">{event.title}</span>
+// Updated event component to show a gallery for a day's outfits
+const CustomDayEvent = ({ event }) => (
+  <div className="h-full w-full grid grid-cols-2 gap-0.5 p-0.5">
+    {event.outfits.slice(0, 4).map(outfit => (
+       <div key={outfit.id} className="h-full w-full bg-gray-200 dark:bg-gray-700 rounded-sm overflow-hidden">
+        {outfit.clothing_items && outfit.clothing_items.length > 0 && outfit.clothing_items[0].image_url ? (
+          <img 
+            src={outfit.clothing_items[0].image_url} 
+            alt={outfit.clothing_items[0].name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center">
+            <CalendarIcon className="h-4 w-4 text-gray-400" />
+          </div>
+        )}
+      </div>
+    ))}
+    {event.outfits.length > 4 && (
+      <div className="h-full w-full flex items-center justify-center bg-gray-300 dark:bg-gray-600 rounded-sm">
+        <span className="text-xs font-bold">+{event.outfits.length - 4}</span>
+      </div>
     )}
   </div>
 );
 
+
 const ListView = ({ outfits }) => {
-  // This component now only renders the list view
   return (
     <div className="space-y-4">
       {outfits.map(outfit => (
@@ -70,6 +83,7 @@ const OutfitHistory = () => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedOutfits, setSelectedOutfits] = useState(null); // For the modal
 
   const handleFetchHistory = useCallback((filters) => {
     fetchOutfitHistory(filters);
@@ -87,7 +101,7 @@ const OutfitHistory = () => {
 
   const handleFilter = () => {
     if (startDate && endDate) {
-      setView('list'); // Switch to list view for filtered results
+      setView('list');
       handleFetchHistory({ startDate, endDate });
     } else {
       toast.error("Please select both a start and end date.");
@@ -105,17 +119,32 @@ const OutfitHistory = () => {
     setCurrentDate(newDate);
   }, []);
 
-  const events = useMemo(() => outfitHistory.map(outfit => ({
-    title: `${outfit.mood} outfit`,
-    start: new Date(outfit.date),
-    end: new Date(outfit.date),
-    allDay: true,
-    resource: outfit,
-    outfit: outfit,
-  })), [outfitHistory]);
+  const onSelectEvent = useCallback((event) => {
+    setSelectedOutfits(event.outfits);
+  }, []);
+  
+  const events = useMemo(() => {
+    const outfitsByDay = outfitHistory.reduce((acc, outfit) => {
+      const day = format(startOfDay(new Date(outfit.date)), 'yyyy-MM-dd');
+      if (!acc[day]) {
+        acc[day] = [];
+      }
+      acc[day].push(outfit);
+      return acc;
+    }, {});
+
+    return Object.entries(outfitsByDay).map(([day, outfits]) => ({
+      title: `${outfits.length} outfit(s)`,
+      start: new Date(day),
+      end: new Date(day),
+      allDay: true,
+      outfits: outfits,
+    }));
+  }, [outfitHistory]);
 
   return (
     <div className="space-y-6">
+      <OutfitDetailModal outfits={selectedOutfits} onClose={() => setSelectedOutfits(null)} />
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h2 className="text-2xl font-bold">Outfit History</h2>
         <div className="flex items-center space-x-2 p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
@@ -147,28 +176,29 @@ const OutfitHistory = () => {
       
       {loading ? (
         <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>
-      ) : outfitHistory.length === 0 ? (
+      ) : outfitHistory.length === 0 && view === 'list' ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-lg font-medium">No saved outfits found</h3>
-          <p className="mt-1 text-sm text-gray-500">Try adjusting your view or filters!</p>
+          <p className="mt-1 text-sm text-gray-500">Try adjusting your filters or save some new outfits!</p>
         </div>
       ) : view === 'list' ? (
         <ListView outfits={outfitHistory} />
       ) : (
-        <div className="bg-white dark:bg-gray-800 p-2 md:p-4 rounded-lg border border-gray-200 dark:border-gray-700 h-[70vh]">
+        <div className="bg-white dark:bg-gray-800 p-2 md:p-4 rounded-lg border border-gray-200 dark:border-gray-700 h-[80vh]">
           <Calendar
             localizer={localizer}
             events={events}
             startAccessor="start"
             endAccessor="end"
             onNavigate={onNavigate}
+            onSelectEvent={onSelectEvent}
             date={currentDate}
             components={{
-              event: CustomOutfitEvent,
+              event: CustomDayEvent,
             }}
             eventPropGetter={() => ({
-              className: '!p-0 !bg-transparent',
+              className: '!p-0 !bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer',
             })}
           />
         </div>
