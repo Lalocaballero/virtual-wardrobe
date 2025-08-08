@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PhotoIcon, XMarkIcon, CameraIcon } from '@heroicons/react/24/outline';
+import CameraModal from './CameraModal';
 
 const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(currentImage);
   const [error, setError] = useState(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -60,16 +62,15 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
     });
   }, []);
 
-  const onDrop = useCallback(async (acceptedFiles) => {
-    const file = acceptedFiles[0];
+  const handleUpload = useCallback(async (file) => {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      setError('Original file size must be less than 10MB before compression.');
+      setError('Original file size must be less than 10MB.');
       return;
     }
     if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
+      setError('Please upload a valid image file.');
       return;
     }
 
@@ -80,13 +81,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
 
     try {
       const compressedFile = await compressImage(file, 0.7, 1280, 720);
-      if (compressedFile.size > 5 * 1024 * 1024) {
-        setError('Compressed file size is still too large (max 5MB).');
-        setUploading(false);
-        setPreview(currentImage);
-        return;
-      }
-
+      
       const formData = new FormData();
       formData.append('file', compressedFile);
 
@@ -107,7 +102,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
       }
     } catch (err) {
       console.error('Upload error:', err);
-      setError(err.message || 'An unknown error occurred during upload.');
+      setError(err.message || 'An unknown error occurred.');
       setPreview(currentImage);
     } finally {
       setUploading(false);
@@ -116,6 +111,10 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
       }
     }
   }, [onImageUploaded, currentImage, API_BASE, compressImage, preview]);
+
+  const onDrop = useCallback((acceptedFiles) => {
+    handleUpload(acceptedFiles[0]);
+  }, [handleUpload]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -132,8 +131,18 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
     }
   };
 
+  const handleCapture = useCallback((imageBlob) => {
+    const capturedFile = new File([imageBlob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    handleUpload(capturedFile);
+  }, [handleUpload]);
+
   return (
     <div className={`space-y-2 ${className}`}>
+      <CameraModal 
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleCapture}
+      />
       {preview ? (
         <div className="relative">
           <img
@@ -144,6 +153,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
           <button
             onClick={removeImage}
             className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+            aria-label="Remove image"
           >
             <XMarkIcon className="h-4 w-4" />
           </button>
@@ -157,38 +167,36 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
           )}
         </div>
       ) : (
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-            ${isDragActive 
-              ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/50 dark:border-indigo-400' 
-              : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
-            }
-            ${uploading ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-        >
-          <input {...getInputProps()} />
-          <PhotoIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-          <div className="mt-2">
-            {isDragActive ? (
-              <p className="text-sm text-indigo-600 dark:text-indigo-400">Drop the image here...</p>
-            ) : (
-              <div>
-                <p className="text-sm">
-                  Drag & drop an image here, or click to select
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  PNG, JPG, GIF up to 5MB (will be compressed)
-                </p>
-              </div>
-            )}
+        <div className="space-y-2">
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+              ${isDragActive 
+                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/50 dark:border-indigo-400' 
+                : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
+              }
+              ${uploading ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+          >
+            <input {...getInputProps()} />
+            <PhotoIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <p className="mt-2 text-sm">Drag & drop or click to upload</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Max 10MB</p>
           </div>
-          {uploading && (
-            <div className="mt-2 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-              <span className="ml-2 text-sm">Uploading...</span>
-            </div>
-          )}
+          <div className="flex items-center">
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+            <span className="flex-shrink mx-2 text-sm text-gray-500 dark:text-gray-400">OR</span>
+            <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsCameraOpen(true)}
+            disabled={uploading}
+            className="w-full btn btn-secondary flex items-center justify-center"
+          >
+            <CameraIcon className="h-5 w-5 mr-2" />
+            Use Camera
+          </button>
         </div>
       )}
       
