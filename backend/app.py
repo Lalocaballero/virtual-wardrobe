@@ -730,20 +730,46 @@ def create_app():
     @login_required
     def get_outfit_history():
         try:
-            page = request.args.get('page', 1, type=int)
-            per_page = request.args.get('per_page', 10, type=int)
-            outfits = Outfit.query.filter_by(user_id=current_user.id)\
-                                 .order_by(Outfit.date.desc())\
-                                 .paginate(page=page, per_page=per_page, error_out=False)
-            return jsonify({
-                'outfits': [outfit.to_dict() for outfit in outfits.items],
-                'total': outfits.total,
-                'pages': outfits.pages,
-                'current_page': page
-            })
+            start_date_str = request.args.get('start_date')
+            end_date_str = request.args.get('end_date')
+
+            query = Outfit.query.filter_by(user_id=current_user.id)
+
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str.split('T')[0], '%Y-%m-%d')
+                query = query.filter(Outfit.date >= start_date)
+            
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str.split('T')[0], '%Y-%m-%d')
+                end_of_day = end_date + timedelta(days=1)
+                query = query.filter(Outfit.date < end_of_day)
+
+            query = query.order_by(Outfit.date.desc())
+
+            # If filtering by date, don't paginate. Otherwise, do.
+            if start_date_str or end_date_str:
+                outfits = query.all()
+                return jsonify({
+                    'outfits': [outfit.to_dict() for outfit in outfits],
+                    'total': len(outfits),
+                    'pages': 1,
+                    'current_page': 1
+                })
+            else:
+                page = request.args.get('page', 1, type=int)
+                per_page = request.args.get('per_page', 10, type=int)
+                paginated_outfits = query.paginate(page=page, per_page=per_page, error_out=False)
+                return jsonify({
+                    'outfits': [outfit.to_dict() for outfit in paginated_outfits.items],
+                    'total': paginated_outfits.total,
+                    'pages': paginated_outfits.pages,
+                    'current_page': page
+                })
+
         except Exception as e:
             if app.debug:
                 print(f"Get outfit history error: {str(e)}")
+                traceback.print_exc()
             return jsonify({'error': f'Failed to get outfit history: {str(e)}'}), 500
 
     # ======================

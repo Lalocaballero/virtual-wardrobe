@@ -596,16 +596,34 @@ fetchWardrobeHealth: async () => {
     }
   },
 
-  fetchOutfitHistory: async () => {
+  fetchOutfitHistory: async (filters = {}) => {
     set({ loading: true, error: null });
+    const { startDate, endDate } = filters;
     try {
-      const data = await get().fetchApi(`${API_BASE}/outfit-history`, {
+      const params = new URLSearchParams();
+      if (startDate) {
+        // Format date to YYYY-MM-DD
+        params.append('start_date', startDate.toISOString().split('T')[0]);
+      }
+      if (endDate) {
+        // Format date to YYYY-MM-DD
+        params.append('end_date', endDate.toISOString().split('T')[0]);
+      }
+      const queryString = params.toString();
+      const url = `${API_BASE}/outfit-history${queryString ? `?${queryString}` : ''}`;
+      
+      const data = await get().fetchApi(url, {
         method: 'GET',
       });
+
       set({ outfitHistory: data.outfits, loading: false });
-      toast.success('Your outfit history is here.');
+      
+      if (startDate || endDate) {
+        toast.success(`Showing ${data.outfits.length} outfits for the selected range.`);
+      }
+
     } catch (error) {
-      const errorMessage = error.message || 'Wait... something went wrong... try again please :)';
+      const errorMessage = error.message || 'Could not fetch outfit history.';
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
