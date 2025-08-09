@@ -88,39 +88,16 @@ def create_app():
         return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
 
     # --- CORS Configuration ---
-    # Ensure FRONTEND_URL is set correctly on Render backend environment variables
-    frontend_url_base = os.environ.get('FRONTEND_URL') 
-    
-    allowed_origins_list = []
-    if frontend_url_base:
-        allowed_origins_list.append(frontend_url_base.rstrip('/'))
-    
-    # Add localhost for local development only
-    if not is_production:
-        allowed_origins_list.append('http://localhost:3000')
-        allowed_origins_list.append('http://localhost:3001')
+    # Allow requests from localhost (any port) and any *.onrender.com subdomain
+    cors_origin_regex = r"https?://(localhost:\d+|[^/]+\.onrender\.com)"
+    CORS(app,
+         origins=cors_origin_regex,
+         supports_credentials=True,
+         methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 
     if app.debug:
-        print(f"CORS configured for origins: {allowed_origins_list}")
+        print(f"CORS configured with regex: {cors_origin_regex}")
 
-    # Initialize Flask-CORS with basic settings
-    CORS(app, 
-         origins=allowed_origins_list,
-         supports_credentials=True)
-
-    # --- Manual Preflight (OPTIONS) Handler ---
-    # This is crucial for some production environments that might not
-    # correctly handle the preflight requests via the CORS extension alone.
-    @app.before_request
-    def handle_preflight():
-        if request.method == "OPTIONS":
-            res = make_response()
-            res.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin')
-            res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
-            res.headers['Access-Control-Allow-Credentials'] = 'true'
-            return res
-        
     # --- Cloudinary Configuration ---
     # This is the new, more robust configuration block.
     cloudinary_url = os.environ.get('CLOUDINARY_URL')
