@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, request, jsonify, send_from_directory, session, current_app, make_response
+from flask import Flask, request, jsonify, send_from_directory, session, current_app, make_response, redirect
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_migrate import Migrate
@@ -123,10 +123,12 @@ def create_app():
     from utils.weather_service import WeatherService
     from utils.laundry_service import LaundryIntelligenceService
     from utils.wardrobe_intelligence import WardrobeIntelligenceService, AnalyticsService
+    from utils.email_service import EmailService
 
     ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY'))
     weather_service = WeatherService(os.environ.get('WEATHER_API_KEY'))
     laundry_service = LaundryIntelligenceService()
+    email_service = EmailService(os.environ.get('SENDGRID_API_KEY'))
     wardrobe_intelligence_service = WardrobeIntelligenceService()
     analytics_service = AnalyticsService()
 
@@ -245,13 +247,11 @@ def create_app():
             location = data.get('location', '')
             if not email or not password:
                 return jsonify({'error': 'Email and password are required'}), 400
-            try:
-                db.engine.connect()
-            except Exception as e:
-                return jsonify({'error': 'Database connection failed. Please try again later.'}), 500
+            
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
                 return jsonify({'error': 'Email already exists'}), 400
+                
             user = User(
                 email=email,
                 password_hash=generate_password_hash(password),
@@ -259,18 +259,51 @@ def create_app():
             )
             db.session.add(user)
             db.session.commit()
-            login_user(user, remember=True)
-            session.permanent = True
+
+            try:
+                token = user.get_token(salt='email-verification-salt', expires_sec=86400) # 24 hours
+                email_service.send_verification_email(user.email, token)
+            except Exception as e:
+                if app.debug:
+                    print(f"Email sending failed after registration for {user.email}: {e}")
+                # Don't block registration if email fails. User can request another verification email.
+            
             return jsonify({
-                'message': 'User created successfully', 
+                'message': 'User created successfully. Please check your email to verify your account.', 
                 'user_id': user.id,
                 'email': user.email
-            })
+            }), 201
+
         except Exception as e:
             if app.debug:
                 print(f"Registration error: {str(e)}")
+                traceback.print_exc()
             db.session.rollback()
             return jsonify({'error': f'Registration failed: {str(e)}'}), 500
+
+    @app.route('/api/verify-email', methods=['GET'])
+    def verify_email():
+        token = request.args.get('token')
+        if not token:
+            return jsonify({'error': 'Missing token'}), 400
+
+        user = User.verify_token(token, salt='email-verification-salt', max_age=86400)
+        
+        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+        if not user:
+            return redirect(f"{frontend_url}/login?error=invalid_token")
+            
+        if user.is_verified:
+            return redirect(f"{frontend_url}/login?message=already_verified")
+
+        user.is_verified = True
+        db.session.commit()
+        
+        # Here we could send a final welcome email.
+        # email_service.send_welcome_email(user.email)
+
+        return redirect(f"{frontend_url}/login?verified=true")
 
     @app.route('/api/login', methods=['POST'])
     def login():
@@ -284,17 +317,21 @@ def create_app():
                 return jsonify({'error': 'Email and password are required'}), 400
             user = User.query.filter_by(email=email).first()
             if user and check_password_hash(user.password_hash, password):
-                session.clear() # Clear any existing session data
-                session.permanent = True # Set session as permanent BEFORE login_user
-                login_user(user, remember=True) # Login user with remember=True for persistent sessions
-                session['user_id'] = user.id # Manually set session data for additional verification
+                
+                if not user.is_verified:
+                    return jsonify({'error': 'Please verify your email before logging in. You can request a new verification link.'}), 403
+
+                session.clear() 
+                session.permanent = True 
+                login_user(user, remember=True)
+                session['user_id'] = user.id 
                 session['logged_in'] = True
                 
                 response = jsonify({
                     'message': 'Login successful', 
                     'user_id': user.id,
                     'email': user.email,
-                    'session_id': session.get('_id', 'generated') # For debugging
+                    'session_id': session.get('_id', 'generated')
                 })
                 return response
             return jsonify({'error': 'Invalid credentials'}), 401
@@ -302,6 +339,45 @@ def create_app():
             if app.debug:
                 print(f"Login error: {str(e)}")
             return jsonify({'error': f'Login failed: {str(e)}'}), 500
+
+    @app.route('/api/forgot-password', methods=['POST'])
+    def forgot_password():
+        data = request.get_json()
+        email = data.get('email')
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
+        
+        user = User.query.filter_by(email=email).first()
+        if user:
+            try:
+                token = user.get_token(salt='password-reset-salt', expires_sec=1800) # 30 minutes
+                email_service.send_password_reset_email(user.email, token)
+            except Exception as e:
+                if app.debug:
+                    print(f"Password reset email failed for {user.email}: {e}")
+                # Don't reveal that the email failed to send.
+        
+        # Always return a success message to prevent user enumeration.
+        return jsonify({'message': 'If an account with that email exists, a password reset link has been sent.'})
+
+    @app.route('/api/reset-password', methods=['POST'])
+    def reset_password():
+        data = request.get_json()
+        token = data.get('token')
+        password = data.get('password')
+
+        if not token or not password:
+            return jsonify({'error': 'Token and new password are required'}), 400
+
+        user = User.verify_token(token, salt='password-reset-salt', max_age=1800)
+        
+        if not user:
+            return jsonify({'error': 'Invalid or expired token'}), 400
+            
+        user.password_hash = generate_password_hash(password)
+        db.session.commit()
+        
+        return jsonify({'message': 'Your password has been successfully updated.'})
 
     @app.route('/api/logout', methods=['POST'])
     @login_required # Keep this decorator

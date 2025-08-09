@@ -10,3 +10,4 @@ Pillow==10.0.1
 cloudinary==1.36.0
 gunicorn==21.2.0
 psycopg2-binary==2.9.7
+sendgrid==6.9.7

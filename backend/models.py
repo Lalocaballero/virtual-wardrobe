@@ -4,6 +4,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import JSON
 from datetime import datetime
 import json
+from flask import current_app
+from itsdangerous import URLSafeTimedSerializer as Serializer
 
 db = SQLAlchemy()
 
@@ -17,6 +19,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
     location = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -31,6 +34,20 @@ class User(UserMixin, db.Model):
     # Relationships
     clothing_items = db.relationship('ClothingItem', backref='owner', lazy=True)
     outfits = db.relationship('Outfit', backref='user', lazy=True)
+
+    def get_token(self, salt, expires_sec=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], salt=salt)
+        return s.dumps({'user_id': self.id})
+
+    @staticmethod
+    def verify_token(token, salt, max_age=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], salt=salt)
+        try:
+            data = s.loads(token, max_age=max_age)
+            user_id = data.get('user_id')
+        except Exception:
+            return None
+        return User.query.get(user_id)
     
     def get_laundry_thresholds(self):
         """
