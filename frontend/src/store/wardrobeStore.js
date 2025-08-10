@@ -55,8 +55,11 @@ const useWardrobeStore = create((set, get) => ({
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `API Error: ${response.status} ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(errorData.error || `API Error: ${response.status} ${response.statusText}`);
+        error.response = response;
+        error.data = errorData;
+        throw error;
       }
 
       // Handle cases where response might be empty (e.g., DELETE, POST without content)
@@ -85,11 +88,30 @@ const useWardrobeStore = create((set, get) => ({
       set({ user: userData, loading: false });
       localStorage.setItem('wardrobeUser', JSON.stringify(userData));
       toast.success("Welcome back!")
-      return true;
+      return { success: true };
     } catch (error) {
-      const errorMessage = error.message || 'Looks like you are not registered. Try that again :)';
+      const errorMessage = error.data?.error || error.message || 'Login failed.';
+      const errorCode = error.data?.code;
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
+      return { success: false, code: errorCode };
+    }
+  },
+
+  resendVerificationEmail: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/resend-verification`, {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+      toast.success(data.message);
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to resend verification email.';
+      set({ error: errorMessage, loading: false });
+      toast.error(errorMessage);
+      return false;
     }
   },
 

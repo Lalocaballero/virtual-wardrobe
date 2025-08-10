@@ -237,6 +237,7 @@ def create_app():
     @app.route('/api/register', methods=['POST'])
     def register():
         try:
+            session.clear() # Ensure no previous session data leaks
             if app.debug:
                 print("=== REGISTRATION REQUEST ===")
             data = request.get_json()
@@ -305,6 +306,29 @@ def create_app():
 
         return redirect(f"{frontend_url}/login?verified=true")
 
+    @app.route('/api/resend-verification', methods=['POST'])
+    def resend_verification():
+        data = request.get_json()
+        email = data.get('email')
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if user.is_verified:
+                return jsonify({'message': 'This account has already been verified.'}), 400
+            
+            try:
+                token = user.get_token(salt='email-verification-salt', expires_sec=86400)
+                email_service.send_verification_email(user.email, token)
+            except Exception as e:
+                if app.debug:
+                    print(f"Resend verification email failed for {user.email}: {e}")
+                # Do not reveal that the email failed.
+        
+        # Always return a success message to prevent user enumeration.
+        return jsonify({'message': 'If an account with that email exists and is not verified, a new verification link has been sent.'})
+
     @app.route('/api/login', methods=['POST'])
     def login():
         try:
@@ -319,7 +343,7 @@ def create_app():
             if user and check_password_hash(user.password_hash, password):
                 
                 if not user.is_verified:
-                    return jsonify({'error': 'Please verify your email before logging in. You can request a new verification link.'}), 403
+                    return jsonify({'error': 'Please verify your email to log in.', 'code': 'EMAIL_NOT_VERIFIED'}), 403
 
                 session.clear() 
                 session.permanent = True 
