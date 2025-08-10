@@ -1,9 +1,6 @@
 import os
-import brevo_python
-from brevo_python.api import transactional_emails_api
-from brevo_python.model.send_smtp_email import SendSmtpEmail
-from brevo_python.model.send_smtp_email_sender import SendSmtpEmailSender
-from brevo_python.model.send_smtp_email_to import SendSmtpEmailTo
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 
 class EmailService:
     def __init__(self, api_key):
@@ -11,10 +8,10 @@ class EmailService:
         self.sender_email = os.environ.get('SENDER_EMAIL', 'wewearappoficial@gmail.com')
         
         if self.api_key:
-            self.configuration = brevo_python.Configuration()
+            self.configuration = sib_api_v3_sdk.Configuration()
             self.configuration.api_key['api-key'] = self.api_key
-            self.api_instance = transactional_emails_api.TransactionalEmailsApi(
-                brevo_python.ApiClient(self.configuration)
+            self.api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+                sib_api_v3_sdk.ApiClient(self.configuration)
             )
         else:
             self.api_instance = None
@@ -24,10 +21,10 @@ class EmailService:
             print("⚠️ EmailService: Brevo API key not configured. Skipping email send.")
             return False
 
-        sender = SendSmtpEmailSender(email=self.sender_email, name="WeWear App")
-        to = [SendSmtpEmailTo(email=to_email)]
+        sender = sib_api_v3_sdk.SendSmtpEmailSender(email=self.sender_email, name="WeWear App")
+        to = [sib_api_v3_sdk.SendSmtpEmailTo(email=to_email)]
         
-        send_smtp_email = SendSmtpEmail(
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             sender=sender,
             to=to,
             html_content=html_content,
@@ -38,7 +35,7 @@ class EmailService:
             api_response = self.api_instance.send_transac_email(send_smtp_email)
             print(f"✅ Email sent to {to_email} via Brevo. Response: {api_response}")
             return True
-        except brevo_python.ApiException as e:
+        except ApiException as e:
             print(f"❌ Failed to send email to {to_email} via Brevo: {e}")
             return False
 
