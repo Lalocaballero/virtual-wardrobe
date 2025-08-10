@@ -98,6 +98,38 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
+  forgotPassword: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/forgot-password`, {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+      return { success: true, message: data.message };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to send password reset email.';
+      set({ error: errorMessage, loading: false });
+      toast.error(errorMessage);
+      return { success: false };
+    }
+  },
+
+  resetPassword: async (token, password) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/reset-password`, {
+        method: 'POST',
+        body: JSON.stringify({ token, password }),
+      });
+      return { success: true, message: data.message };
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to reset password.';
+      set({ error: errorMessage, loading: false });
+      toast.error(errorMessage);
+      return { success: false };
+    }
+  },
+
   resendVerificationEmail: async (email) => {
     set({ loading: true, error: null });
     try {
