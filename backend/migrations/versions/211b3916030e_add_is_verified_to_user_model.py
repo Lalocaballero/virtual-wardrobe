@@ -1,8 +1,8 @@
 """Add is_verified to User model
 
-Revision ID: c3362ea6e36d
-Revises: 
-Create Date: 2025-08-10 10:52:13.364511
+Revision ID: 211b3916030e
+Revises: b48b0342876a
+Create Date: 2025-08-10 11:31:13.896677
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c3362ea6e36d'
-down_revision = None
+revision = '211b3916030e'
+down_revision = 'b48b0342876a'
 branch_labels = None
 depends_on = None
 
