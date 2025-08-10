@@ -6,7 +6,7 @@ class EmailService:
     def __init__(self, api_key):
         self.api_key = api_key
         self.client = SendGridAPIClient(self.api_key) if self.api_key else None
-        self.sender_email = os.environ.get('SENDER_EMAIL', 'noreply@yourdomain.com')
+        self.sender_email = os.environ.get('SENDER_EMAIL', 'wewearappoficial@gmail.com')
 
     def send_email(self, to_email, subject, html_content):
         if not self.client:
