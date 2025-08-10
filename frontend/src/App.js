@@ -4,6 +4,7 @@ import useWardrobeStore from './store/wardrobeStore';
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import VerifyEmail from './components/VerifyEmail';
 
 function App() {
   const { user, initUser } = useWardrobeStore();
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
         <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
       </Routes>
     </Router>
   );

@@ -41,8 +41,8 @@ class EmailService:
             return False
 
     def send_verification_email(self, to_email, token):
-        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
-        verification_link = f"{frontend_url}/verify-email?token={token}"
+        backend_url = os.environ.get('BACKEND_URL', 'http://localhost:5000')
+        verification_link = f"{backend_url}/api/verify-email?token={token}"
         subject = "Verify your email for WeWear"
         html_content = f"""
         <h2>Welcome to WeWear!</h2>
