@@ -101,7 +101,7 @@ const useWardrobeStore = create((set, get) => ({
   forgotPassword: async (email) => {
     set({ loading: true, error: null });
     try {
-      const data = await get().fetchApi(`${API_BASE}/reset-password`, {
+      const data = await get().fetchApi(`${API_BASE}/forgot-password`, {
         method: 'POST',
         body: JSON.stringify({ email }),
       });

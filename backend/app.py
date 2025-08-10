@@ -285,26 +285,24 @@ def create_app():
     @app.route('/api/verify-email', methods=['GET'])
     def verify_email():
         token = request.args.get('token')
+        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
         if not token:
-            return jsonify({'error': 'Missing token'}), 400
+            # Redirect to a frontend page that can display the error
+            return redirect(f"{frontend_url}/verify-email?status=invalid_token")
 
         user = User.verify_token(token, salt='email-verification-salt', max_age=86400)
         
-        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
-
         if not user:
-            return redirect(f"{frontend_url}/login?error=invalid_token")
+            return redirect(f"{frontend_url}/verify-email?status=invalid_token")
             
         if user.is_verified:
-            return redirect(f"{frontend_url}/login?message=already_verified")
+            return redirect(f"{frontend_url}/verify-email?status=already_verified")
 
         user.is_verified = True
         db.session.commit()
         
-        # Here we could send a final welcome email.
-        # email_service.send_welcome_email(user.email)
-
-        return redirect(f"{frontend_url}/login?verified=true")
+        return redirect(f"{frontend_url}/verify-email?status=verified")
 
     @app.route('/api/resend-verification', methods=['POST'])
     def resend_verification():
