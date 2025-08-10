@@ -1,9 +1,7 @@
 import os
 import brevo_python
 from brevo_python.api import transactional_emails_api
-from brevo_python.model.send_smtp_email import SendSmtpEmail
-from brevo_python.model.send_smtp_email_sender import SendSmtpEmailSender
-from brevo_python.model.send_smtp_email_to import SendSmtpEmailTo
+from brevo_python import SendSmtpEmail, SendSmtpEmailSender, SendSmtpEmailTo
 
 class EmailService:
     def __init__(self, api_key):
