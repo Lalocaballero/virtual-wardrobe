@@ -128,7 +128,7 @@ def create_app():
     ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY'))
     weather_service = WeatherService(os.environ.get('WEATHER_API_KEY'))
     laundry_service = LaundryIntelligenceService()
-    email_service = EmailService(os.environ.get('SENDGRID_API_KEY'))
+    email_service = EmailService(os.environ.get('BREVO_API_KEY'))
     wardrobe_intelligence_service = WardrobeIntelligenceService()
     analytics_service = AnalyticsService()
 
