@@ -1,8 +1,8 @@
-"""Re-creating baseline history
+"""add admin and premium
 
-Revision ID: b48b0342876a
-Revises: 
-Create Date: 2025-08-10 11:29:41.261504
+Revision ID: 7e143a2c0ef1
+Revises: 211b3916030e
+Create Date: 2025-08-11 22:44:29.264000
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b48b0342876a'
-down_revision = None
+revision = '7e143a2c0ef1'
+down_revision = '211b3916030e'
 branch_labels = None
 depends_on = None
 
@@ -23,6 +23,8 @@ def upgrade():
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password_hash', sa.String(length=128), nullable=True),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
+    sa.Column('is_admin', sa.Boolean(), nullable=False),
+    sa.Column('is_premium', sa.Boolean(), nullable=False),
     sa.Column('location', sa.String(length=100), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('display_name', sa.String(length=80), nullable=True),
