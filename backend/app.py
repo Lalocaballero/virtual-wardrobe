@@ -119,6 +119,9 @@ def create_app():
         print("⚠️ CLOUDINARY_URL environment variable not found. Image uploads will fail.")    
 
     # --- Initialize services ---
+    from routes.admin import admin_bp
+    app.register_blueprint(admin_bp)
+
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
     from utils.laundry_service import LaundryIntelligenceService
@@ -353,6 +356,7 @@ def create_app():
                     'message': 'Login successful', 
                     'user_id': user.id,
                     'email': user.email,
+                'is_admin': user.is_admin,
                     'session_id': session.get('_id', 'generated')
                 })
                 return response
@@ -452,6 +456,7 @@ def create_app():
             profile_data = {
                 'id': user.id,
                 'email': user.email,
+                'is_admin': user.is_admin,
                 'display_name': user.display_name,
                 'profile_image_url': user.profile_image_url,
                 'location': user.location,
