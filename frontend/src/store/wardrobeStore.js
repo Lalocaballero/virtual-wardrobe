@@ -105,6 +105,7 @@ const useWardrobeStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ email }),
       });
+      set({ loading: false });
       return { success: true, message: data.message };
     } catch (error) {
       const errorMessage = error.message || 'Failed to send password reset email.';
@@ -121,6 +122,7 @@ const useWardrobeStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ token, password }),
       });
+      set({ loading: false });
       return { success: true, message: data.message };
     } catch (error) {
       const errorMessage = error.message || 'Failed to reset password.';
@@ -138,6 +140,7 @@ const useWardrobeStore = create((set, get) => ({
         body: JSON.stringify({ email }),
       });
       toast.success(data.message);
+      set({ loading: false });
       return true;
     } catch (error) {
       const errorMessage = error.message || 'Failed to resend verification email.';
