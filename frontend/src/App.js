@@ -7,7 +7,7 @@ import Dashboard from './components/Dashboard';
 import VerifyEmail from './components/VerifyEmail';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
-import AdminDashboard from './components/admin/AdminDashboard';
+import AdminDashboard from './components/Admin/AdminDashboard';
 
 function App() {
   const { user, profile, initUser } = useWardrobeStore();
