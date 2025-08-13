@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import useWardrobeStore from '../../store/wardrobeStore';
+import useWardrobeStore, { API_BASE } from '../../store/wardrobeStore';
 
 const UserList = () => {
     const [users, setUsers] = useState([]);
@@ -11,7 +11,7 @@ const UserList = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const data = await fetchApi('/api/admin/users');
+                const data = await fetchApi(`${API_BASE}/admin/users`);
                 setUsers(data);
             } catch (err) {
                 setError(err.message);
