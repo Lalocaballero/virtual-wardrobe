@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, request
-from models import User
+from flask_login import current_user
+from datetime import datetime, timedelta
+from models import User, db, ClothingItem, AdminAction
 from utils.decorators import admin_required
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
-
-from models import db, ClothingItem
 
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
@@ -49,3 +49,74 @@ def get_stats():
         'total_items': total_items,
         'premium_users': premium_users
     })
+
+@admin_bp.route('/users/<int:user_id>/suspend', methods=['POST'])
+@admin_required
+def suspend_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    duration_days = data.get('duration', 7)
+    reason = data.get('reason', 'No reason provided.')
+
+    user.is_suspended = True
+    user.suspension_end_date = datetime.utcnow() + timedelta(days=duration_days)
+    
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=user.id,
+        action_type='suspend_user',
+        details=f'Suspended for {duration_days} days. Reason: {reason}'
+    )
+    db.session.add(admin_action)
+    db.session.commit()
+    
+    return jsonify({'message': f'User {user.email} has been suspended until {user.suspension_end_date}.'})
+
+@admin_bp.route('/users/<int:user_id>/ban', methods=['POST'])
+@admin_required
+def ban_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    reason = data.get('reason', 'No reason provided.')
+
+    user.is_banned = True
+    user.is_suspended = False
+    user.suspension_end_date = None
+
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=user.id,
+        action_type='ban_user',
+        details=f'Reason: {reason}'
+    )
+    db.session.add(admin_action)
+    db.session.commit()
+
+    return jsonify({'message': f'User {user.email} has been permanently banned.'})
+
+@admin_bp.route('/users/<int:user_id>/impersonate', methods=['POST'])
+@admin_required
+def impersonate_user(user_id):
+    user_to_impersonate = User.query.get_or_404(user_id)
+    
+    if user_to_impersonate.is_admin:
+        return jsonify({'error': 'Cannot impersonate another admin.'}), 403
+
+    impersonation_token = user_to_impersonate.get_token(salt='impersonate-salt', expires_sec=300)
+    
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=user_to_impersonate.id,
+        action_type='impersonate_user',
+        details=f'Admin impersonated user for 5 minutes.'
+    )
+    db.session.add(admin_action)
+    db.session.commit()
+    
+    return jsonify({'message': 'Impersonation token generated.', 'impersonation_token': impersonation_token})
+
+@admin_bp.route('/actions/log', methods=['GET'])
+@admin_required
+def get_admin_log():
+    logs = AdminAction.query.order_by(AdminAction.created_at.desc()).all()
+    return jsonify([log.to_dict() for log in logs])

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+export const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const useWardrobeStore = create((set, get) => ({
   user: null,

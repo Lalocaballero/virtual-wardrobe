@@ -22,6 +22,9 @@ class User(UserMixin, db.Model):
     is_verified = db.Column(db.Boolean, nullable=False, default=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     is_premium = db.Column(db.Boolean, nullable=False, default=False)
+    is_suspended = db.Column(db.Boolean, nullable=False, default=False)
+    suspension_end_date = db.Column(db.DateTime, nullable=True)
+    is_banned = db.Column(db.Boolean, nullable=False, default=False)
     location = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -260,4 +263,27 @@ class Outfit(db.Model):
             'rating': self.rating,
             'notes': self.notes,
             'clothing_items': [item.to_dict() for item in self.clothing_items]
+        }
+
+class AdminAction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    target_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    action_type = db.Column(db.String(50), nullable=False) # e.g., 'ban_user', 'suspend_user', 'delete_item'
+    details = db.Column(db.Text, nullable=True) # e.g., reason for ban, duration of suspension
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    admin = db.relationship('User', foreign_keys=[admin_id], backref='admin_actions')
+    target_user = db.relationship('User', foreign_keys=[target_user_id], backref='targeted_actions')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'admin_id': self.admin_id,
+            'admin_email': self.admin.email,
+            'target_user_id': self.target_user_id,
+            'target_user_email': self.target_user.email if self.target_user else None,
+            'action_type': self.action_type,
+            'details': self.details,
+            'created_at': self.created_at.isoformat()
         }
