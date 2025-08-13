@@ -88,15 +88,18 @@ def create_app():
         return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
 
     # --- CORS Configuration ---
-    # Allow requests from localhost (any port) and any *.onrender.com subdomain
-    cors_origin_regex = r"https?://(localhost:\d+|[^/]+\.onrender\.com)"
+    origins = [
+        "https://virtual-wardrobe-frontend-qvoh.onrender.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
     CORS(app,
-         origins=cors_origin_regex,
+         origins=origins,
          supports_credentials=True,
          methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 
     if app.debug:
-        print(f"CORS configured with regex: {cors_origin_regex}")
+        print(f"CORS configured with origins: {origins}")
 
     # --- Cloudinary Configuration ---
     # This is the new, more robust configuration block.
