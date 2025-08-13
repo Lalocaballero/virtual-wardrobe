@@ -228,7 +228,8 @@ def create_app():
             return jsonify({
                 'authenticated': True,
                 'user_id': current_user.id,
-                'email': current_user.email
+            'email': current_user.email,
+            'is_admin': current_user.is_admin
             })
         else:
             return jsonify({'authenticated': False}), 401
