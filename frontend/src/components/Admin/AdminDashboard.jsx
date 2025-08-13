@@ -1,26 +1,84 @@
 import React from 'react';
-import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
+import { NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserList from './UserList';
 import UserDetails from './UserDetails';
 import AdminStats from './AdminStats';
 import AdminActionLog from './AdminActionLog';
+import ContentModeration from './ContentModeration';
+import DataExport from './DataExport';
 
 const AdminDashboard = () => {
+    const location = useLocation();
+
+    const getTitle = () => {
+        const path = location.pathname.split('/')[2] || 'stats';
+        switch (path) {
+            case 'stats':
+                return 'Statistics';
+            case 'users':
+                return 'User Management';
+            case 'log':
+                return 'Action Log';
+            case 'moderation':
+                return 'Content Moderation';
+            case 'export':
+                return 'Data Export';
+            default:
+                return 'Admin Dashboard';
+        }
+    };
+
+    const navLinkClasses = "flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md";
+    const activeNavLinkClasses = "bg-blue-500 text-white";
+
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-            <nav className="flex space-x-4 mb-4">
-                <NavLink to="/admin/stats" className={({ isActive }) => isActive ? "text-blue-500" : ""}>Stats</NavLink>
-                <NavLink to="/admin/users" className={({ isActive }) => isActive ? "text-blue-500" : ""}>Users</NavLink>
-                <NavLink to="/admin/log" className={({ isActive }) => isActive ? "text-blue-500" : ""}>Action Log</NavLink>
-            </nav>
-            <Routes>
-                <Route path="/" element={<Navigate to="stats" />} />
-                <Route path="stats" element={<AdminStats />} />
-                <Route path="users" element={<UserList />} />
-                <Route path="users/:userId" element={<UserDetails />} />
-                <Route path="log" element={<AdminActionLog />} />
-            </Routes>
+        <div className="flex h-screen bg-gray-50">
+            {/* Sidebar */}
+            <aside className="w-64 flex-shrink-0 bg-white shadow-lg">
+                <div className="p-4 border-b">
+                    <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
+                </div>
+                <nav className="p-4 space-y-2">
+                    <NavLink to="/admin/stats" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
+                        <span>📊</span>
+                        <span className="ml-3">Stats</span>
+                    </NavLink>
+                    <NavLink to="/admin/users" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
+                        <span>👥</span>
+                        <span className="ml-3">Users</span>
+                    </NavLink>
+                    <NavLink to="/admin/log" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
+                        <span>📝</span>
+                        <span className="ml-3">Action Log</span>
+                    </NavLink>
+                    <NavLink to="/admin/moderation" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
+                        <span>🛡️</span>
+                        <span className="ml-3">Moderation</span>
+                    </NavLink>
+                    <NavLink to="/admin/export" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
+                        <span>💾</span>
+                        <span className="ml-3">Data Export</span>
+                    </NavLink>
+                </nav>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col">
+                <header className="bg-white shadow-md p-4">
+                    <h2 className="text-2xl font-semibold text-gray-700">{getTitle()}</h2>
+                </header>
+                <div className="p-6 overflow-auto">
+                    <Routes>
+                        <Route path="/" element={<Navigate to="stats" replace />} />
+                        <Route path="stats" element={<AdminStats />} />
+                        <Route path="users" element={<UserList />} />
+                        <Route path="users/:userId" element={<UserDetails />} />
+                        <Route path="log" element={<AdminActionLog />} />
+                        <Route path="moderation" element={<ContentModeration />} />
+                        <Route path="export" element={<DataExport />} />
+                    </Routes>
+                </div>
+            </main>
         </div>
     );
 };

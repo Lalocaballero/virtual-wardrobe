@@ -1,8 +1,10 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, make_response
 from flask_login import current_user
 from datetime import datetime, timedelta
 from models import User, db, ClothingItem, AdminAction
 from utils.decorators import admin_required
+import csv
+from io import StringIO
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 
@@ -120,3 +122,97 @@ def impersonate_user(user_id):
 def get_admin_log():
     logs = AdminAction.query.order_by(AdminAction.created_at.desc()).all()
     return jsonify([log.to_dict() for log in logs])
+
+@admin_bp.route('/content/reported', methods=['GET'])
+@admin_required
+def get_reported_content():
+    """
+    Fetches content that has been reported (reported_count > 0) and
+    has not been rejected.
+    Orders by the number of reports.
+    """
+    reported_items = ClothingItem.query.filter(
+        ClothingItem.reported_count > 0,
+        ClothingItem.status != 'rejected'
+    ).order_by(ClothingItem.reported_count.desc()).all()
+    
+    return jsonify([item.to_dict() for item in reported_items])
+
+@admin_bp.route('/content/<int:item_id>/moderate', methods=['POST'])
+@admin_required
+def moderate_content(item_id):
+    """
+    Allows an admin to moderate a piece of content.
+    Actions: 'approve', 'reject', 'delete'
+    """
+    item = ClothingItem.query.get_or_404(item_id)
+    data = request.get_json()
+    action = data.get('action')
+
+    if not action in ['approve', 'reject', 'delete']:
+        return jsonify({'error': 'Invalid action specified'}), 400
+
+    if action == 'approve':
+        item.status = 'approved'
+        details = f"Approved item: {item.name} (ID: {item.id})"
+    elif action == 'reject':
+        item.status = 'rejected'
+        details = f"Rejected item: {item.name} (ID: {item.id})"
+    elif action == 'delete':
+        details = f"Deleted item: {item.name} (ID: {item.id})"
+        db.session.delete(item)
+    
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=item.user_id,
+        action_type=f'moderate_content_{action}',
+        details=details
+    )
+    db.session.add(admin_action)
+    db.session.commit()
+
+    return jsonify({'message': f"Action '{action}' performed successfully on item {item.id}."})
+
+@admin_bp.route('/data/export', methods=['GET'])
+@admin_required
+def export_data():
+    """
+    Exports user or content data in CSV or JSON format.
+    Query params:
+    - format: 'csv' or 'json' (defaults to 'json')
+    - data_type: 'users' or 'content' (defaults to 'users')
+    """
+    data_format = request.args.get('format', 'json')
+    data_type = request.args.get('data_type', 'users')
+
+    if data_type == 'users':
+        records = User.query.all()
+        # Exclude password hash from export
+        data = [{'id': r.id, 'email': r.email, 'is_admin': r.is_admin, 'is_premium': r.is_premium, 'is_verified': r.is_verified, 'created_at': r.created_at.isoformat()} for r in records]
+        filename = 'users_export'
+    elif data_type == 'content':
+        records = ClothingItem.query.all()
+        data = [r.to_dict() for r in records]
+        filename = 'content_export'
+    else:
+        return jsonify({'error': 'Invalid data_type specified'}), 400
+
+    if data_format == 'json':
+        response = jsonify(data)
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}.json'
+        return response
+    elif data_format == 'csv':
+        if not data:
+            return "No data to export", 200
+
+        si = StringIO()
+        cw = csv.DictWriter(si, fieldnames=data[0].keys())
+        cw.writeheader()
+        cw.writerows(data)
+        
+        output = make_response(si.getvalue())
+        output.headers["Content-Disposition"] = f"attachment; filename={filename}.csv"
+        output.headers["Content-type"] = "text/csv"
+        return output
+    else:
+        return jsonify({'error': 'Invalid format specified'}), 400

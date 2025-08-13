@@ -17,6 +17,12 @@ const useWardrobeStore = create((set, get) => ({
   profileLoading: false,
   // --- END NEW PROFILE STATE ---
 
+  // --- NEW IMPERSONATION STATE ---
+  isImpersonating: false,
+  impersonationToken: null,
+  originalAdminUser: null,
+  // --- END NEW IMPERSONATION STATE ---
+
   // Laundry tracking state
   laundryAlerts: null,
   wardrobeHealth: null,
@@ -34,9 +40,14 @@ const useWardrobeStore = create((set, get) => ({
   // This centralizes error handling and JSON parsing
   fetchApi: async (url, options = {}) => {
     try {
+      const impersonationToken = get().impersonationToken;
       const defaultHeaders = {
         'Content-Type': 'application/json',
       };
+
+      if (impersonationToken) {
+        defaultHeaders['Authorization'] = `Bearer ${impersonationToken}`;
+      }
 
       const response = await fetch(url, {
         ...options,
@@ -48,10 +59,14 @@ const useWardrobeStore = create((set, get) => ({
       });
 
       if (response.status === 401) {
-        // Handle session expiration globally
-        set({ user: null, error: 'Session expired. Please login again.' });
-        localStorage.removeItem('wardrobeUser');
-        throw new Error('Unauthorized'); // Propagate error to specific action catch blocks
+        if (get().isImpersonating) {
+            get().stopImpersonation();
+            toast.error("Impersonation session expired. Returning to admin view.");
+        } else {
+            set({ user: null, error: 'Session expired. Please login again.' });
+            localStorage.removeItem('wardrobeUser');
+        }
+        throw new Error('Unauthorized');
       }
 
       if (!response.ok) {
@@ -187,23 +202,72 @@ const useWardrobeStore = create((set, get) => ({
         smartCollections: null,
         wardrobeGaps: null,
         usageAnalytics: null,
-        styleDNA: null
+        styleDNA: null,
+        isImpersonating: false,
+        impersonationToken: null,
+        originalAdminUser: null,
       });
       localStorage.removeItem('wardrobeUser');
+      localStorage.removeItem('impersonationData');
     }
   },
 
+  startImpersonation: (token, userToImpersonate) => {
+    const originalUser = get().user;
+    const impersonationData = {
+      isImpersonating: true,
+      impersonationToken: token,
+      originalAdminUser: originalUser,
+      impersonatedUser: userToImpersonate,
+    };
+    
+    set({ 
+      isImpersonating: true,
+      impersonationToken: token,
+      originalAdminUser: originalUser,
+      user: userToImpersonate
+    });
+
+    localStorage.setItem('impersonationData', JSON.stringify(impersonationData));
+    toast.success(`Now impersonating ${userToImpersonate.email}`);
+  },
+
+  stopImpersonation: async () => {
+    const originalAdminUser = get().originalAdminUser;
+    
+    set({
+      isImpersonating: false,
+      impersonationToken: null,
+      originalAdminUser: null,
+      user: originalAdminUser
+    });
+
+    localStorage.removeItem('impersonationData');
+    toast.success('Returned to your admin session.');
+  },
+
   checkAuth: async () => {
+    const impersonationDataString = localStorage.getItem('impersonationData');
+    if (impersonationDataString) {
+        const impersonationData = JSON.parse(impersonationDataString);
+        set({
+            isImpersonating: impersonationData.isImpersonating,
+            impersonationToken: impersonationData.impersonationToken,
+            originalAdminUser: impersonationData.originalAdminUser,
+            user: impersonationData.impersonatedUser,
+        });
+    }
+
     try {
       const data = await get().fetchApi(`${API_BASE}/check-auth`, {
         method: 'GET',
       });
-      if (data.authenticated) {
-        const userData = { email: data.email, id: data.user_id };
+      if (data.authenticated && !get().isImpersonating) {
+        const userData = { email: data.email, id: data.user_id, is_admin: data.is_admin };
         set({ user: userData });
         localStorage.setItem('wardrobeUser', JSON.stringify(userData));
         return true;
-      } else {
+      } else if (!data.authenticated && !get().isImpersonating) {
         const storedUser = localStorage.getItem('wardrobeUser');
         if (storedUser) {
           localStorage.removeItem('wardrobeUser');
@@ -211,11 +275,13 @@ const useWardrobeStore = create((set, get) => ({
         set({ user: null });
         return false;
       }
+      return get().user != null;
     } catch (error) {
-      console.error('Auth check error:', error);
-      // The fetchApi helper handles 401, so we just clear local state if an error occurred
-      set({ user: null });
-      localStorage.removeItem('wardrobeUser');
+      if (!get().isImpersonating) {
+          console.error('Auth check error:', error);
+          set({ user: null });
+          localStorage.removeItem('wardrobeUser');
+      }
       return false;
     }
   },

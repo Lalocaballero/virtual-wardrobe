@@ -8,7 +8,7 @@ const UserDetails = () => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { fetchApi } = useWardrobeStore();
+    const { fetchApi, startImpersonation } = useWardrobeStore();
 
     const fetchUser = useCallback(async () => {
         setLoading(true);
@@ -32,18 +32,16 @@ const UserDetails = () => {
                 method: 'POST',
                 body: JSON.stringify({ is_premium: isPremium }),
             });
-            fetchUser(); // Refetch to get latest user state
+            fetchUser();
         } catch (err) {
             alert('Failed to update premium status');
         }
     };
 
     const handleDeleteUser = async () => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
+        if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
             try {
-                await fetchApi(`${API_BASE}/admin/users/${userId}`, {
-                    method: 'DELETE',
-                });
+                await fetchApi(`${API_BASE}/admin/users/${userId}`, { method: 'DELETE' });
                 navigate('/admin/users');
             } catch (err) {
                 alert('Failed to delete user');
@@ -83,54 +81,88 @@ const UserDetails = () => {
     };
 
     const handleImpersonateUser = async () => {
-        if (window.confirm('This will log you in as this user for 5 minutes. Proceed?')) {
+        if (window.confirm('This will log you in as this user. Proceed?')) {
             try {
-                const { impersonation_token } = await fetchApi(`${API_BASE}/admin/users/${userId}/impersonate`, {
-                    method: 'POST',
-                });
-                alert(`Impersonation successful. You can now use this token: ${impersonation_token}`);
-                // In a real app, you'd store this token and use it for API requests.
+                const { impersonation_token } = await fetchApi(`${API_BASE}/admin/users/${userId}/impersonate`, { method: 'POST' });
+                startImpersonation(impersonation_token, user);
+                navigate('/dashboard');
             } catch (err) {
                 alert('Failed to impersonate user');
             }
         }
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-    if (!user) return <div>User not found.</div>;
+    if (loading) return (
+        <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error:</strong>
+            <span className="block sm:inline"> {error}</span>
+        </div>
+    );
+    
+    if (!user) return <div className="text-center p-4">User not found.</div>;
 
     return (
-        <div>
-            <h2 className="text-xl font-bold mb-2">User Details</h2>
-            <ul>
-                <li><strong>ID:</strong> {user.id}</li>
-                <li><strong>Email:</strong> {user.email}</li>
-                <li><strong>Admin:</strong> {user.is_admin ? 'Yes' : 'No'}</li>
-                <li><strong>Premium:</strong> {user.is_premium ? 'Yes' : 'No'}</li>
-                <li><strong>Verified:</strong> {user.is_verified ? 'Yes' : 'No'}</li>
-                <li><strong>Banned:</strong> {user.is_banned ? 'Yes' : 'No'}</li>
-                <li><strong>Suspended:</strong> {user.is_suspended ? `Yes, until ${new Date(user.suspension_end_date).toLocaleString()}` : 'No'}</li>
-                <li><strong>Created At:</strong> {new Date(user.created_at).toLocaleString()}</li>
-                <li><strong>Location:</strong> {user.location}</li>
-                <li><strong>Display Name:</strong> {user.display_name}</li>
-            </ul>
-            <div className="mt-4 space-x-2">
-                <button onClick={() => handleSetPremium(!user.is_premium)} className="bg-blue-500 text-white px-4 py-2 rounded">
-                    {user.is_premium ? 'Revoke Premium' : 'Grant Premium'}
-                </button>
-                <button onClick={handleDeleteUser} className="bg-red-700 text-white px-4 py-2 rounded">
-                    Delete User
-                </button>
-                <button onClick={handleSuspendUser} className="bg-yellow-500 text-white px-4 py-2 rounded">
-                    Suspend User
-                </button>
-                <button onClick={handleBanUser} className="bg-orange-700 text-white px-4 py-2 rounded">
-                    Ban User
-                </button>
-                <button onClick={handleImpersonateUser} className="bg-gray-500 text-white px-4 py-2 rounded">
-                    Impersonate User
-                </button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold mb-4 border-b pb-2">User Information</h3>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+                    <div className="sm:col-span-1">
+                        <dt className="text-sm font-medium text-gray-500">Display Name</dt>
+                        <dd className="mt-1 text-sm text-gray-900">{user.display_name || 'N/A'}</dd>
+                    </div>
+                    <div className="sm:col-span-1">
+                        <dt className="text-sm font-medium text-gray-500">Email Address</dt>
+                        <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
+                    </div>
+                    <div className="sm:col-span-1">
+                        <dt className="text-sm font-medium text-gray-500">User ID</dt>
+                        <dd className="mt-1 text-sm text-gray-900">{user.id}</dd>
+                    </div>
+                    <div className="sm:col-span-1">
+                        <dt className="text-sm font-medium text-gray-500">Location</dt>
+                        <dd className="mt-1 text-sm text-gray-900">{user.location || 'N/A'}</dd>
+                    </div>
+                    <div className="sm:col-span-1">
+                        <dt className="text-sm font-medium text-gray-500">Member Since</dt>
+                        <dd className="mt-1 text-sm text-gray-900">{new Date(user.created_at).toLocaleDateString()}</dd>
+                    </div>
+                    <div className="sm:col-span-2">
+                        <dt className="text-sm font-medium text-gray-500">Status</dt>
+                        <dd className="mt-1 text-sm text-gray-900 space-x-2">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                {user.is_verified ? 'Verified' : 'Not Verified'}
+                            </span>
+                            {user.is_banned && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Banned</span>}
+                            {user.is_suspended && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Suspended</span>}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+            <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-semibold mb-4 border-b pb-2">Actions</h3>
+                <div className="space-y-3">
+                    <button onClick={handleImpersonateUser} className="w-full text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        Impersonate User
+                    </button>
+                    <button onClick={() => handleSetPremium(!user.is_premium)} className={`w-full text-white ${user.is_premium ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} font-medium rounded-lg text-sm px-5 py-2.5 text-center`}>
+                        {user.is_premium ? 'Revoke Premium' : 'Grant Premium'}
+                    </button>
+                    <button onClick={handleSuspendUser} className="w-full text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        Suspend User
+                    </button>
+                    <button onClick={handleBanUser} className="w-full text-white bg-orange-600 hover:bg-orange-700 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        Ban User
+                    </button>
+                    <button onClick={handleDeleteUser} className="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        Delete User
+                    </button>
+                </div>
             </div>
         </div>
     );

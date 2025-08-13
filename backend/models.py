@@ -113,6 +113,10 @@ class ClothingItem(db.Model):
     needs_repair = db.Column(db.Boolean, default=False)
     repair_notes = db.Column(db.Text)
     retirement_candidate = db.Column(db.Boolean, default=False)
+
+    # NEW: Content moderation fields
+    status = db.Column(db.String(20), default='approved', nullable=False) # pending, approved, rejected
+    reported_count = db.Column(db.Integer, default=0, nullable=False)
     
     def to_dict(self):
         return {
@@ -157,7 +161,15 @@ class ClothingItem(db.Model):
             # NEW: Calculated fields
             'days_since_wash': self.get_days_since_wash(),
             'cost_per_wear': self.get_cost_per_wear(),
-            'wash_recommendation': self.get_wash_recommendation()
+            'wash_recommendation': self.get_wash_recommendation(),
+            
+            # NEW: Moderation data
+            'status': self.status,
+            'reported_count': self.reported_count,
+            'owner': {
+                'id': self.owner.id,
+                'email': self.owner.email
+            } if self.owner else None
         }
     
     def get_days_since_wash(self):

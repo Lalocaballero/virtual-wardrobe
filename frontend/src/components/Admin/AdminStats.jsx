@@ -2,6 +2,19 @@ import React, { useEffect, useState } from 'react';
 import useWardrobeStore, { API_BASE } from '../../store/wardrobeStore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+const StatCard = ({ title, value, icon }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+        <div className="bg-blue-500 text-white p-3 rounded-full mr-4">
+            {icon}
+        </div>
+        <div>
+            <p className="text-sm font-medium text-gray-500">{title}</p>
+            <p className="text-2xl font-bold text-gray-800">{value}</p>
+        </div>
+    </div>
+);
+
+
 const AdminStats = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -22,37 +35,51 @@ const AdminStats = () => {
         fetchStats();
     }, [fetchApi]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) return (
+        <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error:</strong>
+            <span className="block sm:inline"> {error}</span>
+        </div>
+    );
 
     const chartData = stats ? [
-        { name: 'Total Users', count: stats.total_users },
-        { name: 'Total Items', count: stats.total_items },
-        { name: 'Premium Users', count: stats.premium_users },
+        { name: 'Users', Total: stats.total_users, Premium: stats.premium_users },
+        { name: 'Items', Total: stats.total_items },
     ] : [];
 
     return (
-        <div>
-            <h2 className="text-xl font-bold mb-4">Application Stats</h2>
-            {stats && (
+        <div className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {stats && (
+                    <>
+                        <StatCard title="Total Users" value={stats.total_users} icon="👥" />
+                        <StatCard title="Premium Users" value={stats.premium_users} icon="⭐" />
+                        <StatCard title="Total Items" value={stats.total_items} icon="👕" />
+                    </>
+                )}
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">User & Item Overview</h3>
                 <div style={{ width: '100%', height: 300 }}>
                     <ResponsiveContainer>
-                        <BarChart
-                            data={chartData}
-                            margin={{
-                                top: 5, right: 30, left: 20, bottom: 5,
-                            }}
-                        >
+                        <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
-                            <YAxis allowDecimals={false} />
+                            <YAxis />
                             <Tooltip />
                             <Legend />
-                            <Bar dataKey="count" fill="#8884d8" name="Count" />
+                            <Bar dataKey="Total" fill="#8884d8" />
+                            <Bar dataKey="Premium" fill="#82ca9d" />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-            )}
+            </div>
         </div>
     );
 };

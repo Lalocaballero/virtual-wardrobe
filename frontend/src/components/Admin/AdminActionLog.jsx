@@ -21,34 +21,49 @@ const AdminActionLog = () => {
         fetchLogs();
     }, [fetchApi]);
 
-    if (loading) return <div>Loading logs...</div>;
-    if (error) return <div>Error: {error}</div>;
+    if (loading) return (
+        <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error:</strong>
+            <span className="block sm:inline"> {error}</span>
+        </div>
+    );
 
     return (
-        <div>
-            <h2 className="text-xl font-bold mb-2">Admin Action Log</h2>
-            <table className="min-w-full bg-white">
-                <thead>
-                    <tr>
-                        <th className="py-2 px-4 border-b">Admin</th>
-                        <th className="py-2 px-4 border-b">Action</th>
-                        <th className="py-2 px-4 border-b">Target User</th>
-                        <th className="py-2 px-4 border-b">Details</th>
-                        <th className="py-2 px-4 border-b">Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {logs.map((log) => (
-                        <tr key={log.id}>
-                            <td className="py-2 px-4 border-b">{log.admin_email}</td>
-                            <td className="py-2 px-4 border-b">{log.action_type}</td>
-                            <td className="py-2 px-4 border-b">{log.target_user_email || 'N/A'}</td>
-                            <td className="py-2 px-4 border-b">{log.details}</td>
-                            <td className="py-2 px-4 border-b">{new Date(log.created_at).toLocaleString()}</td>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target User</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {logs.map((log) => (
+                            <tr key={log.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.admin_email}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {log.action_type}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.target_user_email || 'N/A'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.details}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(log.created_at).toLocaleString()}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };
