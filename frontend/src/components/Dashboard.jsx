@@ -154,7 +154,7 @@ const Dashboard = () => {
                       <p className="truncate">{user?.email}</p>
                     </div>
                     <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('profile'); setProfileMenuOpen(false); }} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">My Profile</a>
-                    {profile?.is_admin && (
+                    {user?.is_admin && (
                       <Link to="/admin" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Admin</Link>
                     )}
                     <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); setProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50">Logout</a>

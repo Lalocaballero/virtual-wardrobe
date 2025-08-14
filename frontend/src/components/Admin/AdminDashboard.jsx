@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Link, NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import UserList from './UserList';
 import UserDetails from './UserDetails';
 import AdminStats from './AdminStats';
@@ -60,6 +60,12 @@ const AdminDashboard = () => {
                         <span className="ml-3">Data Export</span>
                     </NavLink>
                 </nav>
+                <div className="mt-auto p-4 border-t">
+                    <Link to="/dashboard" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md">
+                        <span>⬅️</span>
+                        <span className="ml-3">Back to App</span>
+                    </Link>
+                </div>
             </aside>
 
             {/* Main Content */}

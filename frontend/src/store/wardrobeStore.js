@@ -99,7 +99,7 @@ const useWardrobeStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      const userData = { email, id: data.user_id };
+      const userData = { email, id: data.user_id, is_admin: data.is_admin };
       set({ user: userData, loading: false });
       localStorage.setItem('wardrobeUser', JSON.stringify(userData));
       toast.success("Welcome back!")
@@ -230,6 +230,7 @@ const useWardrobeStore = create((set, get) => ({
 
     localStorage.setItem('impersonationData', JSON.stringify(impersonationData));
     toast.success(`Now impersonating ${userToImpersonate.email}`);
+    get().fetchWardrobe();
   },
 
   stopImpersonation: async () => {
@@ -244,6 +245,7 @@ const useWardrobeStore = create((set, get) => ({
 
     localStorage.removeItem('impersonationData');
     toast.success('Returned to your admin session.');
+    get().fetchWardrobe();
   },
 
   checkAuth: async () => {
