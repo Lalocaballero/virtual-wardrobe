@@ -19,8 +19,23 @@ class AIOutfitService:
         """Generate outfit suggestion using OpenAI with enhanced prompting"""
         
         # Filter available (clean) items
-        available_items = [item for item in wardrobe if item.get('is_clean', True)]
+        clean_items = [item for item in wardrobe if item.get('is_clean', True)]
         
+        # Pre-filter by season for more reliable results.
+        # This is a hard constraint that is better handled in code than by the AI.
+        if season != 'any':
+            season_filtered_items = [
+                item for item in clean_items 
+                if item.get('season', 'all').lower() == season.lower() or item.get('season', 'all').lower() == 'all'
+            ]
+            # Only use the seasonal filter if it returns items, otherwise use all clean items.
+            if season_filtered_items:
+                available_items = season_filtered_items
+            else:
+                available_items = clean_items # Fallback
+        else:
+            available_items = clean_items
+
         if not available_items:
             return {
                 "selected_items": [],
@@ -37,8 +52,8 @@ class AIOutfitService:
         prompt = self._create_enhanced_outfit_prompt(available_items, weather, mood, season, outfit_history)
         
         try:
-            # Add randomization to temperature and other parameters
-            temperature = random.uniform(0.7, 1.0)  # Vary temperature for different results
+            # Set a more deterministic temperature for consistent, reliable suggestions.
+            temperature = 0.5
             
             response = openai.ChatCompletion.create(
                 model="gpt-4o",
@@ -110,7 +125,7 @@ You will be given a prompt with the following structure:
 **Your Decision-Making Process (Hierarchy of Importance):**
 
 1.  **PRIORITY 1: Season & Weather (Non-negotiable):** The outfit MUST be appropriate for the specified `Season` and `Weather`. A winter coat is not for summer. Sandals are not for snow.
-2.  **PRIORITY 2: User's Personal Style (Crucial):** The outfit MUST align with the user's `STYLE DNA` and `OUTFIT HISTORY`. The suggestion should feel like it was made specifically for them. Refer to their dominant styles, colors, and past choices.
+2.  **PRIORITY 2: User's Personal Style (Crucial):** The outfit MUST align with the user's `STYLE DNA` and `OUTFIT HISTORY`. This is the most important creative constraint. Your main goal is to reflect the user's taste, not to be overly experimental. The suggestion should feel like it was made specifically for them.
 3.  **PRIORITY 3: Mood & Occasion:** The `Mood` should refine the selection. A 'professional' outfit should be more formal than a 'casual' one, but still within the user's personal style.
 4.  **PRIORITY 4: Variety & Creativity:** While respecting the user's style, introduce some variety. Don't suggest the exact same outfit repeatedly. Use the `Special instruction` to guide your creativity.
 
@@ -153,8 +168,8 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
             else:
                 wardrobe_by_category['accessories'].append(item)
 
-        # Get User's Style DNA
-        style_dna = self._get_style_dna(wardrobe, outfit_history)
+        # Get User's Style DNA, now with mood context
+        style_dna = self._get_style_dna(wardrobe, outfit_history, mood)
         style_dna_prompt_section = ""
         if style_dna:
             style_dna_prompt_section = f"USER STYLE DNA (for personalization):\n{json.dumps(style_dna, indent=2)}\n"
@@ -217,6 +232,11 @@ CONTEXT:
 - Recently worn items to avoid (IDs): {recent_item_ids}
 - Special instruction: {variety_instruction}
 
+NEGATIVE CONSTRAINTS (Rules you MUST follow):
+- DO NOT suggest an outfit with more than 3 primary colors (neutrals like black, white, grey, beige do not count).
+- DO NOT suggest items that are clearly for the wrong season, even if they are in the available list. This is a hard rule.
+- DO NOT suggest incomplete outfits. The outfit must contain at least a top and a bottom, OR a dress. It must always include shoes.
+
 AVAILABLE WARDROBE:
 Tops: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['tops']], indent=2)}
 Bottoms: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['bottoms']], indent=2)}
@@ -248,8 +268,8 @@ RESPONSE FORMAT (JSON only):
 """
         return prompt
 
-    def _get_style_dna(self, wardrobe: List[Dict], outfit_history: List[Dict]) -> Dict[str, Any]:
-        """Analyzes wardrobe and outfit history to create a user style profile."""
+    def _get_style_dna(self, wardrobe: List[Dict], outfit_history: List[Dict], mood: str) -> Dict[str, Any]:
+        """Analyzes wardrobe and outfit history to create a user style profile, now with mood context."""
         
         # Counters for different attributes
         style_counter = Counter()
@@ -268,18 +288,20 @@ RESPONSE FORMAT (JSON only):
             if item.get('fabric'):
                 fabric_counter[item['fabric']] += 1
                 
-        # Give more weight to items that have been worn in outfits
+        # Give more weight to items from past outfits that match the current mood
         if outfit_history:
             for outfit in outfit_history:
-                for item in outfit.get('clothing_items', []):
-                    if item.get('style'):
-                        style_counter[item['style']] += 2 # Extra weight for worn items
-                    if item.get('color'):
-                        color_counter[item['color']] += 2
-                    if item.get('brand'):
-                        brand_counter[item['brand']] += 2
-                    if item.get('fabric'):
-                        fabric_counter[item['fabric']] += 2
+                # Only learn from past outfits with a similar mood
+                if outfit.get('mood', '').lower() == mood.lower():
+                    for item in outfit.get('clothing_items', []):
+                        if item.get('style'):
+                            style_counter[item['style']] += 2 # Extra weight for worn items in a relevant context
+                        if item.get('color'):
+                            color_counter[item['color']] += 2
+                        if item.get('brand'):
+                            brand_counter[item['brand']] += 2
+                        if item.get('fabric'):
+                            fabric_counter[item['fabric']] += 2
 
         # Construct the Style DNA profile
         style_dna = {
