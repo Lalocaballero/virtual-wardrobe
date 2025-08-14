@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, request, jsonify, send_from_directory, session, current_app, make_response, redirect
+from flask import Flask, request, jsonify, send_from_directory, session, current_app, make_response, redirect, g
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_migrate import Migrate
@@ -18,6 +18,7 @@ import cloudinary.api
 
 # Import db, User, ClothingItem, Outfit from models.
 from models import db, User, ClothingItem, Outfit
+from utils.auth import get_actual_user
 
 # Initialize extensions globally
 login_manager = LoginManager()
@@ -50,6 +51,16 @@ def create_app():
     def make_session_permanent():
         session.permanent = True
         
+    @app.before_request
+    def before_request_impersonation():
+        g.user = None
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            user = User.verify_token(token, salt='impersonate-salt')
+            if user:
+                g.user = user
+
     print("--- Session Cookie Configuration ---")
     print(f"Production mode: {is_production}")
     print(f"SESSION_COOKIE_SECURE: {app.config['SESSION_COOKIE_SECURE']}")
@@ -83,23 +94,6 @@ def create_app():
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
 
-    @login_manager.request_loader
-    def load_user_from_request(request):
-        print("--- DEBUG: Attempting to load user from request header ---") # ADD THIS
-        auth_header = request.headers.get('Authorization')
-        if auth_header and auth_header.startswith('Bearer '):
-            print(f"--- DEBUG: Found Authorization header: {auth_header[:20]}... ---") # ADD THIS
-            token = auth_header.split(' ')[1]
-            user = User.verify_token(token, salt='impersonate-salt')
-            if user:
-                print(f"--- DEBUG: Token is VALID for user: {user.email} ---") # ADD THIS
-                return user
-            else:
-                print("--- DEBUG: Token is INVALID ---") # ADD THIS
-        else:
-            print("--- DEBUG: No Authorization header found ---") # ADD THIS
-        return None
-    
     @login_manager.unauthorized_handler
     def unauthorized():
         return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
@@ -244,14 +238,23 @@ def create_app():
 
     @app.route('/api/check-auth', methods=['GET'])
     def check_auth():
-        if current_user.is_authenticated:
+        user = get_actual_user()
+        if user and user.is_authenticated:
             return jsonify({
                 'authenticated': True,
-                'user_id': current_user.id,
-            'email': current_user.email,
-            'is_admin': current_user.is_admin
+                'user_id': user.id,
+                'email': user.email,
+                'is_admin': user.is_admin
             })
         else:
+            # Check for session-based user if no impersonation
+            if not g.user and current_user.is_authenticated:
+                 return jsonify({
+                    'authenticated': True,
+                    'user_id': current_user.id,
+                    'email': current_user.email,
+                    'is_admin': current_user.is_admin
+                })
             return jsonify({'authenticated': False}), 401
 
     # ======================
@@ -440,6 +443,7 @@ def create_app():
     @login_required # Keep this decorator
     def logout():
         try:
+            # Logout should always act on the session user, not the impersonated one.
             if current_user.is_authenticated:
                 logout_user()
             session.clear()
@@ -458,32 +462,18 @@ def create_app():
     @login_required
     def get_profile():
         """Fetches all profile data for the currently logged-in user."""
-        print("--- DEBUG: Entering get_profile ---")
+        user = get_actual_user()
         try:
-            user = current_user
-            print(f"--- DEBUG: User ID {user.id} found ---")
-
-            # Calculate wardrobe statistics
-            print("--- DEBUG: Calculating stats... ---")
             total_items = ClothingItem.query.filter_by(user_id=user.id).count()
-            print(f"--- DEBUG: Total items = {total_items} ---")
-            
             total_outfits = Outfit.query.filter_by(user_id=user.id).count()
-            print(f"--- DEBUG: Total outfits = {total_outfits} ---")
-
-            # This query is slightly different, let's check it carefully
             items_never_worn = ClothingItem.query.filter_by(user_id=user.id, outfits=None).count()
-            print(f"--- DEBUG: Items never worn = {items_never_worn} ---")
 
             wardrobe_stats = {
                 'total_items': total_items,
                 'total_outfits': total_outfits,
                 'items_never_worn': items_never_worn
             }
-            print("--- DEBUG: Stats calculation complete ---")
 
-            # Prepare the data to be sent to the frontend
-            print("--- DEBUG: Preparing profile data dictionary... ---")
             profile_data = {
                 'id': user.id,
                 'email': user.email,
@@ -495,16 +485,11 @@ def create_app():
                 'theme': (user.settings or {}).get('theme', 'light'),
                 'wardrobe_stats': wardrobe_stats
             }
-            print("--- DEBUG: Profile data dictionary created successfully ---")
             
             return jsonify(profile_data)
             
         except Exception as e:
-            # This will now print the full error to your logs
-            print(f"--- ERROR in get_profile: {str(e)} ---")
-            import traceback
-            traceback.print_exc() # This prints the full traceback
-            
+            traceback.print_exc()
             return jsonify({'error': 'Failed to fetch profile data.'}), 500
 
     @app.route('/api/profile', methods=['PUT'])
@@ -512,7 +497,7 @@ def create_app():
     def update_profile():
         """Updates the profile data for the currently logged-in user."""
         try:
-            user = current_user
+            user = get_actual_user()
             data = request.get_json()
 
             # Update basic fields
@@ -557,11 +542,13 @@ def create_app():
 
         if not current_password or not new_password:
             return jsonify({'error': 'Current and new passwords are required.'}), 400
+        
+        user = get_actual_user()
 
-        if not check_password_hash(current_user.password_hash, current_password):
+        if not check_password_hash(user.password_hash, current_password):
             return jsonify({'error': 'Your current password does not match.'}), 401
 
-        current_user.password_hash = generate_password_hash(new_password)
+        user.password_hash = generate_password_hash(new_password)
         db.session.commit()
         return jsonify({'message': 'Password changed successfully!'})
 
@@ -570,7 +557,7 @@ def create_app():
     @login_required
     def export_data():
         """Generates and returns a JSON file of all the user's data."""
-        user = current_user
+        user = get_actual_user()
         items = ClothingItem.query.filter_by(user_id=user.id).all()
         outfits = Outfit.query.filter_by(user_id=user.id).all()
         
@@ -596,12 +583,14 @@ def create_app():
 
         if not password:
             return jsonify({'error': 'Password is required to delete your account.'}), 400
+
+        user = get_actual_user()
         
-        if not check_password_hash(current_user.password_hash, password):
+        if not check_password_hash(user.password_hash, password):
             return jsonify({'error': 'Incorrect password.'}), 401
 
         try:
-            user_to_delete = User.query.get(current_user.id)
+            user_to_delete = User.query.get(user.id)
             if user_to_delete:
                 # Manually delete related items first if cascade is not fully trusted
                 Outfit.query.filter_by(user_id=user_to_delete.id).delete()
@@ -628,9 +617,10 @@ def create_app():
     @login_required
     def add_clothing_item():
         try:
+            user = get_actual_user()
             data = request.get_json()
             item = ClothingItem(
-                user_id=current_user.id,
+                user_id=user.id,
                 name=data['name'],
                 type=data['type'],
                 style=data.get('style', ''),
@@ -656,9 +646,9 @@ def create_app():
     @app.route('/api/get-wardrobe', methods=['GET'])
     @login_required
     def get_wardrobe():
-        print(f"--- DEBUG: /api/get-wardrobe called for user: {current_user.email} (ID: {current_user.id}) ---") # ADD THIS
         try:
-            items = ClothingItem.query.filter_by(user_id=current_user.id).all()
+            user = get_actual_user()
+            items = ClothingItem.query.filter_by(user_id=user.id).all()
             return jsonify({'items': [item.to_dict() for item in items]})
         except Exception as e:
             if app.debug:
@@ -669,8 +659,9 @@ def create_app():
     @login_required
     def update_clothing_item(item_id):
         try:
+            user = get_actual_user()
             item = ClothingItem.query.get(item_id)
-            if not item or item.user_id != current_user.id:
+            if not item or item.user_id != user.id:
                 return jsonify({'error': 'Item not found'}), 404
             data = request.get_json()
             item.name = data.get('name', item.name)
@@ -698,8 +689,9 @@ def create_app():
     @login_required
     def delete_clothing_item(item_id):
         try:
+            user = get_actual_user()
             item = ClothingItem.query.get(item_id)
-            if not item or item.user_id != current_user.id:
+            if not item or item.user_id != user.id:
                 return jsonify({'error': 'Item not found'}), 404
             if item.image_url and not item.image_url.startswith('http'):
                 image_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(item.image_url))
@@ -721,8 +713,9 @@ def create_app():
     @login_required
     def toggle_item_clean_status(item_id):
         try:
+            user = get_actual_user()
             item = ClothingItem.query.get(item_id)
-            if not item or item.user_id != current_user.id:
+            if not item or item.user_id != user.id:
                 return jsonify({'error': 'Item not found'}), 404
             status_cycle = ['clean', 'dirty', 'in_laundry', 'drying']
             current_index = status_cycle.index(item.laundry_status) if item.laundry_status in status_cycle else 0
@@ -758,7 +751,8 @@ def create_app():
             mood = data.get('mood', 'casual')
             season = data.get('season', 'any') # Get season from request, default to 'any'
 
-            wardrobe_items = ClothingItem.query.filter_by(user_id=current_user.id).all()
+            user = get_actual_user()
+            wardrobe_items = ClothingItem.query.filter_by(user_id=user.id).all()
             wardrobe = [item.to_dict() for item in wardrobe_items]
             if not wardrobe:
                 return jsonify({
@@ -772,13 +766,15 @@ def create_app():
             weather_data = None
             weather_str = "mild weather"
             weather_advice = "General weather conditions"
-            if current_user.location:
-                weather_data = current_app.weather_service.get_current_weather(current_user.location)
+            user = get_actual_user()
+            if user.location:
+                weather_data = current_app.weather_service.get_current_weather(user.location)
                 weather_str = current_app.weather_service.get_weather_description(weather_data)
                 weather_advice = current_app.weather_service.get_outfit_weather_advice(weather_data)
             
             # Fetch recent "liked" outfits to help the AI learn
-            outfit_history = Outfit.query.filter_by(user_id=current_user.id, was_actually_worn=True)\
+            user = get_actual_user()
+            outfit_history = Outfit.query.filter_by(user_id=user.id, was_actually_worn=True)\
                                        .order_by(Outfit.date.desc())\
                                        .limit(20).all()
             outfit_history_data = [outfit.to_dict() for outfit in outfit_history]
@@ -791,9 +787,10 @@ def create_app():
                 outfit_history=outfit_history_data
             )
             suggested_items = []
+            user = get_actual_user()
             for item_id in suggestion.get('selected_items', []):
                 item = ClothingItem.query.get(item_id)
-                if item and item.user_id == current_user.id:
+                if item and item.user_id == user.id:
                     suggested_items.append(item.to_dict())
             return jsonify({
                 'suggestion': suggestion,
@@ -814,9 +811,10 @@ def create_app():
     @login_required
     def save_outfit():
         try:
+            user = get_actual_user()
             data = request.get_json()
             outfit = Outfit(
-                user_id=current_user.id,
+                user_id=user.id,
                 weather=data.get('weather', ''),
                 mood=data.get('mood', ''),
                 reason_text=data.get('reason_text', ''),
@@ -848,7 +846,8 @@ def create_app():
             year = request.args.get('year', type=int)
             month = request.args.get('month', type=int)
 
-            query = Outfit.query.filter_by(user_id=current_user.id)
+            user = get_actual_user()
+            query = Outfit.query.filter_by(user_id=user.id)
 
             # Date range filter (for list view)
             if start_date_str:
@@ -905,7 +904,8 @@ def create_app():
     @login_required
     def get_laundry_alerts():
         try:
-            alerts = current_app.laundry_service.get_laundry_alerts(current_user.id)
+            user = get_actual_user()
+            alerts = current_app.laundry_service.get_laundry_alerts(user.id)
             return jsonify(alerts)
         except Exception as e:
             if app.debug:
@@ -916,7 +916,8 @@ def create_app():
     @login_required
     def get_wardrobe_health():
         try:
-            health = current_app.laundry_service.get_wardrobe_health_score(current_user.id)
+            user = get_actual_user()
+            health = current_app.laundry_service.get_wardrobe_health_score(user.id)
             return jsonify(health)
         except Exception as e:
             if app.debug:
@@ -931,9 +932,10 @@ def create_app():
             item_ids = data.get('item_ids', [])
             if not item_ids:
                 return jsonify({'error': 'No items specified'}), 400
+            user = get_actual_user()
             items = ClothingItem.query.filter(
                 ClothingItem.id.in_(item_ids),
-                ClothingItem.user_id == current_user.id
+                ClothingItem.user_id == user.id
             ).all()
             if len(items) != len(item_ids):
                 return jsonify({'error': 'Some items not found or not owned by user'}), 400
@@ -951,8 +953,9 @@ def create_app():
     @login_required
     def toggle_laundry_status(item_id):
         try:
+            user = get_actual_user()
             item = ClothingItem.query.get(item_id)
-            if not item or item.user_id != current_user.id:
+            if not item or item.user_id != user.id:
                 return jsonify({'error': 'Item not found'}), 404
             status_cycle = ['clean', 'dirty', 'in_laundry', 'drying']
             current_index = status_cycle.index(item.laundry_status) if item.laundry_status in status_cycle else 0
@@ -984,7 +987,8 @@ def create_app():
     @login_required
     def get_smart_collections():
         try:
-            collections = current_app.wardrobe_intelligence_service.get_smart_collections(current_user.id)
+            user = get_actual_user()
+            collections = current_app.wardrobe_intelligence_service.get_smart_collections(user.id)
             return jsonify(collections)
         except Exception as e:
             if app.debug:
@@ -995,7 +999,8 @@ def create_app():
     @login_required
     def get_wardrobe_gaps():
         try:
-            gaps = current_app.wardrobe_intelligence_service.get_wardrobe_gaps(current_user.id)
+            user = get_actual_user()
+            gaps = current_app.wardrobe_intelligence_service.get_wardrobe_gaps(user.id)
             return jsonify(gaps)
         except Exception as e:
             if app.debug:
@@ -1010,7 +1015,8 @@ def create_app():
     @login_required
     def get_usage_analytics():
         try:
-            analytics = current_app.analytics_service.get_usage_analytics(current_user.id)
+            user = get_actual_user()
+            analytics = current_app.analytics_service.get_usage_analytics(user.id)
             return jsonify(analytics)
         except Exception as e:
             if app.debug:
@@ -1021,8 +1027,9 @@ def create_app():
     @login_required
     def get_style_dna():
         try:
-            items = ClothingItem.query.filter_by(user_id=current_user.id).all()
-            outfits = Outfit.query.filter_by(user_id=current_user.id).all()
+            user = get_actual_user()
+            items = ClothingItem.query.filter_by(user_id=user.id).all()
+            outfits = Outfit.query.filter_by(user_id=user.id).all()
             style_counts = Counter(item.style for item in items if item.style)
             color_counts = Counter(item.color for item in items if item.color)
             brand_counts = Counter(item.brand for item in items if item.brand)
