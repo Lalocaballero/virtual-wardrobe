@@ -49,6 +49,28 @@ const UserDetails = () => {
         }
     };
 
+    const handleUnsuspendUser = async () => {
+        if (window.confirm('Are you sure you want to lift this user\'s suspension?')) {
+            try {
+                await fetchApi(`${API_BASE}/admin/users/${userId}/unsuspend`, { method: 'POST' });
+                fetchUser();
+            } catch (err) {
+                alert('Failed to unsuspend user');
+            }
+        }
+    };
+
+    const handleUnbanUser = async () => {
+        if (window.confirm('Are you sure you want to unban this user?')) {
+            try {
+                await fetchApi(`${API_BASE}/admin/users/${userId}/unban`, { method: 'POST' });
+                fetchUser();
+            } catch (err) {
+                alert('Failed to unban user');
+            }
+        }
+    };
+
     const handleSuspendUser = async () => {
         const duration = prompt("Enter suspension duration in days:", "7");
         if (duration) {
@@ -157,12 +179,24 @@ const UserDetails = () => {
                     <button onClick={() => handleSetPremium(!user.is_premium)} className={`w-full text-white ${user.is_premium ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} font-medium rounded-lg text-sm px-5 py-2.5 text-center`}>
                         {user.is_premium ? 'Revoke Premium' : 'Grant Premium'}
                     </button>
-                    <button onClick={handleSuspendUser} className="w-full text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                        Suspend User
-                    </button>
-                    <button onClick={handleBanUser} className="w-full text-white bg-orange-600 hover:bg-orange-700 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                        Ban User
-                    </button>
+                    {!user.is_suspended ? (
+                        <button onClick={handleSuspendUser} className="w-full text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            Suspend User
+                        </button>
+                    ) : (
+                        <button onClick={handleUnsuspendUser} className="w-full text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            Unsuspend User
+                        </button>
+                    )}
+                    {!user.is_banned ? (
+                        <button onClick={handleBanUser} className="w-full text-white bg-orange-600 hover:bg-orange-700 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            Ban User
+                        </button>
+                    ) : (
+                        <button onClick={handleUnbanUser} className="w-full text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            Unban User
+                        </button>
+                    )}
                     <button onClick={handleDeleteUser} className="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                         Delete User
                     </button>

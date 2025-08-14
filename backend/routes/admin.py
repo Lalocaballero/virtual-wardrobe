@@ -121,6 +121,41 @@ def ban_user(user_id):
 
     return jsonify({'message': f'User {user.email} has been permanently banned.'})
 
+@admin_bp.route('/users/<int:user_id>/unsuspend', methods=['POST'])
+@admin_required
+def unsuspend_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_suspended = False
+    user.suspension_end_date = None
+    
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=user.id,
+        action_type='unsuspend_user',
+        details='User suspension has been lifted.'
+    )
+    db.session.add(admin_action)
+    db.session.commit()
+    
+    return jsonify({'message': f'User {user.email} suspension has been lifted.'})
+
+@admin_bp.route('/users/<int:user_id>/unban', methods=['POST'])
+@admin_required
+def unban_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_banned = False
+    
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=user.id,
+        action_type='unban_user',
+        details='User ban has been lifted.'
+    )
+    db.session.add(admin_action)
+    db.session.commit()
+    
+    return jsonify({'message': f'User {user.email} ban has been lifted.'})
+
 @admin_bp.route('/users/<int:user_id>/impersonate', methods=['POST'])
 @admin_required
 def impersonate_user(user_id):

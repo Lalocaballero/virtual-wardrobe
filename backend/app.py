@@ -85,12 +85,19 @@ def create_app():
 
     @login_manager.request_loader
     def load_user_from_request(request):
+        print("--- DEBUG: Attempting to load user from request header ---") # ADD THIS
         auth_header = request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Bearer '):
+            print(f"--- DEBUG: Found Authorization header: {auth_header[:20]}... ---") # ADD THIS
             token = auth_header.split(' ')[1]
             user = User.verify_token(token, salt='impersonate-salt')
             if user:
+                print(f"--- DEBUG: Token is VALID for user: {user.email} ---") # ADD THIS
                 return user
+            else:
+                print("--- DEBUG: Token is INVALID ---") # ADD THIS
+        else:
+            print("--- DEBUG: No Authorization header found ---") # ADD THIS
         return None
     
     @login_manager.unauthorized_handler
@@ -649,6 +656,7 @@ def create_app():
     @app.route('/api/get-wardrobe', methods=['GET'])
     @login_required
     def get_wardrobe():
+        print(f"--- DEBUG: /api/get-wardrobe called for user: {current_user.email} (ID: {current_user.id}) ---") # ADD THIS
         try:
             items = ClothingItem.query.filter_by(user_id=current_user.id).all()
             return jsonify({'items': [item.to_dict() for item in items]})
