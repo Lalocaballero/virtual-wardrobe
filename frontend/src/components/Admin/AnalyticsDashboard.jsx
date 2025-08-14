@@ -37,14 +37,17 @@ const AnalyticsDashboard = () => {
     const [conversionData, setConversionData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [filterDays, setFilterDays] = useState(30);
     const { fetchApi } = useWardrobeStore();
 
     useEffect(() => {
         const fetchAllAnalytics = async () => {
+            setLoading(true);
             try {
-                setLoading(true);
+                // Fetch all data points again when filter changes.
+                // These are lightweight queries and this simplifies state management.
                 const [dau, mrr, conversion] = await Promise.all([
-                    fetchApi(`${API_BASE}/admin/analytics/daily_active_users?days=30`),
+                    fetchApi(`${API_BASE}/admin/analytics/daily_active_users?days=${filterDays}`),
                     fetchApi(`${API_BASE}/admin/analytics/mrr`),
                     fetchApi(`${API_BASE}/admin/analytics/premium_conversion_rate`)
                 ]);
@@ -58,7 +61,7 @@ const AnalyticsDashboard = () => {
             }
         };
         fetchAllAnalytics();
-    }, [fetchApi]);
+    }, [fetchApi, filterDays]);
 
     if (loading) return (
         <div className="flex justify-center items-center h-full">
@@ -81,7 +84,24 @@ const AnalyticsDashboard = () => {
                 {mrrData && <StatCard title="Premium Subscribers" value={mrrData.premium_users} icon="⭐" />}
             </div>
             <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-6 rounded-2xl shadow-sm">
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Daily Active Users (Last 30 Days)</h3>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold text-gray-800">Daily Active Users (Last {filterDays} Days)</h3>
+                    <div className="flex space-x-2">
+                        {[7, 30, 90].map(days => (
+                            <button
+                                key={days}
+                                onClick={() => setFilterDays(days)}
+                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                                    filterDays === days
+                                        ? 'bg-blue-600 text-white shadow-sm'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                {days} Days
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 <div style={{ width: '100%', height: 350 }}>
                     <ResponsiveContainer>
                         <AreaChart data={dauData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
