@@ -131,12 +131,12 @@ def create_app():
     from utils.wardrobe_intelligence import WardrobeIntelligenceService, AnalyticsService
     from utils.email_service import EmailService
 
-    ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY'))
-    weather_service = WeatherService(os.environ.get('WEATHER_API_KEY'))
-    laundry_service = LaundryIntelligenceService()
-    email_service = EmailService(os.environ.get('BREVO_API_KEY'))
-    wardrobe_intelligence_service = WardrobeIntelligenceService()
-    analytics_service = AnalyticsService()
+    app.ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY'))
+    app.weather_service = WeatherService(os.environ.get('WEATHER_API_KEY'))
+    app.laundry_service = LaundryIntelligenceService()
+    app.email_service = EmailService(os.environ.get('BREVO_API_KEY'))
+    app.wardrobe_intelligence_service = WardrobeIntelligenceService()
+    app.analytics_service = AnalyticsService()
 
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -270,7 +270,7 @@ def create_app():
 
             try:
                 token = user.get_token(salt='email-verification-salt', expires_sec=86400) # 24 hours
-                email_service.send_verification_email(user.email, token)
+                current_app.email_service.send_verification_email(user.email, token)
             except Exception as e:
                 if app.debug:
                     print(f"Email sending failed after registration for {user.email}: {e}")
@@ -325,7 +325,7 @@ def create_app():
             
             try:
                 token = user.get_token(salt='email-verification-salt', expires_sec=86400)
-                email_service.send_verification_email(user.email, token)
+                current_app.email_service.send_verification_email(user.email, token)
             except Exception as e:
                 if app.debug:
                     print(f"Resend verification email failed for {user.email}: {e}")
@@ -391,7 +391,7 @@ def create_app():
         if user:
             try:
                 token = user.get_token(salt='password-reset-salt', expires_sec=1800) # 30 minutes
-                email_service.send_password_reset_email(user.email, token)
+                current_app.email_service.send_password_reset_email(user.email, token)
             except Exception as e:
                 if app.debug:
                     print(f"Password reset email failed for {user.email}: {e}")
@@ -755,9 +755,9 @@ def create_app():
             weather_str = "mild weather"
             weather_advice = "General weather conditions"
             if current_user.location:
-                weather_data = weather_service.get_current_weather(current_user.location)
-                weather_str = weather_service.get_weather_description(weather_data)
-                weather_advice = weather_service.get_outfit_weather_advice(weather_data)
+                weather_data = current_app.weather_service.get_current_weather(current_user.location)
+                weather_str = current_app.weather_service.get_weather_description(weather_data)
+                weather_advice = current_app.weather_service.get_outfit_weather_advice(weather_data)
             
             # Fetch recent "liked" outfits to help the AI learn
             outfit_history = Outfit.query.filter_by(user_id=current_user.id, was_actually_worn=True)\
@@ -765,7 +765,7 @@ def create_app():
                                        .limit(20).all()
             outfit_history_data = [outfit.to_dict() for outfit in outfit_history]
 
-            suggestion = ai_service.generate_outfit_suggestion(
+            suggestion = current_app.ai_service.generate_outfit_suggestion(
                 wardrobe=wardrobe,
                 weather=weather_str,
                 mood=mood,
@@ -810,7 +810,7 @@ def create_app():
                 item = ClothingItem.query.get(item_id)
                 if item and item.user_id == current_user.id:
                     outfit.clothing_items.append(item)
-                    laundry_service.increment_wear_count(item_id)
+                    current_app.laundry_service.increment_wear_count(item_id)
             db.session.add(outfit)
             db.session.commit()
             return jsonify({'message': 'Outfit saved successfully', 'outfit': outfit.to_dict()})
@@ -887,7 +887,7 @@ def create_app():
     @login_required
     def get_laundry_alerts():
         try:
-            alerts = laundry_service.get_laundry_alerts(current_user.id)
+            alerts = current_app.laundry_service.get_laundry_alerts(current_user.id)
             return jsonify(alerts)
         except Exception as e:
             if app.debug:
@@ -898,7 +898,7 @@ def create_app():
     @login_required
     def get_wardrobe_health():
         try:
-            health = laundry_service.get_wardrobe_health_score(current_user.id)
+            health = current_app.laundry_service.get_wardrobe_health_score(current_user.id)
             return jsonify(health)
         except Exception as e:
             if app.debug:
@@ -919,7 +919,7 @@ def create_app():
             ).all()
             if len(items) != len(item_ids):
                 return jsonify({'error': 'Some items not found or not owned by user'}), 400
-            success = laundry_service.mark_items_washed(item_ids)
+            success = current_app.laundry_service.mark_items_washed(item_ids)
             if success:
                 return jsonify({'message': f'Marked {len(item_ids)} items as washed'})
             else:
@@ -966,7 +966,7 @@ def create_app():
     @login_required
     def get_smart_collections():
         try:
-            collections = wardrobe_intelligence_service.get_smart_collections(current_user.id)
+            collections = current_app.wardrobe_intelligence_service.get_smart_collections(current_user.id)
             return jsonify(collections)
         except Exception as e:
             if app.debug:
@@ -977,7 +977,7 @@ def create_app():
     @login_required
     def get_wardrobe_gaps():
         try:
-            gaps = wardrobe_intelligence_service.get_wardrobe_gaps(current_user.id)
+            gaps = current_app.wardrobe_intelligence_service.get_wardrobe_gaps(current_user.id)
             return jsonify(gaps)
         except Exception as e:
             if app.debug:
@@ -992,7 +992,7 @@ def create_app():
     @login_required
     def get_usage_analytics():
         try:
-            analytics = analytics_service.get_usage_analytics(current_user.id)
+            analytics = current_app.analytics_service.get_usage_analytics(current_user.id)
             return jsonify(analytics)
         except Exception as e:
             if app.debug:

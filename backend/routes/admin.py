@@ -1,9 +1,8 @@
-from flask import Blueprint, jsonify, request, make_response
+from flask import Blueprint, jsonify, request, make_response, current_app
 from flask_login import current_user
 from datetime import datetime, timedelta
 from models import User, db, ClothingItem, AdminAction
 from utils.decorators import admin_required
-from app import email_service
 import csv
 from io import StringIO
 
@@ -94,7 +93,7 @@ def suspend_user(user_id):
     db.session.add(admin_action)
     db.session.commit()
     
-    email_service.send_suspension_email(user.email, user.suspension_end_date, reason)
+    current_app.email_service.send_suspension_email(user.email, user.suspension_end_date, reason)
     
     return jsonify({'message': f'User {user.email} has been suspended until {user.suspension_end_date}.'})
 
@@ -118,7 +117,7 @@ def ban_user(user_id):
     db.session.add(admin_action)
     db.session.commit()
 
-    email_service.send_ban_email(user.email, reason)
+    current_app.email_service.send_ban_email(user.email, reason)
 
     return jsonify({'message': f'User {user.email} has been permanently banned.'})
 
