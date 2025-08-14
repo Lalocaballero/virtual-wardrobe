@@ -82,6 +82,16 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.session_protection = "strong"
+
+    @login_manager.request_loader
+    def load_user_from_request(request):
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            user = User.verify_token(token, salt='impersonate-salt')
+            if user:
+                return user
+        return None
     
     @login_manager.unauthorized_handler
     def unauthorized():
