@@ -6,15 +6,21 @@ import AdminStats from './AdminStats';
 import AdminActionLog from './AdminActionLog';
 import ContentModeration from './ContentModeration';
 import DataExport from './DataExport';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import SystemHealth from './SystemHealth';
 
 const AdminDashboard = () => {
     const location = useLocation();
 
     const getTitle = () => {
-        const path = location.pathname.split('/')[2] || 'stats';
+        const path = location.pathname.split('/')[2] || 'analytics';
         switch (path) {
+            case 'analytics':
+                return 'Analytics Dashboard';
+            case 'health':
+                return 'System Health';
             case 'stats':
-                return 'Statistics';
+                return 'Legacy Stats';
             case 'users':
                 return 'User Management';
             case 'log':
@@ -39,9 +45,17 @@ const AdminDashboard = () => {
                     <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
                 </div>
                 <nav className="p-4 space-y-2">
+                    <NavLink to="/admin/analytics" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
+                        <span>📈</span>
+                        <span className="ml-3">Analytics</span>
+                    </NavLink>
+                    <NavLink to="/admin/health" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
+                        <span>❤️</span>
+                        <span className="ml-3">System Health</span>
+                    </NavLink>
                     <NavLink to="/admin/stats" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
                         <span>📊</span>
-                        <span className="ml-3">Stats</span>
+                        <span className="ml-3">Legacy Stats</span>
                     </NavLink>
                     <NavLink to="/admin/users" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
                         <span>👥</span>
@@ -75,7 +89,9 @@ const AdminDashboard = () => {
                 </header>
                 <div className="p-6 overflow-auto">
                     <Routes>
-                        <Route path="/" element={<Navigate to="stats" replace />} />
+                        <Route path="/" element={<Navigate to="analytics" replace />} />
+                        <Route path="analytics" element={<AnalyticsDashboard />} />
+                        <Route path="health" element={<SystemHealth />} />
                         <Route path="stats" element={<AdminStats />} />
                         <Route path="users" element={<UserList />} />
                         <Route path="users/:userId" element={<UserDetails />} />
