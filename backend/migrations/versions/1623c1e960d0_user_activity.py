@@ -26,8 +26,8 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('clothing_item', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('status', sa.String(length=20), nullable=False))
-        batch_op.add_column(sa.Column('reported_count', sa.Integer(), nullable=False))
+        batch_op.add_column(sa.Column('status', sa.String(length=20), nullable=False, server_default='active'))
+        batch_op.add_column(sa.Column('reported_count', sa.Integer(), nullable=False, server_default='0'))
 
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.add_column(sa.Column('last_login_at', sa.DateTime(), nullable=True))
