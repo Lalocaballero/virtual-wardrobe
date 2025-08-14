@@ -625,6 +625,15 @@ def create_app():
         try:
             user = get_actual_user()
             data = request.get_json()
+            purchase_date_str = data.get('purchase_date')
+            purchase_date = None
+            if purchase_date_str:
+                try:
+                    # Handle ISO format strings (e.g., from JavaScript's toISOString)
+                    purchase_date = datetime.fromisoformat(purchase_date_str.replace('Z', '+00:00'))
+                except (ValueError, TypeError):
+                    purchase_date = None # Keep it None if format is wrong or type is not string
+
             item = ClothingItem(
                 user_id=user.id,
                 name=data['name'],
@@ -638,7 +647,16 @@ def create_app():
                 condition=data.get('condition', 'good'),
                 is_clean=data.get('is_clean', True),
                 image_url=data.get('image_url', ''),
-                custom_tags=json.dumps(data.get('custom_tags', []))
+                custom_tags=json.dumps(data.get('custom_tags', [])),
+                # New fields
+                purchase_date=purchase_date,
+                purchase_cost=data.get('purchase_cost'),
+                care_instructions=json.dumps(data.get('care_instructions', {})),
+                wash_temperature=data.get('wash_temperature'),
+                dry_clean_only=data.get('dry_clean_only', False),
+                needs_repair=data.get('needs_repair', False),
+                repair_notes=data.get('repair_notes'),
+                retirement_candidate=data.get('retirement_candidate', False)
             )
             db.session.add(item)
             db.session.commit()
@@ -683,6 +701,42 @@ def create_app():
             item.custom_tags = json.dumps(data.get('custom_tags', json.loads(item.custom_tags or '[]')))
             if 'image_url' in data:
                 item.image_url = data['image_url']
+
+            # Update new fields
+            if 'purchase_date' in data:
+                purchase_date_str = data.get('purchase_date')
+                if purchase_date_str:
+                    try:
+                        item.purchase_date = datetime.fromisoformat(purchase_date_str.replace('Z', '+00:00'))
+                    except (ValueError, TypeError):
+                        item.purchase_date = None
+                else:
+                    item.purchase_date = None
+            
+            cost = data.get('purchase_cost')
+            if 'purchase_cost' in data:
+                # Allow setting cost to null/0
+                item.purchase_cost = float(cost) if cost is not None and cost != '' else None
+
+
+            if 'care_instructions' in data:
+                item.care_instructions = json.dumps(data.get('care_instructions', {}))
+            
+            if 'wash_temperature' in data:
+                item.wash_temperature = data.get('wash_temperature')
+
+            if 'dry_clean_only' in data:
+                item.dry_clean_only = data.get('dry_clean_only', False)
+
+            if 'needs_repair' in data:
+                item.needs_repair = data.get('needs_repair', False)
+
+            if 'repair_notes' in data:
+                item.repair_notes = data.get('repair_notes')
+
+            if 'retirement_candidate' in data:
+                item.retirement_candidate = data.get('retirement_candidate', False)
+
             db.session.commit()
             return jsonify({'message': 'Item updated successfully', 'item': item.to_dict()})
         except Exception as e:

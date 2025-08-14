@@ -31,7 +31,15 @@ const WardrobeManager = () => {
 
   const [newItem, setNewItem] = useState({
     name: '', type: '', color: '', style: '', season: 'all',
-    brand: '', fabric: '', mood_tags: [], image_url: ''
+    brand: '', fabric: '', mood_tags: [], image_url: '',
+    purchase_date: '',
+    purchase_cost: '',
+    care_instructions: { notes: '' },
+    wash_temperature: 'cold',
+    dry_clean_only: false,
+    needs_repair: false,
+    repair_notes: '',
+    retirement_candidate: false
   });
 
   useEffect(() => {
@@ -44,7 +52,15 @@ const WardrobeManager = () => {
     if (success) {
       setNewItem({
         name: '', type: '', color: '', style: '', season: 'all',
-        brand: '', fabric: '', mood_tags: [], image_url: ''
+        brand: '', fabric: '', mood_tags: [], image_url: '',
+        purchase_date: '',
+        purchase_cost: '',
+        care_instructions: { notes: '' },
+        wash_temperature: 'cold',
+        dry_clean_only: false,
+        needs_repair: false,
+        repair_notes: '',
+        retirement_candidate: false
       });
       setShowAddForm(false);
     }
@@ -170,6 +186,55 @@ const WardrobeManager = () => {
                 <input type="text" value={newItem.fabric} onChange={(e) => setNewItem({...newItem, fabric: e.target.value})} className="w-full" placeholder="e.g., Cotton, Wool" />
               </div>
             </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+                <h4 className="text-md font-medium mb-4">Purchase & Care Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Purchase Date</label>
+                        <input type="date" value={newItem.purchase_date} onChange={(e) => setNewItem({...newItem, purchase_date: e.target.value})} className="w-full" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Purchase Cost ($)</label>
+                        <input type="number" step="0.01" value={newItem.purchase_cost} onChange={(e) => setNewItem({...newItem, purchase_cost: e.target.value})} className="w-full" placeholder="e.g., 59.99" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Wash Temperature</label>
+                        <select value={newItem.wash_temperature} onChange={(e) => setNewItem({...newItem, wash_temperature: e.target.value})} className="w-full">
+                            <option value="cold">Cold</option>
+                            <option value="warm">Warm</option>
+                            <option value="hot">Hot</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center pt-6">
+                        <input type="checkbox" id="dry_clean_only_add" checked={newItem.dry_clean_only} onChange={(e) => setNewItem({...newItem, dry_clean_only: e.target.checked})} className="h-4 w-4 rounded" />
+                        <label htmlFor="dry_clean_only_add" className="ml-2 block text-sm">Dry Clean Only</label>
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2">Care Instructions</label>
+                        <input type="text" value={newItem.care_instructions.notes || ''} onChange={(e) => setNewItem({...newItem, care_instructions: {notes: e.target.value}})} className="w-full" placeholder="e.g., Hand wash cold, lay flat to dry" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+                <h4 className="text-md font-medium mb-4">Maintenance</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex items-center">
+                        <input type="checkbox" id="needs_repair_add" checked={newItem.needs_repair} onChange={(e) => setNewItem({...newItem, needs_repair: e.target.checked})} className="h-4 w-4 rounded" />
+                        <label htmlFor="needs_repair_add" className="ml-2 block text-sm">Needs Repair</label>
+                    </div>
+                    <div className="flex items-center">
+                        <input type="checkbox" id="retirement_candidate_add" checked={newItem.retirement_candidate} onChange={(e) => setNewItem({...newItem, retirement_candidate: e.target.checked})} className="h-4 w-4 rounded" />
+                        <label htmlFor="retirement_candidate_add" className="ml-2 block text-sm">Retirement Candidate</label>
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2">Repair Notes</label>
+                        <textarea value={newItem.repair_notes} onChange={(e) => setNewItem({...newItem, repair_notes: e.target.value})} className="w-full" rows="2" placeholder="e.g., Missing a button, small tear on sleeve"></textarea>
+                    </div>
+                </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-2">Mood Tags</label>
               <div className="flex flex-wrap gap-2">

@@ -14,7 +14,16 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
     condition: item?.condition || 'good',
     is_clean: item?.is_clean ?? true,
     mood_tags: item?.mood_tags || [],
-    image_url: item?.image_url || ''
+    image_url: item?.image_url || '',
+    // New fields
+    purchase_date: item?.purchase_date ? item.purchase_date.split('T')[0] : '',
+    purchase_cost: item?.purchase_cost || '',
+    care_instructions: item?.care_instructions || { notes: '' },
+    wash_temperature: item?.wash_temperature || 'cold',
+    dry_clean_only: item?.dry_clean_only || false,
+    needs_repair: item?.needs_repair || false,
+    repair_notes: item?.repair_notes || '',
+    retirement_candidate: item?.retirement_candidate || false
   });
 
   const handleSubmit = (e) => {
@@ -177,6 +186,54 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
               </select>
             </div>
           </div>
+          
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+                <h4 className="text-md font-medium mb-4">Purchase & Care Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Purchase Date</label>
+                        <input type="date" value={formData.purchase_date} onChange={(e) => setFormData({...formData, purchase_date: e.target.value})} className="w-full" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Purchase Cost ($)</label>
+                        <input type="number" step="0.01" value={formData.purchase_cost} onChange={(e) => setFormData({...formData, purchase_cost: e.target.value})} className="w-full" placeholder="e.g., 59.99" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Wash Temperature</label>
+                        <select value={formData.wash_temperature} onChange={(e) => setFormData({...formData, wash_temperature: e.target.value})} className="w-full">
+                            <option value="cold">Cold</option>
+                            <option value="warm">Warm</option>
+                            <option value="hot">Hot</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center pt-6">
+                        <input type="checkbox" id="dry_clean_only_edit" checked={formData.dry_clean_only} onChange={(e) => setFormData({...formData, dry_clean_only: e.target.checked})} className="h-4 w-4 rounded" />
+                        <label htmlFor="dry_clean_only_edit" className="ml-2 block text-sm">Dry Clean Only</label>
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2">Care Instructions</label>
+                        <input type="text" value={formData.care_instructions.notes || ''} onChange={(e) => setFormData({...formData, care_instructions: {notes: e.target.value}})} className="w-full" placeholder="e.g., Hand wash cold, lay flat to dry" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+                <h4 className="text-md font-medium mb-4">Maintenance</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex items-center">
+                        <input type="checkbox" id="needs_repair_edit" checked={formData.needs_repair} onChange={(e) => setFormData({...formData, needs_repair: e.target.checked})} className="h-4 w-4 rounded" />
+                        <label htmlFor="needs_repair_edit" className="ml-2 block text-sm">Needs Repair</label>
+                    </div>
+                    <div className="flex items-center">
+                        <input type="checkbox" id="retirement_candidate_edit" checked={formData.retirement_candidate} onChange={(e) => setFormData({...formData, retirement_candidate: e.target.checked})} className="h-4 w-4 rounded" />
+                        <label htmlFor="retirement_candidate_edit" className="ml-2 block text-sm">Retirement Candidate</label>
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-2">Repair Notes</label>
+                        <textarea value={formData.repair_notes} onChange={(e) => setFormData({...formData, repair_notes: e.target.value})} className="w-full" rows="2" placeholder="e.g., Missing a button, small tear on sleeve"></textarea>
+                    </div>
+                </div>
+            </div>
 
           <div>
             <label className="flex items-center">
