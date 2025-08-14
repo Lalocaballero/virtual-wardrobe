@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Tuple
+from sqlalchemy import func, distinct, cast, Date
 from models import ClothingItem, Outfit, User, UserActivity, db
 from collections import defaultdict, Counter
 import json
@@ -328,18 +329,15 @@ class AnalyticsService:
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
         
-        # This query groups activities by date and counts unique user_ids for each day
-        from sqlalchemy import func, distinct
-        
         daily_counts = db.session.query(
-            func.date(UserActivity.timestamp),
+            cast(UserActivity.timestamp, Date).label('activity_date'),
             func.count(distinct(UserActivity.user_id))
         ).filter(
             UserActivity.timestamp >= start_date
         ).group_by(
-            func.date(UserActivity.timestamp)
+            'activity_date'
         ).order_by(
-            func.date(UserActivity.timestamp)
+            'activity_date'
         ).all()
         
         # Format the data for charting

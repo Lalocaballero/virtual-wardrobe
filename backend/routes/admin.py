@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, make_response, current_app
+from sqlalchemy import text
 from flask_login import current_user
 from datetime import datetime, timedelta
 from models import User, db, ClothingItem, AdminAction
@@ -212,7 +213,7 @@ def get_premium_conversion_rate():
 def system_health():
     # Basic health check: database connectivity
     try:
-        db.engine.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         db_status = 'ok'
     except Exception as e:
         db_status = f'error: {e}'
