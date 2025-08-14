@@ -335,7 +335,7 @@ class AnalyticsService:
         ).filter(
             UserActivity.timestamp >= start_date
         ).group_by(
-            'activity_date'
+            cast(UserActivity.timestamp, Date)
         ).order_by(
             'activity_date'
         ).all()
