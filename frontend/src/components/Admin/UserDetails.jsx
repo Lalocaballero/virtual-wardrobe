@@ -139,7 +139,11 @@ const UserDetails = () => {
                                 {user.is_verified ? 'Verified' : 'Not Verified'}
                             </span>
                             {user.is_banned && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Banned</span>}
-                            {user.is_suspended && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Suspended</span>}
+                            {user.is_suspended && (
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Suspended {user.suspension_end_date ? `until ${new Date(user.suspension_end_date).toLocaleDateString()}` : ''}
+                                </span>
+                            )}
                         </dd>
                     </div>
                 </dl>

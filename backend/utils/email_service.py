@@ -64,3 +64,26 @@ class EmailService:
         <p>If you did not request a password reset, please ignore this email.</p>
         """
         return self.send_email(to_email, subject, html_content)
+
+    def send_suspension_email(self, to_email, suspension_end_date, reason):
+        subject = "Your WeWear Account Has Been Suspended"
+        html_content = f"""
+        <h2>Account Suspension Notice</h2>
+        <p>Your WeWear account has been temporarily suspended.</p>
+        <p><strong>Reason:</strong> {reason}</p>
+        <p>Your suspension will last until: <strong>{suspension_end_date.strftime('%B %d, %Y at %I:%M %p UTC')}</strong>.</p>
+        <p>You will not be able to log in until the suspension period is over.</p>
+        <p>If you believe this is a mistake, please contact our support team.</p>
+        """
+        return self.send_email(to_email, subject, html_content)
+
+    def send_ban_email(self, to_email, reason):
+        subject = "Your WeWear Account Has Been Banned"
+        html_content = f"""
+        <h2>Account Ban Notice</h2>
+        <p>Your WeWear account has been permanently banned.</p>
+        <p><strong>Reason:</strong> {reason}</p>
+        <p>This action is irreversible. You will no longer be able to access your account or its data.</p>
+        <p>If you believe this is a mistake, please contact our support team.</p>
+        """
+        return self.send_email(to_email, subject, html_content)

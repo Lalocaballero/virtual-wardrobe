@@ -3,6 +3,7 @@ from flask_login import current_user
 from datetime import datetime, timedelta
 from models import User, db, ClothingItem, AdminAction
 from utils.decorators import admin_required
+from app import email_service
 import csv
 from io import StringIO
 
@@ -12,13 +13,34 @@ admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 @admin_required
 def get_users():
     users = User.query.all()
-    return jsonify([{'id': user.id, 'email': user.email, 'is_admin': user.is_admin, 'is_premium': user.is_premium, 'is_verified': user.is_verified, 'created_at': user.created_at} for user in users])
+    return jsonify([{
+        'id': user.id, 
+        'email': user.email, 
+        'is_admin': user.is_admin, 
+        'is_premium': user.is_premium, 
+        'is_verified': user.is_verified, 
+        'is_suspended': user.is_suspended,
+        'is_banned': user.is_banned,
+        'created_at': user.created_at
+    } for user in users])
 
 @admin_bp.route('/users/<int:user_id>', methods=['GET'])
 @admin_required
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
-    return jsonify({'id': user.id, 'email': user.email, 'is_admin': user.is_admin, 'is_premium': user.is_premium, 'is_verified': user.is_verified, 'created_at': user.created_at, 'location': user.location, 'display_name': user.display_name})
+    return jsonify({
+        'id': user.id, 
+        'email': user.email, 
+        'is_admin': user.is_admin, 
+        'is_premium': user.is_premium, 
+        'is_verified': user.is_verified, 
+        'is_suspended': user.is_suspended,
+        'is_banned': user.is_banned,
+        'suspension_end_date': user.suspension_end_date.isoformat() if user.suspension_end_date else None,
+        'created_at': user.created_at, 
+        'location': user.location, 
+        'display_name': user.display_name
+    })
 
 @admin_bp.route('/users/<int:user_id>/set-premium', methods=['POST'])
 @admin_required
@@ -72,6 +94,8 @@ def suspend_user(user_id):
     db.session.add(admin_action)
     db.session.commit()
     
+    email_service.send_suspension_email(user.email, user.suspension_end_date, reason)
+    
     return jsonify({'message': f'User {user.email} has been suspended until {user.suspension_end_date}.'})
 
 @admin_bp.route('/users/<int:user_id>/ban', methods=['POST'])
@@ -93,6 +117,8 @@ def ban_user(user_id):
     )
     db.session.add(admin_action)
     db.session.commit()
+
+    email_service.send_ban_email(user.email, reason)
 
     return jsonify({'message': f'User {user.email} has been permanently banned.'})
 

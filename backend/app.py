@@ -349,6 +349,16 @@ def create_app():
                 
                 if not user.is_verified:
                     return jsonify({'error': 'Please verify your email to log in.', 'code': 'EMAIL_NOT_VERIFIED'}), 403
+                
+                if user.is_banned:
+                    return jsonify({'error': 'This account has been permanently banned.'}), 403
+                
+                if user.is_suspended:
+                    if user.suspension_end_date and user.suspension_end_date > datetime.utcnow():
+                        return jsonify({'error': f"This account is suspended until {user.suspension_end_date.strftime('%B %d, %Y')}"}), 403
+                    else:
+                        user.is_suspended = False
+                        db.session.commit()
 
                 session.clear() 
                 session.permanent = True 
