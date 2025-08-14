@@ -17,7 +17,7 @@ import cloudinary.uploader
 import cloudinary.api
 
 # Import db, User, ClothingItem, Outfit from models.
-from models import db, User, ClothingItem, Outfit
+from models import db, User, ClothingItem, Outfit, UserActivity
 from utils.auth import get_actual_user
 
 # Initialize extensions globally
@@ -385,6 +385,12 @@ def create_app():
                 login_user(user, remember=True)
                 session['user_id'] = user.id 
                 session['logged_in'] = True
+
+                # Record user activity
+                user.last_login_at = datetime.utcnow()
+                activity = UserActivity(user_id=user.id)
+                db.session.add(activity)
+                db.session.commit()
                 
                 response = jsonify({
                     'message': 'Login successful', 

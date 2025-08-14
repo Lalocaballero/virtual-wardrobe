@@ -183,6 +183,51 @@ def get_admin_log():
     logs = AdminAction.query.order_by(AdminAction.created_at.desc()).all()
     return jsonify([log.to_dict() for log in logs])
 
+
+# ==================================
+# NEW: Analytics & Health Endpoints
+# ==================================
+
+@admin_bp.route('/analytics/daily_active_users', methods=['GET'])
+@admin_required
+def get_daily_active_users():
+    days = request.args.get('days', 30, type=int)
+    dau_data = current_app.analytics_service.get_daily_active_users(days=days)
+    return jsonify(dau_data)
+
+@admin_bp.route('/analytics/mrr', methods=['GET'])
+@admin_required
+def get_mrr():
+    mrr_data = current_app.analytics_service.get_mrr()
+    return jsonify(mrr_data)
+
+@admin_bp.route('/analytics/premium_conversion_rate', methods=['GET'])
+@admin_required
+def get_premium_conversion_rate():
+    conversion_data = current_app.analytics_service.get_premium_conversion_rate()
+    return jsonify(conversion_data)
+
+@admin_bp.route('/system/health', methods=['GET'])
+@admin_required
+def system_health():
+    # Basic health check: database connectivity
+    try:
+        db.engine.execute('SELECT 1')
+        db_status = 'ok'
+    except Exception as e:
+        db_status = f'error: {e}'
+
+    # You could add more checks here (e.g., Redis, external APIs)
+    health_status = {
+        'status': 'ok',
+        'timestamp': datetime.utcnow().isoformat(),
+        'services': {
+            'database': db_status,
+            'api': 'ok' 
+        }
+    }
+    return jsonify(health_status)
+
 @admin_bp.route('/content/reported', methods=['GET'])
 @admin_required
 def get_reported_content():

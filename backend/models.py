@@ -27,6 +27,7 @@ class User(UserMixin, db.Model):
     is_banned = db.Column(db.Boolean, nullable=False, default=False)
     location = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login_at = db.Column(db.DateTime, nullable=True)
 
     display_name = db.Column(db.String(80), nullable=True)
     profile_image_url = db.Column(db.String(255), nullable=True)
@@ -73,6 +74,12 @@ class User(UserMixin, db.Model):
             return user_thresholds
         
         return default_thresholds
+
+class UserActivity(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='activities')
 
 class ClothingItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)

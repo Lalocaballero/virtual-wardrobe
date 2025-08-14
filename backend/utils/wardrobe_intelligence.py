@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Tuple
-from models import ClothingItem, Outfit, User, db
+from models import ClothingItem, Outfit, User, UserActivity, db
 from collections import defaultdict, Counter
 import json
 import statistics
@@ -319,6 +319,76 @@ class WardrobeIntelligenceService:
         return recommendations
 
 class AnalyticsService:
+    
+    @staticmethod
+    def get_daily_active_users(days=30):
+        """
+        Calculates the number of unique daily active users for the last N days.
+        """
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        # This query groups activities by date and counts unique user_ids for each day
+        from sqlalchemy import func, distinct
+        
+        daily_counts = db.session.query(
+            func.date(UserActivity.timestamp),
+            func.count(distinct(UserActivity.user_id))
+        ).filter(
+            UserActivity.timestamp >= start_date
+        ).group_by(
+            func.date(UserActivity.timestamp)
+        ).order_by(
+            func.date(UserActivity.timestamp)
+        ).all()
+        
+        # Format the data for charting
+        chart_data = []
+        # Create a dictionary for quick lookups
+        counts_dict = {date.strftime('%Y-%m-%d'): count for date, count in daily_counts}
+        
+        # Ensure all days in the range are present, even if they have 0 activity
+        for i in range(days):
+            date = (start_date + timedelta(days=i)).strftime('%Y-%m-%d')
+            chart_data.append({
+                'date': date,
+                'active_users': counts_dict.get(date, 0)
+            })
+            
+        return chart_data
+
+    @staticmethod
+    def get_mrr():
+        """
+        Calculates the estimated Monthly Recurring Revenue (MRR).
+        Assumes a fixed price per premium user.
+        """
+        PREMIUM_PRICE = 10.00 # Assumed price in USD
+        premium_user_count = User.query.filter_by(is_premium=True).count()
+        mrr = premium_user_count * PREMIUM_PRICE
+        return {
+            'mrr': round(mrr, 2),
+            'premium_users': premium_user_count,
+            'price_per_user': PREMIUM_PRICE
+        }
+
+    @staticmethod
+    def get_premium_conversion_rate():
+        """
+        Calculates the percentage of total users who are premium subscribers.
+        """
+        total_users = User.query.count()
+        if total_users == 0:
+            return {'rate': 0, 'total_users': 0, 'premium_users': 0}
+            
+        premium_users = User.query.filter_by(is_premium=True).count()
+        conversion_rate = (premium_users / total_users) * 100 if total_users > 0 else 0
+        
+        return {
+            'rate': round(conversion_rate, 2),
+            'total_users': total_users,
+            'premium_users': premium_users
+        }
     
     @staticmethod
     def get_usage_analytics(user_id: int) -> Dict[str, Any]:
