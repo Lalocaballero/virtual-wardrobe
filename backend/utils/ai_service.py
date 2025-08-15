@@ -91,8 +91,13 @@ class AIOutfitService:
                 return self._parse_ai_text_response(content, available_items, weather, mood)
             
         except Exception as e:
-            print(f"AI service error: {e}")
-            return self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
+            error_message = f"AI service error: {str(e)}"
+            print(error_message)
+            # Create a custom fallback response that includes the error
+            fallback_with_error = self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
+            fallback_with_error['reasoning'] = error_message
+            fallback_with_error['style_notes'] = "The AI service is currently unavailable. Please check your API key and configuration."
+            return fallback_with_error
     
     def _get_system_prompt(self) -> str:
         """Generates the comprehensive system prompt for the AI model."""
