@@ -172,7 +172,7 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
         style_dna = self._get_style_dna(wardrobe, outfit_history, mood)
         style_dna_prompt_section = ""
         if style_dna:
-            style_dna_prompt_section = f"USER STYLE DNA (for personalization):\n{json.dumps(style_dna, indent=2)}\n"
+            style_dna_prompt_section = f"USER'S {mood.upper()} STYLE DNA (for personalization):\n{json.dumps(style_dna, indent=2)}\n"
 
         # --- NEW: Format Outfit History for Learning ---
         history_prompt_section = ""
@@ -248,13 +248,14 @@ Accessories: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_
 REQUIREMENTS:
 1. Create a weather-appropriate and SEASONALLY-APPROPRIATE outfit for a '{mood}' mood. The user's requested season is '{season}'.
 2. **Personalize the outfit based on the user's STYLE DNA and OUTFIT HISTORY.** This is crucial.
-3. AVOID recently worn items when possible (see IDs above).
-4. Ensure color coordination and style harmony.
-5. Consider layering for weather conditions.
-6. Include essential pieces (top + bottom OR dress, plus shoes).
-7. Add outerwear/accessories if weather/mood appropriate.
-8. {variety_instruction}
-9. BE CREATIVE and suggest different combinations each time.
+3. **Adhere strictly to the requested mood/style.** For a '{mood}' request, the outfit's overall aesthetic must be '{mood}'. Avoid including items from other distinct styles (like sporty, formal) unless they are versatile basics (e.g., plain t-shirts, simple jeans).
+4. AVOID recently worn items when possible (see IDs above).
+5. Ensure color coordination and style harmony.
+6. Consider layering for weather conditions.
+7. Include essential pieces (top + bottom OR dress, plus shoes).
+8. Add outerwear/accessories if weather/mood appropriate.
+9. {variety_instruction}
+10. BE CREATIVE (but within the user's style) and suggest different combinations each time.
 
 RESPONSE FORMAT (JSON only):
 {{
