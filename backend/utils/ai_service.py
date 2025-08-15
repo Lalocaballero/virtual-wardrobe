@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 import json
 from typing import List, Dict, Any
 import re
@@ -9,9 +9,10 @@ from collections import Counter
 class AIOutfitService:
     def __init__(self, api_key: str):
         if api_key:
-            openai.api_key = api_key
+            self.client = OpenAI(api_key=api_key)
             self.client_available = True
         else:
+            self.client = None
             self.client_available = False
             print("⚠️  OpenAI API key not provided - using fallback outfit suggestions")
     
@@ -55,7 +56,7 @@ class AIOutfitService:
             # Set a more deterministic temperature for consistent, reliable suggestions.
             temperature = 0.5
             
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": self._get_system_prompt()},
@@ -91,13 +92,8 @@ class AIOutfitService:
                 return self._parse_ai_text_response(content, available_items, weather, mood)
             
         except Exception as e:
-            error_message = f"AI service error: {str(e)}"
-            print(error_message)
-            # Create a custom fallback response that includes the error
-            fallback_with_error = self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
-            fallback_with_error['reasoning'] = error_message
-            fallback_with_error['style_notes'] = "The AI service is currently unavailable. Please check your API key and configuration."
-            return fallback_with_error
+            print(f"AI service error: {e}")
+            return self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
     
     def _get_system_prompt(self) -> str:
         """Generates the comprehensive system prompt for the AI model."""

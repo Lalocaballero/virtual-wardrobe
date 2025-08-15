@@ -13,11 +13,24 @@ const HealthCheckItem = ({ name, status }) => {
                 <p className={`text-md font-semibold ${isOk ? 'text-green-700' : 'text-red-700'}`}>
                     {isOk ? 'Operational' : 'Error'}
                 </p>
-                {details && <p className="text-sm text-gray-500 ml-2 truncate">({details})</p>}
+                {details && <p className="text-sm text-gray-500 ml-2 truncate" title={details}>({details})</p>}
             </div>
         </div>
     );
 };
+
+const StatCard = ({ title, value, icon }) => (
+    <div className="bg-gray-50/80 border border-gray-200/80 p-4 rounded-xl flex items-center">
+        <div className="p-3 rounded-lg mr-4 bg-gray-200">
+            <span className="text-xl">{icon}</span>
+        </div>
+        <div>
+            <p className="text-md text-gray-600">{title}</p>
+            <p className="text-2xl font-semibold text-gray-900">{value}</p>
+        </div>
+    </div>
+);
+
 
 const SystemHealth = () => {
     const [healthData, setHealthData] = useState(null);
@@ -53,17 +66,30 @@ const SystemHealth = () => {
     );
     
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
             <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-8 rounded-2xl shadow-sm">
                 <h3 className="text-2xl font-semibold mb-2 text-gray-800">System Health</h3>
-                <p className="text-sm text-gray-500 mb-8">
+                <p className="text-sm text-gray-500 mb-6">
                     Last checked: {healthData && new Date(healthData.timestamp).toLocaleString()}
                 </p>
+                
+                {healthData && healthData.database_stats && !healthData.database_stats.error && (
+                    <>
+                        <h4 className="text-xl font-semibold mb-4 text-gray-700">Database Stats</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <StatCard title="Total Users" value={healthData.database_stats.users} icon="👥" />
+                            <StatCard title="Total Items" value={healthData.database_stats.items} icon="👕" />
+                            <StatCard title="Total Outfits" value={healthData.database_stats.outfits} icon="👗" />
+                        </div>
+                    </>
+                )}
+
+                <h4 className="text-xl font-semibold mb-4 text-gray-700">Service Status</h4>
                 <div className="space-y-4">
                     {healthData && healthData.services && Object.entries(healthData.services).map(([service, status]) => (
                         <HealthCheckItem 
                             key={service} 
-                            name={service.charAt(0).toUpperCase() + service.slice(1)} 
+                            name={service.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} 
                             status={status} 
                         />
                     ))}

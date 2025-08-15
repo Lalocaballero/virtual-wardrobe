@@ -2,11 +2,10 @@ from flask import Blueprint, jsonify, request, make_response, current_app
 from sqlalchemy import text
 from flask_login import current_user
 from datetime import datetime, timedelta
-from models import User, db, ClothingItem, AdminAction
+from models import User, db, ClothingItem, AdminAction, Outfit
 from utils.decorators import admin_required
 import csv
 from io import StringIO
-import openai
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 
@@ -212,39 +211,38 @@ def get_premium_conversion_rate():
 @admin_bp.route('/system/health', methods=['GET'])
 @admin_required
 def system_health():
-    # Basic health check: database connectivity
+    # Database connectivity
     try:
         db.session.execute(text('SELECT 1'))
         db_status = 'ok'
     except Exception as e:
         db_status = f'error: {e}'
 
-    # AI Service Check for debugging
-    ai_service = current_app.ai_service
-    ai_status = 'not configured'
-    if ai_service and ai_service.client_available:
-        try:
-            api_key = openai.api_key
-            if api_key and isinstance(api_key, str) and len(api_key) > 8:
-                 ai_status = f"ok - key loaded starts with: {api_key[:4]}... and ends with: ...{api_key[-4:]}"
-            elif api_key:
-                 ai_status = "ok - key loaded but has an unexpected format"
-            else:
-                ai_status = "error: key configured but not loaded in openai module"
-        except Exception:
-            ai_status = "error: could not read key from openai module"
-    else:
-        ai_status = "error: OpenAI API key not configured or service unavailable"
+    # External Services Check
+    ai_status = 'ok' if hasattr(current_app, 'ai_service') and current_app.ai_service.client_available else 'error: not configured'
+    weather_status = 'ok' if hasattr(current_app, 'weather_service') and hasattr(current_app.weather_service, 'api_key') and current_app.weather_service.api_key else 'error: not configured'
+    email_status = 'ok' if hasattr(current_app, 'email_service') and hasattr(current_app.email_service, 'api_key') and current_app.email_service.api_key else 'error: not configured'
 
+    # Database Stats
+    try:
+        db_stats = {
+            'users': User.query.count(),
+            'items': ClothingItem.query.count(),
+            'outfits': Outfit.query.count()
+        }
+    except Exception as e:
+        db_stats = {'error': str(e)}
 
     health_status = {
         'status': 'ok',
         'timestamp': datetime.utcnow().isoformat(),
         'services': {
             'database': db_status,
-            'api': 'ok',
-            'ai_service': ai_status
-        }
+            'ai_service': ai_status,
+            'weather_service': weather_status,
+            'email_service': email_status
+        },
+        'database_stats': db_stats
     }
     return jsonify(health_status)
 
