@@ -15,6 +15,7 @@ const UserProfile = () => {
     changePassword,
     exportData,
     deleteAccount,
+    resetOutfitHistory,
   } = useWardrobeStore();
 
   // State for the controlled form inputs
@@ -83,6 +84,12 @@ const UserProfile = () => {
     const password = prompt("This action is irreversible. To confirm, please enter your password:");
     if (password) {
       await deleteAccount(password);
+    }
+  };
+
+  const handleResetHistory = async () => {
+    if (window.confirm("Are you sure you want to reset your AI personalization? This will delete all of your outfit history and cannot be undone.")) {
+        await resetOutfitHistory();
     }
   };
 
@@ -190,6 +197,14 @@ const UserProfile = () => {
                 <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                 Export Data
               </button>
+           </div>
+           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <h3 className="font-semibold text-orange-600 dark:text-orange-500">Reset AI Personalization</h3>
+            <p className="text-sm mb-2">Reset the AI's memory of your style by deleting all your past outfit history. Your wardrobe items will not be affected.</p>
+            <button onClick={handleResetHistory} className="btn btn-warning sm:min-w-[200px]">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" /></svg>
+                Reset AI Memory
+            </button>
            </div>
            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
              <h3 className="font-semibold text-red-600 dark:text-red-500">Delete Account</h3>

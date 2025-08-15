@@ -36,6 +36,16 @@ class AIOutfitService:
                 available_items = clean_items # Fallback
         else:
             available_items = clean_items
+            
+        # Stricter style/mood pre-filtering to prevent style mixing.
+        style_filtered_items = [
+            item for item in available_items
+            if not item.get('style') or item.get('style', '').lower() == mood.lower()
+        ]
+        if style_filtered_items:
+            available_items = style_filtered_items
+        # If no items match the style, we proceed with the seasonally-appropriate items.
+        # The AI will have to do its best to match the mood.
 
         if not available_items:
             return {

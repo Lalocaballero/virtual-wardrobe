@@ -398,6 +398,24 @@ const useWardrobeStore = create((set, get) => ({
       return false;
     }
   },
+
+  resetOutfitHistory: async () => {
+    try {
+      const data = await get().fetchApi(`${API_BASE}/profile/reset-outfit-history`, {
+          method: 'POST',
+      });
+      // After resetting, clear local history and refetch analytics to reflect the change
+      set({ outfitHistory: [] });
+      get().fetchUsageAnalytics();
+      get().fetchStyleDNA();
+      toast.success(data.message || 'AI Personalization has been reset.');
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to reset AI personalization.';
+      toast.error(errorMessage);
+      return false;
+    }
+  },
   
   // Existing wardrobe actions
   fetchWardrobe: async () => {

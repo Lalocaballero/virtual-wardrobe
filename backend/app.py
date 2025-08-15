@@ -614,6 +614,23 @@ def create_app():
             if app.debug:
                 print(f"Delete account error: {str(e)}")
             return jsonify({'error': f'Failed to delete account: {str(e)}'}), 500
+
+
+    @app.route('/api/profile/reset-outfit-history', methods=['POST'])
+    @login_required
+    def reset_outfit_history():
+        """Deletes all outfit history for the currently logged-in user."""
+        try:
+            user = get_actual_user()
+            # Use bulk delete for efficiency
+            Outfit.query.filter_by(user_id=user.id).delete()
+            db.session.commit()
+            return jsonify({'message': 'Your outfit history and AI personalization have been successfully reset.'})
+        except Exception as e:
+            db.session.rollback()
+            if app.debug:
+                print(f"Reset outfit history error: {str(e)}")
+            return jsonify({'error': f'Failed to reset outfit history: {str(e)}'}), 500
         
     # ======================
     # WARDROBE ROUTES
