@@ -242,12 +242,10 @@ def complete_trip(trip_id):
         if item.is_packed and item.clothing_item_id is not None
     ]
     
-    # 3. Mark the items as dirty using the laundry service
+    # 3. Increment wear count for each packed item
     if packed_clothing_item_ids:
-        success = current_app.laundry_service.mark_items_as_dirty(packed_clothing_item_ids)
-        if not success:
-            # Even if laundry fails, we should probably still complete the trip
-            current_app.logger.error(f"Failed to mark items as dirty for trip {trip_id}")
+        for item_id in packed_clothing_item_ids:
+            current_app.laundry_service.increment_wear_count(item_id)
 
     db.session.commit()
     

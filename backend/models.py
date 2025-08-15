@@ -304,7 +304,10 @@ class Trip(db.Model):
             'end_date': self.end_date.isoformat(),
             'trip_type': self.trip_type,
             'notes': self.notes,
-            'duration_days': (self.end_date - self.start_date).days + 1
+            'duration_days': (self.end_date - self.start_date).days + 1,
+            'packing_list': {
+                'status': self.packing_list.status
+            } if self.packing_list else None
         }
 
 class PackingList(db.Model):
