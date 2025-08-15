@@ -36,6 +36,11 @@ const useWardrobeStore = create((set, get) => ({
   intelligenceLoading: false,
   analyticsLoading: false,
 
+  // Trips state
+  trips: [],
+  currentTripPackingList: null,
+  tripsLoading: false,
+
   // Helper function to handle fetch responses and errors
   // This centralizes error handling and JSON parsing
   fetchApi: async (url, options = {}) => {
@@ -417,6 +422,82 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
   
+  // Trip actions
+  fetchTrips: async () => {
+    set({ tripsLoading: true, error: null });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/trips`, {
+        method: 'GET',
+      });
+      set({ trips: data, tripsLoading: false });
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to fetch trips.';
+      set({ error: errorMessage, tripsLoading: false });
+      toast.error(errorMessage);
+    }
+  },
+
+  createTrip: async (tripData) => {
+    set({ tripsLoading: true, error: null });
+    try {
+      const newTrip = await get().fetchApi(`${API_BASE}/trips`, {
+        method: 'POST',
+        body: JSON.stringify(tripData),
+      });
+      set(state => ({
+        trips: [...state.trips, newTrip],
+        tripsLoading: false
+      }));
+      toast.success('Trip created successfully!');
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to create trip.';
+      set({ error: errorMessage, tripsLoading: false });
+      toast.error(errorMessage);
+      return false;
+    }
+  },
+
+  deleteTrip: async (tripId) => {
+    set({ tripsLoading: true, error: null });
+    try {
+      await get().fetchApi(`${API_BASE}/trips/${tripId}`, {
+        method: 'DELETE',
+      });
+      set(state => ({
+        trips: state.trips.filter(trip => trip.id !== tripId),
+        tripsLoading: false
+      }));
+      toast.success('Trip deleted successfully!');
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to delete trip.';
+      set({ error: errorMessage, tripsLoading: false });
+      toast.error(errorMessage);
+      return false;
+    }
+  },
+
+  generatePackingList: async (tripId) => {
+    set({ tripsLoading: true, error: null, currentTripPackingList: null });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/trips/${tripId}/packing-list`, {
+        method: 'GET',
+      });
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      set({ currentTripPackingList: data, tripsLoading: false });
+      toast.success('Packing list generated!');
+      return data;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to generate packing list.';
+      set({ error: errorMessage, tripsLoading: false, currentTripPackingList: null });
+      toast.error(errorMessage);
+      return null;
+    }
+  },
+
   // Existing wardrobe actions
   fetchWardrobe: async () => {
     set({ loading: true, error: null });

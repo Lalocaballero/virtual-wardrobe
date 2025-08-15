@@ -104,7 +104,121 @@ class AIOutfitService:
         except Exception as e:
             print(f"AI service error: {e}")
             return self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
-    
+
+    def generate_packing_list(self, wardrobe: List[Dict], trip_details: Dict, weather_forecast: Dict) -> Dict[str, Any]:
+        """Generate a packing list for a trip using OpenAI."""
+        if not self.client_available:
+            return {"error": "AI service not available"}
+
+        clean_items = [item for item in wardrobe if item.get('is_clean', True)]
+        if not clean_items:
+            return {
+                "packing_list": {},
+                "reasoning": "Your wardrobe is empty or all items are dirty. Can't create a packing list."
+            }
+
+        prompt = self._create_packing_list_prompt(clean_items, trip_details, weather_forecast)
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": self._get_packing_system_prompt()},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=2000,
+            )
+            
+            content = response.choices[0].message.content.strip()
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            else:
+                return {"error": "Failed to parse AI response."}
+
+        except Exception as e:
+            print(f"AI packing list service error: {e}")
+            return {"error": "Failed to generate packing list from AI."}
+
+    def _get_packing_system_prompt(self) -> str:
+        """Generates the system prompt for the packing list feature."""
+        return """
+You are a smart packing assistant. Your goal is to create a versatile and minimal packing list for a user's trip based on their available wardrobe, the trip details, and the weather forecast.
+
+**Your Task:**
+Analyze the user's request and available clothing to generate a packing list organized by category. The list should be efficient, avoiding over-packing, and should suggest versatile items that can be worn multiple times.
+
+**Output Requirements:**
+You MUST respond ONLY with a valid JSON object. Do not include any text before or after the JSON. The JSON object must have the exact following structure:
+{
+  "reasoning": "A brief justification for your choices, explaining how the list is optimized for the trip's weather, duration, and purpose.",
+  "packing_list": {
+    "Tops": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
+    "Bottoms": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
+    "Outerwear": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
+    "Dresses": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
+    "Shoes": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
+    "Accessories": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
+    "Essentials": [ "Socks", "Underwear", "Pajamas" ]
+  }
+}
+"""
+
+    def _create_packing_list_prompt(self, wardrobe: List[Dict], trip_details: Dict, weather_forecast: Dict) -> str:
+        """Creates the user prompt for the packing list feature."""
+        
+        wardrobe_by_category = {
+            'Tops': [], 'Bottoms': [], 'Outerwear': [],
+            'Shoes': [], 'Accessories': [], 'Dresses': []
+        }
+        for item in wardrobe:
+            item_type = item['type'].lower()
+            item_info = {"id": item['id'], "name": item['name'], "style": item.get('style'), "fabric": item.get('fabric')}
+            if item_type in ['shirt', 't-shirt', 'blouse', 'sweater', 'tank-top']:
+                wardrobe_by_category['Tops'].append(item_info)
+            elif item_type in ['pants', 'jeans', 'shorts', 'skirt']:
+                wardrobe_by_category['Bottoms'].append(item_info)
+            elif item_type in ['jacket', 'coat', 'cardigan']:
+                wardrobe_by_category['Outerwear'].append(item_info)
+            elif item_type in ['shoes', 'sneakers', 'boots']:
+                wardrobe_by_category['Shoes'].append(item_info)
+            elif item_type == 'dress':
+                wardrobe_by_category['Dresses'].append(item_info)
+            else:
+                wardrobe_by_category['Accessories'].append(item_info)
+
+        prompt = f"""
+Generate a packing list based on the following information:
+
+**Trip Details:**
+- Destination: {trip_details.get('destination')}
+- Duration: {trip_details.get('duration_days')} days
+- Purpose: {trip_details.get('trip_type', 'not specified')}
+- Notes: {trip_details.get('notes', 'none')}
+
+**Weather Forecast:**
+{weather_forecast.get('forecast_summary_text')}
+Daily details: {json.dumps(weather_forecast.get('daily_detail', []), indent=2)}
+
+**Available Wardrobe:**
+Tops: {json.dumps(wardrobe_by_category['Tops'], indent=2)}
+Bottoms: {json.dumps(wardrobe_by_category['Bottoms'], indent=2)}
+Outerwear: {json.dumps(wardrobe_by_category['Outerwear'], indent=2)}
+Dresses: {json.dumps(wardrobe_by_category['Dresses'], indent=2)}
+Shoes: {json.dumps(wardrobe_by_category['Shoes'], indent=2)}
+Accessories: {json.dumps(wardrobe_by_category['Accessories'], indent=2)}
+
+**Requirements:**
+1. Create a minimal and versatile packing list.
+2. The number of items should be appropriate for the trip duration. For example, for a 7-day trip, suggest maybe 4-5 tops, 2-3 bottoms, etc.
+3. Prioritize items that can be mixed and matched.
+4. Ensure the list is appropriate for the weather and the trip's purpose.
+5. Include a list of essentials like socks, underwear, and pajamas.
+6. Respond ONLY with a valid JSON object in the specified format.
+"""
+        return prompt
+
     def _get_system_prompt(self) -> str:
         """Generates the comprehensive system prompt for the AI model."""
         return """

@@ -1,6 +1,7 @@
 import requests
 import os
 from typing import Dict, Optional
+from datetime import date, timedelta
 
 class WeatherService:
     def __init__(self, api_key: str):
@@ -10,7 +11,100 @@ class WeatherService:
         
         if not self.client_available:
             print("⚠️  Weather API key not provided - using mock weather data")
+
+    def get_coordinates_for_location(self, location: str) -> Optional[Dict[str, float]]:
+        """Get latitude and longitude for a location string."""
+        if not self.client_available:
+            return None
+        
+        try:
+            url = f"http://api.openweathermap.org/geo/1.0/direct"
+            params = {
+                'q': location,
+                'limit': 1,
+                'appid': self.api_key
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            if data:
+                return {"lat": data[0]["lat"], "lon": data[0]["lon"]}
+            return None
+        except requests.exceptions.RequestException as e:
+            print(f"Geocoding request error: {e}")
+            return None
+
+    def get_forecast_for_trip(self, destination: str, start_date: date, end_date: date) -> Optional[Dict]:
+        """Get a daily weather forecast for a trip's duration."""
+        coords = self.get_coordinates_for_location(destination)
+        if not coords:
+            return None
+
+        if not self.client_available:
+            # Return a generic mock forecast for the trip duration
+            return self._get_mock_forecast_for_trip(destination, start_date, end_date)
+
+        try:
+            url = f"{self.base_url}/onecall"
+            params = {
+                'lat': coords['lat'],
+                'lon': coords['lon'],
+                'exclude': 'current,minutely,hourly,alerts',
+                'appid': self.api_key,
+                'units': 'metric'
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            forecast_data = response.json()
+
+            trip_duration = (end_date - start_date).days + 1
+            # The API gives 8 days of forecast, so we take what we need
+            daily_forecasts = forecast_data.get('daily', [])[:trip_duration]
+
+            if not daily_forecasts:
+                return None
+
+            avg_temp = sum(day['temp']['day'] for day in daily_forecasts) / len(daily_forecasts)
+            
+            weather_conditions = [day['weather'][0]['main'] for day in daily_forecasts]
+            most_common_condition = max(set(weather_conditions), key=weather_conditions.count)
+
+            summary = {
+                "destination": destination,
+                "trip_duration": trip_duration,
+                "average_temp": round(avg_temp),
+                "most_common_condition": most_common_condition,
+                "forecast_summary_text": f"Expect weather around {round(avg_temp)}°C with conditions like {most_common_condition}.",
+                "daily_detail": [{
+                    "date": date.fromtimestamp(day['dt']).isoformat(),
+                    "temp_max": round(day['temp']['max']),
+                    "temp_min": round(day['temp']['min']),
+                    "condition": day['weather'][0]['description']
+                } for day in daily_forecasts]
+            }
+            return summary
+
+        except requests.exceptions.RequestException as e:
+            print(f"Trip forecast request error: {e}")
+            return self._get_mock_forecast_for_trip(destination, start_date, end_date)
     
+    def _get_mock_forecast_for_trip(self, destination: str, start_date: date, end_date: date) -> Dict:
+        """Provide a mock forecast for a trip."""
+        trip_duration = (end_date - start_date).days + 1
+        return {
+            "destination": destination,
+            "trip_duration": trip_duration,
+            "average_temp": 22,
+            "most_common_condition": "Partly Cloudy",
+            "forecast_summary_text": "Expect pleasant weather around 22°C with partly cloudy skies.",
+            "daily_detail": [{
+                "date": (start_date + timedelta(days=i)).isoformat(),
+                "temp_max": 25,
+                "temp_min": 18,
+                "condition": "partly cloudy"
+            } for i in range(trip_duration)]
+        }
+
     def get_current_weather(self, location: str) -> Dict:
         """Get current weather for location with enhanced data"""
         if not self.client_available:

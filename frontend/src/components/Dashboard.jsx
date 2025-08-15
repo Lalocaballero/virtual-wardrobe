@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   SunIcon, MoonIcon, CloudIcon, UserIcon, SparklesIcon,
-  ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon
+  ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon,
+  BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import { Toaster } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
@@ -13,6 +14,7 @@ import LaundryDashboard from './LaundryDashboard';
 import SmartCollections from './SmartCollections';
 import UsageAnalytics from './UsageAnalytics';
 import UserProfile from './UserProfile';
+import PackingAssistant from './PackingAssistant';
 
 const Dashboard = () => {
   // --- State and Hooks ---
@@ -83,6 +85,7 @@ const Dashboard = () => {
   const tabs = [
     { id: 'outfit', label: "Today's Outfit", shortLabel: 'Outfit', icon: SunIcon },
     { id: 'wardrobe', label: 'My Wardrobe', shortLabel: 'Wardrobe', icon: UserIcon },
+    { id: 'packing', label: 'Packing Assistant', shortLabel: 'Packing', icon: BriefcaseIcon },
     { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon, badge: 'AI' },
     { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon, badge: 'NEW' },
     { id: 'laundry', label: 'Laundry Assistant', shortLabel: 'Laundry', icon: SparklesIcon, badge: getUrgentItemsCount(laundryAlerts) },
@@ -288,6 +291,7 @@ const Dashboard = () => {
           {activeTab === 'laundry' && <div className="animate-fadeIn"><LaundryDashboard /></div>}
           {activeTab === 'profile' && <div className="animate-fadeIn"><UserProfile /></div>}
           {activeTab === 'history' && <div className="animate-fadeIn"><OutfitHistory /></div>}
+          {activeTab === 'packing' && <div className="animate-fadeIn"><PackingAssistant /></div>}
         </div>
       </main>
     </div>

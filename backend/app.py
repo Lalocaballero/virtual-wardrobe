@@ -136,6 +136,9 @@ def create_app():
     from routes.admin import admin_bp
     app.register_blueprint(admin_bp)
 
+    from routes.trips import trips_bp
+    app.register_blueprint(trips_bp)
+
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
     from utils.laundry_service import LaundryIntelligenceService

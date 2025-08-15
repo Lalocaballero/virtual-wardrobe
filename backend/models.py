@@ -40,6 +40,7 @@ class User(UserMixin, db.Model):
     # Relationships
     clothing_items = db.relationship('ClothingItem', backref='owner', lazy=True)
     outfits = db.relationship('Outfit', backref='user', lazy=True)
+    trips = db.relationship('Trip', backref='traveler', lazy=True, cascade="all, delete-orphan")
 
     def get_token(self, salt, expires_sec=3600):
         s = Serializer(current_app.config['SECRET_KEY'], salt=salt)
@@ -282,6 +283,28 @@ class Outfit(db.Model):
             'rating': self.rating,
             'notes': self.notes,
             'clothing_items': [item.to_dict() for item in self.clothing_items]
+        }
+
+class Trip(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    destination = db.Column(db.String(150), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    trip_type = db.Column(db.String(50), nullable=True) # e.g., 'business', 'vacation', 'beach'
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'destination': self.destination,
+            'start_date': self.start_date.isoformat(),
+            'end_date': self.end_date.isoformat(),
+            'trip_type': self.trip_type,
+            'notes': self.notes,
+            'duration_days': (self.end_date - self.start_date).days + 1
         }
 
 class AdminAction(db.Model):
