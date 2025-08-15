@@ -6,6 +6,7 @@ from models import User, db, ClothingItem, AdminAction
 from utils.decorators import admin_required
 import csv
 from io import StringIO
+import openai
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 
@@ -218,13 +219,31 @@ def system_health():
     except Exception as e:
         db_status = f'error: {e}'
 
-    # You could add more checks here (e.g., Redis, external APIs)
+    # AI Service Check for debugging
+    ai_service = current_app.ai_service
+    ai_status = 'not configured'
+    if ai_service and ai_service.client_available:
+        try:
+            api_key = openai.api_key
+            if api_key and isinstance(api_key, str) and len(api_key) > 8:
+                 ai_status = f"ok - key loaded starts with: {api_key[:4]}... and ends with: ...{api_key[-4:]}"
+            elif api_key:
+                 ai_status = "ok - key loaded but has an unexpected format"
+            else:
+                ai_status = "error: key configured but not loaded in openai module"
+        except Exception:
+            ai_status = "error: could not read key from openai module"
+    else:
+        ai_status = "error: OpenAI API key not configured or service unavailable"
+
+
     health_status = {
         'status': 'ok',
         'timestamp': datetime.utcnow().isoformat(),
         'services': {
             'database': db_status,
-            'api': 'ok' 
+            'api': 'ok',
+            'ai_service': ai_status
         }
     }
     return jsonify(health_status)
