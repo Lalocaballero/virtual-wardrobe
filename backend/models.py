@@ -307,6 +307,62 @@ class Trip(db.Model):
             'duration_days': (self.end_date - self.start_date).days + 1
         }
 
+class PackingList(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), default='active', nullable=False) # active, completed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    trip = db.relationship('Trip', backref=db.backref('packing_list', uselist=False))
+    user = db.relationship('User', backref='packing_lists')
+    items = db.relationship('PackingListItem', backref='packing_list', lazy=True, cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'trip_id': self.trip_id,
+            'status': self.status,
+            'created_at': self.created_at.isoformat(),
+            'items': [item.to_dict() for item in self.items]
+        }
+
+class PackingListItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    packing_list_id = db.Column(db.Integer, db.ForeignKey('packing_list.id'), nullable=False)
+    clothing_item_id = db.Column(db.Integer, db.ForeignKey('clothing_item.id'), nullable=True) # Can be null for non-wardrobe items
+    item_name = db.Column(db.String(100), nullable=False) # e.g., "Socks" or "Passport"
+    quantity = db.Column(db.Integer, default=1, nullable=False)
+    is_packed = db.Column(db.Boolean, default=False, nullable=False)
+    
+    clothing_item = db.relationship('ClothingItem')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'item_name': self.item_name,
+            'quantity': self.quantity,
+            'is_packed': self.is_packed,
+            'clothing_item_id': self.clothing_item_id,
+            'clothing_item': self.clothing_item.to_dict() if self.clothing_item else None
+        }
+
+class UserEssentialPreference(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    item_type = db.Column(db.String(50), nullable=False) # e.g., 'socks', 'underwear'
+    quantity = db.Column(db.Integer, default=1, nullable=False)
+
+    user = db.relationship('User', backref='essential_preferences')
+    __table_args__ = (db.UniqueConstraint('user_id', 'item_type', name='_user_item_uc'),)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'item_type': self.item_type,
+            'quantity': self.quantity
+        }
+
 class AdminAction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

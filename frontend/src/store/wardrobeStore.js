@@ -478,23 +478,67 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
-  generatePackingList: async (tripId) => {
+  fetchPackingList: async (tripId) => {
     set({ tripsLoading: true, error: null, currentTripPackingList: null });
     try {
       const data = await get().fetchApi(`${API_BASE}/trips/${tripId}/packing-list`, {
         method: 'GET',
       });
-      if (data.error) {
-        throw new Error(data.error);
-      }
       set({ currentTripPackingList: data, tripsLoading: false });
-      toast.success('Packing list generated!');
+      if (!data.was_cached) { // A hypothetical field to check if it was newly generated
+        toast.success('Your smart packing list is ready!');
+      }
       return data;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to generate packing list.';
+      const errorMessage = error.message || 'Failed to get packing list.';
       set({ error: errorMessage, tripsLoading: false, currentTripPackingList: null });
       toast.error(errorMessage);
       return null;
+    }
+  },
+
+  togglePackedItem: async (itemId) => {
+    try {
+      const updatedItem = await get().fetchApi(`${API_BASE}/packing-list-items/${itemId}/toggle`, {
+        method: 'POST',
+      });
+      
+      set(state => {
+        const list = state.currentTripPackingList;
+        if (!list) return {};
+        
+        const updatedItems = list.items.map(item => 
+          item.id === itemId ? updatedItem : item
+        );
+        
+        return {
+          currentTripPackingList: { ...list, items: updatedItems }
+        };
+      });
+      return true;
+    } catch (error) {
+      toast.error('Failed to update item status.');
+      return false;
+    }
+  },
+
+  completeTrip: async (tripId) => {
+    set({ tripsLoading: true });
+    try {
+      await get().fetchApi(`${API_BASE}/trips/${tripId}/complete`, {
+        method: 'POST',
+      });
+      toast.success('Trip completed! Packed items are now in your laundry list.');
+      // Refetch trips to update status, or manually update state
+      get().fetchTrips();
+      // Optionally clear the packing list view
+      set({ currentTripPackingList: null, tripsLoading: false });
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to complete trip.';
+      set({ error: errorMessage, tripsLoading: false });
+      toast.error(errorMessage);
+      return false;
     }
   },
 

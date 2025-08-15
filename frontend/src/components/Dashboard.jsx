@@ -86,8 +86,8 @@ const Dashboard = () => {
     { id: 'outfit', label: "Today's Outfit", shortLabel: 'Outfit', icon: SunIcon },
     { id: 'wardrobe', label: 'My Wardrobe', shortLabel: 'Wardrobe', icon: UserIcon },
     { id: 'packing', label: 'Packing Assistant', shortLabel: 'Packing', icon: BriefcaseIcon },
-    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon, badge: 'AI' },
-    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon, badge: 'NEW' },
+    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon },
+    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon },
     { id: 'laundry', label: 'Laundry Assistant', shortLabel: 'Laundry', icon: SparklesIcon, badge: getUrgentItemsCount(laundryAlerts) },
     { id: 'history', label: 'Outfit History', shortLabel: 'History', icon: CloudIcon }
   ];

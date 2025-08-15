@@ -59,6 +59,28 @@ class LaundryIntelligenceService:
             print(f"Error marking items as washed: {e}")
             db.session.rollback()
             return False
+
+    @staticmethod
+    def mark_items_as_dirty(item_ids: List[int]) -> bool:
+        """Explicitly mark items as dirty, for use after a trip."""
+        try:
+            items = ClothingItem.query.filter(ClothingItem.id.in_(item_ids)).all()
+            for item in items:
+                item.is_clean = False
+                item.needs_washing = True
+                item.laundry_status = 'dirty'
+                # Also increment wear count as it has been used
+                item.wear_count = (item.wear_count or 0) + 1
+                item.wear_count_since_wash = (item.wear_count_since_wash or 0) + 1
+                item.last_worn = datetime.utcnow()
+                item.wash_urgency = item.get_wash_recommendation()
+
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(f"Error marking items as dirty: {e}")
+            db.session.rollback()
+            return False
     
     @staticmethod
     def get_laundry_alerts(user_id: int) -> Dict[str, Any]:
