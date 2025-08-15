@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask_login import login_required
 from models import db, Trip, ClothingItem, PackingList, PackingListItem, UserEssentialPreference
+from utils.auth import get_actual_user
 from datetime import datetime
 
 trips_bp = Blueprint('trips', __name__)
@@ -9,6 +10,7 @@ trips_bp = Blueprint('trips', __name__)
 @login_required
 def create_trip():
     data = request.get_json()
+    user = get_actual_user()
     
     destination = data.get('destination')
     start_date_str = data.get('start_date')
@@ -34,7 +36,7 @@ def create_trip():
         end_date=end_date,
         trip_type=trip_type,
         notes=notes,
-        user_id=current_user.id
+        user_id=user.id
     )
     
     db.session.add(new_trip)
@@ -42,18 +44,59 @@ def create_trip():
     
     return jsonify(new_trip.to_dict()), 201
 
+@trips_bp.route('/api/trips/<int:trip_id>', methods=['PUT'])
+@login_required
+def update_trip(trip_id):
+    user = get_actual_user()
+    trip = Trip.query.get_or_404(trip_id)
+
+    if trip.user_id != user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # Prevent editing of completed trips
+    if trip.packing_list and trip.packing_list.status == 'completed':
+        return jsonify({'error': 'Cannot edit a completed trip.'}), 403
+
+    data = request.get_json()
+    
+    trip.destination = data.get('destination', trip.destination)
+    trip.trip_type = data.get('trip_type', trip.trip_type)
+    trip.notes = data.get('notes', trip.notes)
+    
+    dates_changed = False
+    if 'start_date' in data and trip.start_date != datetime.strptime(data['start_date'], '%Y-%m-%d').date():
+        trip.start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+        dates_changed = True
+        
+    if 'end_date' in data and trip.end_date != datetime.strptime(data['end_date'], '%Y-%m-%d').date():
+        trip.end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
+        dates_changed = True
+
+    if trip.start_date > trip.end_date:
+        return jsonify({'error': 'Start date must be before end date'}), 400
+
+    # If dates or destination changed, invalidate the old packing list
+    if (dates_changed or 'destination' in data) and trip.packing_list:
+        db.session.delete(trip.packing_list)
+    
+    db.session.commit()
+    
+    return jsonify(trip.to_dict())
+
 @trips_bp.route('/api/trips', methods=['GET'])
 @login_required
 def get_trips():
-    trips = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.desc()).all()
+    user = get_actual_user()
+    trips = Trip.query.filter_by(user_id=user.id).order_by(Trip.start_date.desc()).all()
     return jsonify([trip.to_dict() for trip in trips])
 
 @trips_bp.route('/api/trips/<int:trip_id>', methods=['DELETE'])
 @login_required
 def delete_trip(trip_id):
+    user = get_actual_user()
     trip = Trip.query.get_or_404(trip_id)
     
-    if trip.user_id != current_user.id:
+    if trip.user_id != user.id:
         return jsonify({'error': 'Unauthorized'}), 403
         
     db.session.delete(trip)
@@ -64,9 +107,10 @@ def delete_trip(trip_id):
 @trips_bp.route('/api/trips/<int:trip_id>/packing-list', methods=['GET'])
 @login_required
 def get_packing_list(trip_id):
+    user = get_actual_user()
     trip = Trip.query.get_or_404(trip_id)
     
-    if trip.user_id != current_user.id:
+    if trip.user_id != user.id:
         return jsonify({'error': 'Unauthorized'}), 403
 
     # Check if a packing list already exists
@@ -87,7 +131,7 @@ def get_packing_list(trip_id):
         return jsonify({'error': 'Could not retrieve weather forecast for the destination.'}), 500
 
     # 2. Get user's available wardrobe
-    available_items = ClothingItem.query.filter_by(user_id=current_user.id, is_clean=True).all()
+    available_items = ClothingItem.query.filter_by(user_id=user.id, is_clean=True).all()
     wardrobe_data = [item.to_dict() for item in available_items]
 
     # 3. Call AI service to generate packing list
@@ -102,7 +146,7 @@ def get_packing_list(trip_id):
 
     # 4. Create and save the new packing list to the database
     try:
-        new_packing_list = PackingList(trip_id=trip.id, user_id=current_user.id)
+        new_packing_list = PackingList(trip_id=trip.id, user_id=user.id)
         db.session.add(new_packing_list)
         
         # 4a. Process AI-generated items and handle essentials to prevent duplicates
@@ -133,8 +177,11 @@ def get_packing_list(trip_id):
         trip_duration = (trip.end_date - trip.start_date).days + 1
         
         for item_name, item_type in essentials.items():
-            preference = UserEssentialPreference.query.filter_by(user_id=current_user.id, item_type=item_type).first()
-            quantity = preference.quantity if preference is not None else trip_duration
+            preference = UserEssentialPreference.query.filter_by(user_id=user.id, item_type=item_type).first()
+            
+            # Default quantity logic: 1 for pajamas, trip duration for others
+            default_quantity = 1 if item_type == 'pajamas' else trip_duration
+            quantity = preference.quantity if preference is not None else default_quantity
             
             if quantity > 0:
                 normalized_name = item_name.lower()
@@ -163,9 +210,10 @@ def get_packing_list(trip_id):
 @trips_bp.route('/api/packing-list-items/<int:item_id>/toggle', methods=['POST'])
 @login_required
 def toggle_packed_item(item_id):
+    user = get_actual_user()
     item = PackingListItem.query.get_or_404(item_id)
     # Authorization check: ensure the item belongs to the current user
-    if item.packing_list.user_id != current_user.id:
+    if item.packing_list.user_id != user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     
     item.is_packed = not item.is_packed
@@ -175,8 +223,9 @@ def toggle_packed_item(item_id):
 @trips_bp.route('/api/trips/<int:trip_id>/complete', methods=['POST'])
 @login_required
 def complete_trip(trip_id):
+    user = get_actual_user()
     trip = Trip.query.get_or_404(trip_id)
-    if trip.user_id != current_user.id:
+    if trip.user_id != user.id:
         return jsonify({'error': 'Unauthorized'}), 403
 
     packing_list = trip.packing_list

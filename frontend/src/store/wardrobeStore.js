@@ -482,6 +482,29 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
+  updateTrip: async (tripId, tripData) => {
+    set({ tripsLoading: true });
+    try {
+      const updatedTrip = await get().fetchApi(`${API_BASE}/trips/${tripId}`, {
+        method: 'PUT',
+        body: JSON.stringify(tripData),
+      });
+      set(state => ({
+        trips: state.trips.map(trip => 
+          trip.id === tripId ? updatedTrip : trip
+        ),
+        tripsLoading: false,
+      }));
+      toast.success('Trip updated successfully!');
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to update trip.';
+      set({ error: errorMessage, tripsLoading: false });
+      toast.error(errorMessage);
+      return false;
+    }
+  },
+
   fetchPackingList: async (tripId) => {
     set({ tripsLoading: true, error: null, currentTripPackingList: null });
     try {

@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import toast from 'react-hot-toast';
+import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '', location: '' });
   const [showResend, setShowResend] = useState(false);
+  const locationInputRef = useRef(null);
+
+  useGooglePlacesAutocomplete(locationInputRef, (place) => {
+    setFormData(prev => ({ ...prev, location: place }));
+  });
   const [searchParams] = useSearchParams();
   
   const { login, register, resendVerificationEmail, loading, error, clearError } = useWardrobeStore();
@@ -81,7 +87,7 @@ const Login = () => {
             {!isLogin && (
               <div>
                 <label htmlFor="location" className="block text-sm font-medium mb-1">Location (for weather)</label>
-                <input id="location" name="location" type="text" placeholder="e.g., New York, NY" className="w-full" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+                <input ref={locationInputRef} id="location" name="location" type="text" placeholder="e.g., New York, NY" className="w-full" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
               </div>
             )}
           </div>

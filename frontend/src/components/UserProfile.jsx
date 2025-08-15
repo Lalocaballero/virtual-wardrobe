@@ -1,10 +1,11 @@
 // src/components/UserProfile.jsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
 import { toast } from 'react-hot-toast';
 import ImageUpload from './ImageUpload';
 import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline';
+import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
 
 const UserProfile = () => {
   const {
@@ -29,6 +30,11 @@ const UserProfile = () => {
   const [passwordData, setPasswordData] = useState({
     current_password: '',
     new_password: '',
+  });
+
+  const locationInputRef = useRef(null);
+  useGooglePlacesAutocomplete(locationInputRef, (place) => {
+    setFormData(prev => ({ ...prev, location: place }));
   });
 
   // Fetch profile data when the component mounts
@@ -127,7 +133,7 @@ const UserProfile = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Location (for weather)</label>
-                <input type="text" name="location" value={formData.location} onChange={handleFormChange} className="w-full" />
+                <input ref={locationInputRef} type="text" name="location" value={formData.location} onChange={handleFormChange} className="w-full" />
               </div>
             </div>
           </div>
