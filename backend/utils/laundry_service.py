@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
-from models import ClothingItem, User, db  # Removed LaundryLoad import
+from models import ClothingItem, User, db, Notification
 import json
 
 class LaundryIntelligenceService:
@@ -25,7 +25,23 @@ class LaundryIntelligenceService:
             # Mark as needing washing if urgent
             if wash_rec in ['high', 'urgent']:
                 item.needs_washing = True
-            
+                
+                # Create a notification if urgency is high or urgent
+                existing_notification = Notification.query.filter_by(
+                    user_id=item.user_id, 
+                    link="/laundry",
+                    is_read=False
+                ).first()
+
+                if not existing_notification:
+                    message = f"You have items that need washing soon. Check your laundry list."
+                    notification = Notification(
+                        user_id=item.user_id,
+                        message=message,
+                        link="/laundry"
+                    )
+                    db.session.add(notification)
+
             # If very dirty, mark as dirty
             if wash_rec == 'urgent':
                 item.is_clean = False
@@ -74,6 +90,24 @@ class LaundryIntelligenceService:
                 item.wear_count_since_wash = (item.wear_count_since_wash or 0) + 1
                 item.last_worn = datetime.utcnow()
                 item.wash_urgency = item.get_wash_recommendation()
+            
+            # After processing all items, create a single notification
+            if items:
+                user_id = items[0].user_id
+                existing_notification = Notification.query.filter_by(
+                    user_id=user_id, 
+                    link="/laundry",
+                    is_read=False
+                ).first()
+
+                if not existing_notification:
+                    message = f"{len(items)} items from your trip have been added to the laundry."
+                    notification = Notification(
+                        user_id=user_id,
+                        message=message,
+                        link="/laundry"
+                    )
+                    db.session.add(notification)
 
             db.session.commit()
             return True
@@ -84,35 +118,30 @@ class LaundryIntelligenceService:
     
     @staticmethod
     def get_laundry_alerts(user_id: int) -> Dict[str, Any]:
-        """Get laundry alerts and recommendations for a user"""
+        """Get laundry alerts and recommendations for a user."""
         try:
             # Get all user's items
             items = ClothingItem.query.filter_by(user_id=user_id).all()
             
-            # Categorize by urgency
-            urgent_items = []
-            high_priority = []
-            medium_priority = []
-            overdue_items = []
+            # Get all items that are not clean or are marked as needing washing
+            items_needing_wash = [
+                item.to_dict() for item in items if not item.is_clean or item.needs_washing
+            ]
             
-            for item in items:
-                if item.laundry_status == 'clean' and item.is_clean:
-                    urgency = item.get_wash_recommendation()
-                    
-                    if urgency == 'urgent':
-                        urgent_items.append(item.to_dict())
-                    elif urgency == 'high':
-                        high_priority.append(item.to_dict())
-                    elif urgency == 'medium':
-                        medium_priority.append(item.to_dict())
-                
-                # Check for overdue items (not worn in 30+ days)
-                if item.last_worn and (datetime.utcnow() - item.last_worn).days > 30:
-                    overdue_items.append(item.to_dict())
+            # Categorize by urgency from the items that need washing
+            urgent_items = [item for item in items_needing_wash if item.get('wash_urgency') == 'urgent']
+            high_priority = [item for item in items_needing_wash if item.get('wash_urgency') == 'high']
+            medium_priority = [item for item in items_needing_wash if item.get('wash_urgency') == 'medium']
+
+            # Check for overdue items (not worn in a long time)
+            overdue_items = [
+                item.to_dict() for item in items 
+                if item.last_worn and (datetime.utcnow() - item.last_worn).days > 30
+            ]
             
-            # Calculate laundry load suggestions
+            # Calculate laundry load suggestions from all items that need washing
             laundry_suggestions = LaundryIntelligenceService._suggest_laundry_loads(
-                urgent_items + high_priority
+                items_needing_wash
             )
             
             return {
@@ -120,9 +149,9 @@ class LaundryIntelligenceService:
                 'high_priority': high_priority,
                 'medium_priority': medium_priority,
                 'overdue_items': overdue_items,
-                'total_items_needing_wash': len(urgent_items) + len(high_priority),
+                'total_items_needing_wash': len(items_needing_wash),
                 'laundry_suggestions': laundry_suggestions,
-                'clean_items_available': len([item for item in items if item.is_clean]),
+                'clean_items_available': len(items) - len(items_needing_wash),
                 'total_items': len(items)
             }
             

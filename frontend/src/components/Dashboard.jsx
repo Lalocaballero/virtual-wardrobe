@@ -15,6 +15,7 @@ import SmartCollections from './SmartCollections';
 import UsageAnalytics from './UsageAnalytics';
 import UserProfile from './UserProfile';
 import PackingAssistant from './PackingAssistant';
+import NotificationBell from './NotificationBell';
 
 const Dashboard = () => {
   // --- State and Hooks ---
@@ -86,8 +87,8 @@ const Dashboard = () => {
     { id: 'outfit', label: "Today's Outfit", shortLabel: 'Outfit', icon: SunIcon },
     { id: 'wardrobe', label: 'My Wardrobe', shortLabel: 'Wardrobe', icon: UserIcon },
     { id: 'packing', label: 'Packing Assistant', shortLabel: 'Packing', icon: BriefcaseIcon },
-    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon },
-    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon },
+    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon, badge: 'AI' },
+    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon, badge: 'NEW' },
     { id: 'laundry', label: 'Laundry Assistant', shortLabel: 'Laundry', icon: SparklesIcon, badge: getUrgentItemsCount(laundryAlerts) },
     { id: 'history', label: 'Outfit History', shortLabel: 'History', icon: CloudIcon }
   ];
@@ -134,6 +135,7 @@ const Dashboard = () => {
             </div>
 
             <div className="flex items-center space-x-2">
+              <NotificationBell />
               <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                 {theme === 'light' ? <MoonIcon className="h-6 w-6" /> : <SunIcon className="h-6 w-6 text-yellow-500" />}
               </button>

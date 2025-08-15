@@ -139,6 +139,12 @@ def create_app():
     from routes.trips import trips_bp
     app.register_blueprint(trips_bp)
 
+    from routes.laundry import laundry_bp
+    app.register_blueprint(laundry_bp)
+
+    from routes.notifications import notifications_bp
+    app.register_blueprint(notifications_bp)
+
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
     from utils.laundry_service import LaundryIntelligenceService

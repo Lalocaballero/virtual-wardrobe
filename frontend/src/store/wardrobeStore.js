@@ -41,6 +41,10 @@ const useWardrobeStore = create((set, get) => ({
   currentTripPackingList: null,
   tripsLoading: false,
 
+  // Notifications state
+  notifications: [],
+  notificationsLoading: false,
+
   // Helper function to handle fetch responses and errors
   // This centralizes error handling and JSON parsing
   fetchApi: async (url, options = {}) => {
@@ -539,6 +543,48 @@ const useWardrobeStore = create((set, get) => ({
       set({ error: errorMessage, tripsLoading: false });
       toast.error(errorMessage);
       return false;
+    }
+  },
+
+  // Notification actions
+  fetchNotifications: async () => {
+    set({ notificationsLoading: true });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/notifications`, {
+        method: 'GET',
+      });
+      set({ notifications: data, notificationsLoading: false });
+    } catch (error) {
+      set({ notificationsLoading: false });
+      toast.error('Failed to fetch notifications.');
+    }
+  },
+
+  markNotificationAsRead: async (notificationId) => {
+    try {
+      await get().fetchApi(`${API_BASE}/notifications/${notificationId}/read`, {
+        method: 'POST',
+      });
+      set(state => ({
+        notifications: state.notifications.map(n => 
+          n.id === notificationId ? { ...n, is_read: true } : n
+        ),
+      }));
+    } catch (error) {
+      toast.error('Failed to mark notification as read.');
+    }
+  },
+
+  markAllNotificationsAsRead: async () => {
+    try {
+      await get().fetchApi(`${API_BASE}/notifications/mark-all-read`, {
+        method: 'POST',
+      });
+      set(state => ({
+        notifications: state.notifications.map(n => ({ ...n, is_read: true })),
+      }));
+    } catch (error) {
+      toast.error('Failed to mark all notifications as read.');
     }
   },
 

@@ -314,7 +314,7 @@ class PackingList(db.Model):
     status = db.Column(db.String(20), default='active', nullable=False) # active, completed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    trip = db.relationship('Trip', backref=db.backref('packing_list', uselist=False))
+    trip = db.relationship('Trip', backref=db.backref('packing_list', uselist=False, cascade="all, delete-orphan"))
     user = db.relationship('User', backref='packing_lists')
     items = db.relationship('PackingListItem', backref='packing_list', lazy=True, cascade="all, delete-orphan")
 
@@ -362,6 +362,26 @@ class UserEssentialPreference(db.Model):
             'item_type': self.item_type,
             'quantity': self.quantity
         }
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(255), nullable=False)
+    link = db.Column(db.String(255), nullable=True)  # e.g., '/laundry'
+    is_read = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('notifications', cascade="all, delete-orphan"))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'message': self.message,
+            'link': self.link,
+            'is_read': self.is_read,
+            'created_at': self.created_at.isoformat()
+        }
+
 
 class AdminAction(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -105,41 +105,52 @@ def get_packing_list(trip_id):
         new_packing_list = PackingList(trip_id=trip.id, user_id=current_user.id)
         db.session.add(new_packing_list)
         
-        # Add items from AI generation
-        # The AI returns a dict where keys are categories and values are lists of item names
+        # 4a. Process AI-generated items and handle essentials to prevent duplicates
+        final_items = {}
+
+        # First, process items from the AI service
         generated_items = packing_list_data.get('packing_list', {})
         for category, items in generated_items.items():
-            for item_detail in items: # item_detail can be a dict or a string
-                item_name = item_detail['name'] if isinstance(item_detail, dict) else item_detail
+            for item_detail in items:
+                item_name = (item_detail['name'] if isinstance(item_detail, dict) else item_detail).strip()
+                normalized_name = item_name.lower()
                 
-                clothing_item = next((item for item in available_items if item.name == item_name), None)
+                clothing_item = next((item for item in available_items if item.name.lower() == normalized_name), None)
                 
-                list_item = PackingListItem(
-                    item_name=item_name,
-                    quantity=1, # Default quantity for AI suggestions
-                    clothing_item_id=clothing_item.id if clothing_item else None
-                )
-                new_packing_list.items.append(list_item)
+                if normalized_name not in final_items:
+                    final_items[normalized_name] = PackingListItem(
+                        item_name=item_name,
+                        quantity=1,
+                        clothing_item_id=clothing_item.id if clothing_item else None
+                    )
 
-        # 5. Add essentials (e.g., socks, underwear) based on trip duration
+        # 4b. Second, process essentials, updating quantity if they already exist
         essentials = {
             'Socks': 'socks',
-            'Underwear': 'underwear'
+            'Underwear': 'underwear',
+            'Pajamas': 'pajamas'
         }
         trip_duration = (trip.end_date - trip.start_date).days + 1
         
         for item_name, item_type in essentials.items():
             preference = UserEssentialPreference.query.filter_by(user_id=current_user.id, item_type=item_type).first()
-            
-            # Default to 1 per day if no preference is set
-            quantity = preference.quantity if preference else trip_duration
+            quantity = preference.quantity if preference is not None else trip_duration
             
             if quantity > 0:
-                list_item = PackingListItem(
-                    item_name=item_name,
-                    quantity=quantity
-                )
-                new_packing_list.items.append(list_item)
+                normalized_name = item_name.lower()
+                if normalized_name in final_items:
+                    # Item exists, just update its quantity
+                    final_items[normalized_name].quantity = quantity
+                else:
+                    # Item doesn't exist, create a new one
+                    final_items[normalized_name] = PackingListItem(
+                        item_name=item_name,
+                        quantity=quantity
+                    )
+        
+        # 4c. Add all the processed items to the packing list
+        for item in final_items.values():
+            new_packing_list.items.append(item)
         
         db.session.commit()
         return jsonify(new_packing_list.to_dict())
