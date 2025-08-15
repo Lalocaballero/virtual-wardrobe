@@ -803,13 +803,26 @@ def create_app():
     # OUTFIT ROUTES
     # ======================
 
+    def _get_current_season():
+        """Determine current season based on date"""
+        month = datetime.now().month
+        if month in [12, 1, 2]:
+            return 'winter'
+        elif month in [3, 4, 5]:
+            return 'spring'
+        elif month in [6, 7, 8]:
+            return 'summer'
+        else:
+            return 'fall'
+
     @app.route('/api/get-outfit', methods=['POST'])
     @login_required
     def get_outfit_suggestion():
         try:
             data = request.get_json()
             mood = data.get('mood', 'casual')
-            season = data.get('season', 'any') # Get season from request, default to 'any'
+            # Let the backend determine the season for reliability
+            season = _get_current_season()
 
             user = get_actual_user()
             wardrobe_items = ClothingItem.query.filter_by(user_id=user.id).all()
