@@ -17,7 +17,7 @@ import cloudinary.uploader
 import cloudinary.api
 
 # Import db, User, ClothingItem, Outfit from models.
-from models import db, User, ClothingItem, Outfit, UserActivity
+from models import db, User, ClothingItem, Outfit, UserActivity, Notification
 from utils.auth import get_actual_user
 
 # Initialize extensions globally
