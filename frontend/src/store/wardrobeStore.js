@@ -1,11 +1,17 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
 
-export const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+export const API_BASE = (() => {
+  let apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  // Ensure the production URL has the /api suffix, making it more resilient to configuration errors.
+  if (process.env.REACT_APP_API_URL && !process.env.REACT_APP_API_URL.endsWith('/api')) {
+    apiBase = `${process.env.REACT_APP_API_URL}/api`;
+  }
+  return apiBase;
+})();
 
 const useWardrobeStore = create((set, get) => ({
   user: null,
-  theme: 'purple', // Default theme
   wardrobe: [],
   currentOutfit: null,
   outfitHistory: [],
@@ -35,6 +41,7 @@ const useWardrobeStore = create((set, get) => ({
   usageAnalytics: null,
   styleDNA: null,
   intelligenceLoading: false,
+  analyticsLoading: false,
 
   // Trips state
   trips: [],
@@ -44,28 +51,6 @@ const useWardrobeStore = create((set, get) => ({
   // Notifications state
   notifications: [],
   notificationsLoading: false,
-
-  // Theme actions
-  setTheme: (theme) => {
-    set({ theme });
-    // Apply theme class to the root element
-    const root = document.documentElement;
-    // Remove old theme classes
-    root.classList.remove('theme-purple', 'theme-blue', 'theme-orange');
-    // Add new theme class
-    root.classList.add(`theme-${theme}`);
-    // Persist to local storage
-    localStorage.setItem('we-wear-theme', theme);
-  },
-
-  initTheme: () => {
-    const savedTheme = localStorage.getItem('we-wear-theme');
-    if (savedTheme) {
-      get().setTheme(savedTheme);
-    } else {
-      get().setTheme('purple'); // Default theme
-    }
-  },
 
   // Helper function to handle fetch responses and errors
   // This centralizes error handling and JSON parsing
@@ -320,7 +305,6 @@ const useWardrobeStore = create((set, get) => ({
   },
 
   initUser: async () => {
-    get().initTheme(); // Initialize theme on app start
     // initUser now primarily relies on checkAuth to determine user status
     await get().checkAuth();
     // The rest of the logic in initUser is largely redundant if checkAuth is robust
@@ -338,9 +322,6 @@ const useWardrobeStore = create((set, get) => ({
         method: 'GET',
       });
       set({ profile: data, profileLoading: false });
-      if (data.theme) {
-        get().setTheme(data.theme);
-      }
     } catch (error) {
       const errorMessage = error.message || "Oops! We couldn't fetch your profile.";
       set({ error: errorMessage, profileLoading: false });
@@ -357,9 +338,6 @@ const useWardrobeStore = create((set, get) => ({
       });
       // After updating, refetch the profile to get the latest data
       await get().fetchProfile();
-      if (profileData.theme) {
-        get().setTheme(profileData.theme);
-      }
       // The backend will now create a notification for this, so the toast is no longer needed.
     } catch (error) {
       const errorMessage = error.message || 'There was a problem saving your profile.';
