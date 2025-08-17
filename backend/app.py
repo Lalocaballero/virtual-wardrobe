@@ -503,6 +503,7 @@ def create_app():
                 'profile_image_url': user.profile_image_url,
                 'location': user.location,
                 'laundry_thresholds': user.get_laundry_thresholds(),
+                'notification_settings': user.get_notification_settings(),
                 'theme': (user.settings or {}).get('theme', 'light'),
                 'wardrobe_stats': wardrobe_stats
             }
