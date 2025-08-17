@@ -26,7 +26,7 @@ function App() {
         <Routes>
           <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-          <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+          <Route path="/dashboard/*" element={user ? <Dashboard /> : <Navigate to="/login" />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

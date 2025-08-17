@@ -35,7 +35,6 @@ const useWardrobeStore = create((set, get) => ({
   usageAnalytics: null,
   styleDNA: null,
   intelligenceLoading: false,
-  analyticsLoading: false,
 
   // Trips state
   trips: [],
