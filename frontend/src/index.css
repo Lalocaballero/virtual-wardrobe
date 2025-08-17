@@ -2,169 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 
-  --- 1. BASE STYLES using @layer base ---
-  Here we define the default look for basic HTML elements.
-  This is the perfect place for our global dark mode settings.
-*/
 @layer base {
-  /* Default background and text colors for the whole app */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 210 40% 98%;
+  }
+
+  html, .theme-purple {
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 40% 98%;
+  }
+
+  .theme-orange {
+    --primary: 24.6 95% 53.1%;
+    --primary-foreground: 210 40% 98%;
+  }
+
+  .theme-blue {
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 210 40% 98%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
   body {
-    @apply bg-gray-50 ; /* Light Mode */
-    @apply dark:bg-gray-900 ; /* Dark Mode */
-
-    /* Keep your original font settings */
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
-
-  /* Consistent heading styles */
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-gray-900 dark:text-white;
-  }
-
-  /* Consistent link styles */
-  a {
-    @apply text-indigo-600 hover:underline dark:text-indigo-400;
-  }
-
-  /* Default form input styles */
-  input, select, textarea {
-    @apply bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900  placeholder-gray-500 dark:placeholder-gray-400 rounded-lg;
-  }
-
-  /* Default form input styles */
-  input, select, textarea {
-    /* --- ADD `border` TO THIS LINE --- */
-    @apply bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-lg; /* Light Mode */
-    
-    @apply dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400; /* Dark Mode */
-  }
-
-  p {
-    @apply text-gray-600 dark:text-gray-400;
-  }
-
-  /* Default checkbox styles */
-  [type='checkbox'] {
-    @apply h-4 w-4 rounded border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-indigo-600 focus:ring-indigo-500;
-  }
-  
-  code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-      monospace;
-  }
-}
-
-/* 
-  --- 2. REUSABLE COMPONENT CLASSES using @layer components ---
-  This is where we can create our own custom utility classes, like .btn
-  This is the CSS-based alternative to creating a <Button> component.
-*/
-@layer components {
-  /* Base button styles */
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 whitespace-nowrap;
-  }
-
-  /* Button variants */
-  .btn-primary {
-    @apply btn bg-indigo-600 hover:bg-indigo-700 text-white;
-  }
-  .btn-secondary {
-    @apply btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600  ;
-  }
-  .btn-danger {
-    @apply btn bg-red-600 hover:bg-red-700 text-white;
-  }
-}
-
-
-/* 
-  --- 3. YOUR EXISTING CUSTOM UTILITIES AND ANIMATIONS ---
-  These can remain as they are. No changes needed here.
-*/
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fadeIn { animation: fadeIn 0.3s ease-out; }
-
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Custom animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-
-.slide-up {
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* 
-  --- 4. DARK MODE AWARE SCROLLBAR ---
-  The ::-webkit-scrollbar pseudo-element doesn't work with Tailwind's `dark:` variant.
-  So we use a standard media query to detect the OS-level color scheme.
-*/
-
-/* Light mode scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-
-/* Dark mode scrollbar */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track { background: #2d3748; } /* A dark gray */
-  ::-webkit-scrollbar-thumb { background: #4a5568; } /* A slightly lighter gray */
-  ::-webkit-scrollbar-thumb:hover { background: #718096; }
 }

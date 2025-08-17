@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
 import { toast } from 'react-hot-toast';
 import ImageUpload from './ImageUpload';
-import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon, PaintBrushIcon, CheckIcon } from '@heroicons/react/24/outline';
 import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
 
 const UserProfile = () => {
@@ -19,6 +19,12 @@ const UserProfile = () => {
     resetOutfitHistory,
   } = useWardrobeStore();
 
+  const themes = [
+    { name: 'purple', color: 'bg-purple-600' },
+    { name: 'blue', color: 'bg-blue-600' },
+    { name: 'orange', color: 'bg-orange-600' },
+  ];
+  
   // State for the controlled form inputs
   const [formData, setFormData] = useState({
     display_name: '',
@@ -26,6 +32,7 @@ const UserProfile = () => {
     profile_image_url: '',
     laundry_thresholds: {},
     notification_settings: {},
+    theme: 'purple', // Add theme to form data
   });
   
   const [passwordData, setPasswordData] = useState({
@@ -35,7 +42,9 @@ const UserProfile = () => {
 
   const locationInputRef = useRef(null);
   useGooglePlacesAutocomplete(locationInputRef, (place) => {
-    setFormData(prev => ({ ...prev, location: place }));
+    if (place) {
+      setFormData(prev => ({ ...prev, location: place }));
+    }
   });
 
   // Fetch profile data when the component mounts
@@ -52,6 +61,7 @@ const UserProfile = () => {
         profile_image_url: profile.profile_image_url || '',
         laundry_thresholds: profile.laundry_thresholds || {},
         notification_settings: profile.notification_settings || {},
+        theme: profile.theme || 'purple',
       });
     }
   }, [profile]);
@@ -114,7 +124,7 @@ const UserProfile = () => {
   if (profileLoading && !profile) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         <span className="ml-3">Loading Your Profile...</span>
       </div>
     );
@@ -123,12 +133,12 @@ const UserProfile = () => {
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       {/* --- 1. General Information Section --- */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-card text-card-foreground p-6 rounded-lg shadow-sm border">
         <div className="flex items-center space-x-4 mb-6">
-          <UserCircleIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
+          <UserCircleIcon className="h-10 w-10 text-primary" />
           <div>
             <h2 className="text-xl font-bold">General Information</h2>
-            <p className="text-sm">Update your public profile and location details.</p>
+            <p className="text-sm text-muted-foreground">Update your public profile and location details.</p>
           </div>
         </div>
 
@@ -141,26 +151,57 @@ const UserProfile = () => {
             <div className="sm:col-span-2 space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-2">Display Name</label>
-                <input type="text" name="display_name" value={formData.display_name} onChange={handleFormChange} className="w-full" />
+                <input type="text" name="display_name" value={formData.display_name} onChange={handleFormChange} className="w-full bg-input" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Location (for weather)</label>
-                <input ref={locationInputRef} type="text" name="location" value={formData.location} onChange={handleFormChange} className="w-full" />
+                <input ref={locationInputRef} type="text" name="location" value={formData.location} onChange={handleFormChange} className="w-full bg-input" />
               </div>
             </div>
           </div>
           <div className="flex justify-end">
-            <button type="submit" disabled={profileLoading} className="btn btn-primary">
+            <button type="submit" disabled={profileLoading} className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md">
               {profileLoading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
       </div>
 
-      {/* --- 2. Laundry Thresholds Section --- */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      {/* --- 2. Appearance Section --- */}
+      <div className="bg-card text-card-foreground p-6 rounded-lg shadow-sm border">
+        <div className="flex items-center space-x-4 mb-6">
+          <PaintBrushIcon className="h-10 w-10 text-primary" />
+          <div>
+            <h2 className="text-xl font-bold">Appearance</h2>
+            <p className="text-sm text-muted-foreground">Choose your accent color for the UI.</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          {themes.map((theme) => (
+            <button
+              key={theme.name}
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, theme: theme.name }))}
+              className={`h-10 w-10 rounded-full ${theme.color} flex items-center justify-center ring-2 ring-offset-2 dark:ring-offset-background ring-transparent transition-all`}
+              style={{
+                boxShadow: formData.theme === theme.name ? `0 0 0 3px hsl(var(--primary))` : 'none'
+              }}
+            >
+              {formData.theme === theme.name && <CheckIcon className="h-6 w-6 text-white" />}
+            </button>
+          ))}
+        </div>
+         <div className="flex justify-end mt-6">
+            <button onClick={handleSaveChanges} disabled={profileLoading} className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md">
+              {profileLoading ? 'Saving...' : 'Save Appearance'}
+            </button>
+          </div>
+      </div>
+
+      {/* --- 3. Laundry Thresholds Section --- */}
+      <div className="bg-card text-card-foreground p-6 rounded-lg shadow-sm border">
         <h2 className="text-xl font-bold mb-4">Laundry Preferences</h2>
-        <p className="text-sm mb-6">Set how many times you wear an item before it needs washing.</p>
+        <p className="text-sm text-muted-foreground mb-6">Set how many times you wear an item before it needs washing.</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Object.entries(formData.laundry_thresholds).map(([itemType, value]) => (
             <div key={itemType}>
@@ -169,22 +210,22 @@ const UserProfile = () => {
                 type="number" 
                 value={value} 
                 onChange={(e) => handleThresholdChange(itemType, e.target.value)}
-                className="w-full mt-1" 
+                className="w-full mt-1 bg-input" 
               />
             </div>
           ))}
         </div>
         <div className="flex justify-end mt-6">
-          <button onClick={handleSaveChanges} disabled={profileLoading} className="btn btn-primary">
+          <button onClick={handleSaveChanges} disabled={profileLoading} className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md">
             {profileLoading ? 'Saving...' : 'Save Preferences'}
           </button>
         </div>
       </div>
 
-      {/* --- Notification Settings Section --- */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      {/* --- 4. Notification Settings Section --- */}
+      <div className="bg-card text-card-foreground p-6 rounded-lg shadow-sm border">
         <h2 className="text-xl font-bold mb-4">Notification Settings</h2>
-        <p className="text-sm mb-6">Choose which notifications you want to receive.</p>
+        <p className="text-sm text-muted-foreground mb-6">Choose which notifications you want to receive.</p>
         <div className="space-y-4">
           {Object.entries(formData.notification_settings).map(([setting, value]) => (
             <div key={setting} className="flex items-center justify-between">
@@ -193,8 +234,8 @@ const UserProfile = () => {
                 type="button"
                 onClick={() => handleNotificationSettingChange(setting)}
                 className={`${
-                  value ? 'bg-blue-600' : 'bg-gray-200'
-                } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+                  value ? 'bg-primary' : 'bg-muted'
+                } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
               >
                 <span
                   className={`${
@@ -206,59 +247,59 @@ const UserProfile = () => {
           ))}
         </div>
         <div className="flex justify-end mt-6">
-          <button onClick={handleSaveChanges} disabled={profileLoading} className="btn btn-primary">
+          <button onClick={handleSaveChanges} disabled={profileLoading} className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md">
             {profileLoading ? 'Saving...' : 'Save Notifications'}
           </button>
         </div>
       </div>
 
-      {/* --- 3. Security Section --- */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      {/* --- 5. Security Section --- */}
+      <div className="bg-card text-card-foreground p-6 rounded-lg shadow-sm border">
         <div className="flex items-center space-x-4 mb-6">
-          <LockClosedIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
+          <LockClosedIcon className="h-10 w-10 text-primary" />
           <div>
             <h2 className="text-xl font-bold">Security</h2>
-            <p className="text-sm">Change your password.</p>
+            <p className="text-sm text-muted-foreground">Change your password.</p>
           </div>
         </div>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Current Password</label>
-            <input type="password" name="current_password" value={passwordData.current_password} onChange={handlePasswordChange} className="w-full" required />
+            <input type="password" name="current_password" value={passwordData.current_password} onChange={handlePasswordChange} className="w-full bg-input" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">New Password</label>
-            <input type="password" name="new_password" value={passwordData.new_password} onChange={handlePasswordChange} className="w-full" required />
+            <input type="password" name="new_password" value={passwordData.new_password} onChange={handlePasswordChange} className="w-full bg-input" required />
           </div>
           <div className="flex justify-end">
-            <button type="submit" className="btn btn-secondary">Change Password</button>
+            <button type="submit" className="bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md">Change Password</button>
           </div>
         </form>
       </div>
       
-      {/* --- 4. Data & Account Actions Section --- */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      {/* --- 6. Data & Account Actions Section --- */}
+      <div className="bg-card text-card-foreground p-6 rounded-lg shadow-sm border">
          <div className="space-y-4">
            <div>
               <h3 className="font-semibold">Export Your Data</h3>
-              <p className="text-sm mb-2">Download a JSON file of all your wardrobe and outfit data.</p>
-              <button onClick={exportData} className="btn btn-secondary sm:min-w-[200px]">
+              <p className="text-sm text-muted-foreground mb-2">Download a JSON file of all your wardrobe and outfit data.</p>
+              <button onClick={exportData} className="flex items-center justify-center bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md sm:min-w-[200px]">
                 <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                 Export Data
               </button>
            </div>
-           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+           <div className="border-t pt-4">
             <h3 className="font-semibold text-orange-600 dark:text-orange-500">Reset AI Personalization</h3>
-            <p className="text-sm mb-2">Reset the AI's memory of your style by deleting all your past outfit history. Your wardrobe items will not be affected.</p>
-            <button onClick={handleResetHistory} className="btn btn-warning sm:min-w-[200px]">
+            <p className="text-sm text-muted-foreground mb-2">Reset the AI's memory of your style by deleting all your past outfit history. Your wardrobe items will not be affected.</p>
+            <button onClick={handleResetHistory} className="flex items-center justify-center bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/50 dark:text-orange-400 dark:hover:bg-orange-900 px-4 py-2 rounded-md sm:min-w-[200px]">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" /></svg>
                 Reset AI Memory
             </button>
            </div>
-           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-             <h3 className="font-semibold text-red-600 dark:text-red-500">Delete Account</h3>
-             <p className="text-sm mb-2">Permanently delete your account and all of your data. This action is irreversible.</p>
-             <button onClick={handleDeleteAccount} className="btn btn-danger sm:min-w-[200px]">
+           <div className="border-t pt-4">
+             <h3 className="font-semibold text-destructive">Delete Account</h3>
+             <p className="text-sm text-muted-foreground mb-2">Permanently delete your account and all of your data. This action is irreversible.</p>
+             <button onClick={handleDeleteAccount} className="flex items-center justify-center bg-destructive text-destructive-foreground hover:bg-destructive/90 px-4 py-2 rounded-md sm:min-w-[200px]">
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Delete My Account
               </button>
