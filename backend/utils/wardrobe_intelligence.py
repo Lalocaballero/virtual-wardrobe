@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Tuple
 from sqlalchemy import func, distinct, cast, Date
-from models import ClothingItem, Outfit, User, UserActivity, db
+from models import ClothingItem, Outfit, User, UserActivity, db, Notification
 from collections import defaultdict, Counter
 import json
 import statistics
@@ -209,6 +209,27 @@ class WardrobeIntelligenceService:
                     'suggestion': f"Add more {current_season}-appropriate pieces"
                 })
             
+            # After calculating gaps, check if we should notify the user
+            user = User.query.get(user_id)
+            if user and user.get_notification_settings().get('wardrobe_suggestions', True):
+                for gap in gaps:
+                    if gap['severity'] == 'high':
+                        message = f"Wardrobe Gap Detected: {gap['message']}. {gap['suggestion']}."
+                        # Avoid creating duplicate notifications
+                        existing_notification = Notification.query.filter(
+                            Notification.user_id == user_id,
+                            Notification.message == message,
+                            Notification.is_read == False
+                        ).first()
+                        if not existing_notification:
+                            notification = Notification(
+                                user_id=user_id,
+                                message=message,
+                                link='/collections' # Link to smart collections page
+                            )
+                            db.session.add(notification)
+                db.session.commit()
+
             return {
                 'gaps': gaps,
                 'type_distribution': dict(type_counts),

@@ -150,6 +150,7 @@ def create_app():
     from utils.laundry_service import LaundryIntelligenceService
     from utils.wardrobe_intelligence import WardrobeIntelligenceService, AnalyticsService
     from utils.email_service import EmailService
+    from utils.scheduler import init_scheduler
 
     app.ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY'))
     app.weather_service = WeatherService(os.environ.get('WEATHER_API_KEY'))
@@ -157,6 +158,11 @@ def create_app():
     app.email_service = EmailService(os.environ.get('BREVO_API_KEY'))
     app.wardrobe_intelligence_service = WardrobeIntelligenceService()
     app.analytics_service = AnalyticsService()
+
+    # Initialize and start the scheduler
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        with app.app_context():
+            init_scheduler(app)
 
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -532,10 +538,22 @@ def create_app():
             if 'theme' in data:
                 user.settings['theme'] = data.get('theme')
                 settings_changed = True
+            
+            if 'notification_settings' in data:
+                user.settings['notification_settings'] = data['notification_settings']
+                settings_changed = True
 
             if settings_changed:
                 from sqlalchemy.orm.attributes import flag_modified
                 flag_modified(user, "settings")
+            
+            # Create a notification for the user
+            notification = Notification(
+                user_id=user.id,
+                message="Your profile has been updated successfully.",
+                link="/profile"
+            )
+            db.session.add(notification)
 
             db.session.commit()
             return jsonify({'message': 'Profile updated successfully!'})
@@ -1056,21 +1074,19 @@ def create_app():
             item = ClothingItem.query.get(item_id)
             if not item or item.user_id != user.id:
                 return jsonify({'error': 'Item not found'}), 404
-            status_cycle = ['clean', 'dirty', 'in_laundry', 'drying']
-            current_index = status_cycle.index(item.laundry_status) if item.laundry_status in status_cycle else 0
-            next_index = (current_index + 1) % len(status_cycle)
-            item.laundry_status = status_cycle[next_index]
-            if item.laundry_status == 'clean':
-                item.is_clean = True
-                item.needs_washing = False
-                item.wash_urgency = 'none'
-            elif item.laundry_status == 'dirty':
-                item.is_clean = False
-                item.needs_washing = True
-            db.session.commit()
+
+            if item.is_clean:
+                # Mark as dirty
+                current_app.laundry_service.increment_wear_count(item_id)
+            else:
+                # Mark as clean
+                current_app.laundry_service.mark_items_washed([item_id])
+            
+            # Refetch the item to get the updated state
+            updated_item = ClothingItem.query.get(item_id)
             return jsonify({
-                'message': f'Item status changed to {item.laundry_status}',
-                'item': item.to_dict()
+                'message': f'Item status updated.',
+                'item': updated_item.to_dict()
             })
         except Exception as e:
             if app.debug:

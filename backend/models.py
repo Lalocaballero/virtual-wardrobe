@@ -76,6 +76,25 @@ class User(UserMixin, db.Model):
         
         return default_thresholds
 
+    def get_notification_settings(self):
+        """
+        Returns the user's notification settings, falling back to system defaults.
+        """
+        # System-wide default settings (all on by default)
+        default_settings = {
+            'laundry_reminders': True,
+            'outfit_reminders': True,
+            'trip_reminders': True,
+            'wardrobe_suggestions': True,
+        }
+        
+        if self.settings and 'notification_settings' in self.settings:
+            user_settings = default_settings.copy()
+            user_settings.update(self.settings['notification_settings'])
+            return user_settings
+        
+        return default_settings
+
 class UserActivity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

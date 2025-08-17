@@ -330,8 +330,8 @@ const useWardrobeStore = create((set, get) => ({
         body: JSON.stringify(profileData),
       });
       // After updating, refetch the profile to get the latest data
-      await get().fetchProfile(); 
-      toast.success('Your profile has been updated!');
+      await get().fetchProfile();
+      // The backend will now create a notification for this, so the toast is no longer needed.
     } catch (error) {
       const errorMessage = error.message || 'There was a problem saving your profile.';
       set({ error: errorMessage, profileLoading: false });
