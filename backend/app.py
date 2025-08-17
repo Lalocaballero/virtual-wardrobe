@@ -47,6 +47,12 @@ def create_app():
         print("INFO: Configuring session for PRODUCTION environment.")
         app.config['SESSION_COOKIE_SECURE'] = True
         app.config['SESSION_COOKIE_SAMESITE'] = 'None' # Necessary for cross-domain requests over HTTPS
+        
+        # Set cookie domain for cross-subdomain authentication
+        session_domain = os.environ.get('SESSION_COOKIE_DOMAIN')
+        if session_domain:
+            app.config['SESSION_COOKIE_DOMAIN'] = session_domain
+            print(f"INFO: Session cookie domain set to '{session_domain}'")
 
     @app.before_request
     def make_session_permanent():
