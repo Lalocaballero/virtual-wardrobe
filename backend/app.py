@@ -32,20 +32,21 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = 'uploads'
 
     # --- Session Configuration (CRITICAL for Cross-Site HTTPS) ---
-    is_production = os.environ.get('FLASK_ENV') == 'production'
+    # Default to production/secure settings. Only use relaxed settings if FLASK_ENV is explicitly 'development'.
+    # This is safer for deployed environments where FLASK_ENV might not be set.
+    is_development = os.environ.get('FLASK_ENV') == 'development'
 
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
-    # Use secure cookies in production, and a more relaxed policy for development
-    if is_production:
+    if is_development:
+        print("INFO: Configuring session for DEVELOPMENT environment.")
+        app.config['SESSION_COOKIE_SECURE'] = False
+        app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    else:
         print("INFO: Configuring session for PRODUCTION environment.")
         app.config['SESSION_COOKIE_SECURE'] = True
         app.config['SESSION_COOKIE_SAMESITE'] = 'None' # Necessary for cross-domain requests over HTTPS
-    else:
-        print("INFO: Configuring session for DEVELOPMENT environment.")
-        app.config['SESSION_COOKIE_SECURE'] = False
-        app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # 'Lax' is best for localhost development
 
     @app.before_request
     def make_session_permanent():
@@ -62,7 +63,7 @@ def create_app():
                 g.user = user
 
     print("--- Session Cookie Configuration ---")
-    print(f"Production mode: {is_production}")
+    print(f"Production mode: {not is_development}")
     print(f"SESSION_COOKIE_SECURE: {app.config['SESSION_COOKIE_SECURE']}")
     print(f"SESSION_COOKIE_SAMESITE: '{app.config['SESSION_COOKIE_SAMESITE']}'")
     print("------------------------------------")
@@ -100,10 +101,10 @@ def create_app():
 
     # --- CORS Configuration ---
     origins = [
+        "https://wewear.app",
         "https://virtual-wardrobe-frontend-qvoh.onrender.com",
         "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://wewear.app"
+        "http://127.0.0.1:3000"
     ]
     CORS(app,
          origins=origins,
