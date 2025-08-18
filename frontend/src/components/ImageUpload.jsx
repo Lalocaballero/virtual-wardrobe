@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PhotoIcon, XMarkIcon, CameraIcon } from '@heroicons/react/24/outline';
 import CameraModal from './CameraModal';
-import { API_BASE } from './store/wardrobeStore';
+import { API_BASE } from '../store/wardrobeStore';
 
 const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) => {
   const [uploading, setUploading] = useState(false);
