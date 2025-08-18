@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
 import { BellIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
 
 const NotificationBell = () => {
     const { 
@@ -12,7 +11,6 @@ const NotificationBell = () => {
     } = useWardrobeStore();
     
     const [isOpen, setIsOpen] = useState(false);
-    const navigate = useNavigate();
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -38,10 +36,11 @@ const NotificationBell = () => {
         if (!notification.is_read) {
             markNotificationAsRead(notification.id);
         }
-        if (notification.link) {
-            navigate(notification.link);
-        }
         setIsOpen(false);
+        if (notification.link) {
+            // Use a full navigation to ensure the dashboard can read the path
+            window.location.href = notification.link;
+        }
     };
 
     return (

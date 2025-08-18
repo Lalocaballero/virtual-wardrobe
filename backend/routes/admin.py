@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, make_response, current_app
-from sqlalchemy import text
+from sqlalchemy import text, func, case
 from flask_login import current_user
 from datetime import datetime, timedelta
 from models import User, db, ClothingItem, AdminAction, Outfit
@@ -21,7 +21,9 @@ def get_users():
         'is_verified': user.is_verified, 
         'is_suspended': user.is_suspended,
         'is_banned': user.is_banned,
-        'created_at': user.created_at
+        'created_at': user.created_at,
+        'age': user.age,
+        'gender': user.gender
     } for user in users])
 
 @admin_bp.route('/users/<int:user_id>', methods=['GET'])
@@ -339,3 +341,45 @@ def export_data():
         return output
     else:
         return jsonify({'error': 'Invalid format specified'}), 400
+
+@admin_bp.route('/analytics/user_demographics', methods=['GET'])
+@admin_required
+def get_user_demographics():
+    # Gender distribution
+    gender_dist = db.session.query(
+        User.gender, 
+        func.count(User.id)
+    ).group_by(User.gender).all()
+    
+    gender_data = [{'name': gender if gender else 'Not Set', 'value': count} for gender, count in gender_dist]
+
+    # Age distribution
+    age_brackets = [
+        ('0-17', (0, 17)),
+        ('18-24', (18, 24)),
+        ('25-34', (25, 34)),
+        ('35-44', (35, 44)),
+        ('45-54', (45, 54)),
+        ('55-64', (55, 64)),
+        ('65+', (65, 999))
+    ]
+    
+    age_case_statement = case(
+        *[
+            (User.age.between(low, high), label)
+            for label, (low, high) in age_brackets
+        ],
+        else_='Not Set'
+    )
+    
+    age_dist = db.session.query(
+        age_case_statement,
+        func.count(User.id)
+    ).group_by(age_case_statement).order_by(age_case_statement).all()
+
+    age_data = [{'name': age_bracket, 'value': count} for age_bracket, count in age_dist]
+
+    return jsonify({
+        'gender_distribution': gender_data,
+        'age_distribution': age_data
+    })

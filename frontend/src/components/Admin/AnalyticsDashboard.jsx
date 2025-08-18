@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import useWardrobeStore, { API_BASE } from '../../store/wardrobeStore';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 
 // Apple-inspired StatCard with better styling
 const StatCard = ({ title, value, icon, prefix = '', suffix = '' }) => (
@@ -35,6 +35,7 @@ const AnalyticsDashboard = () => {
     const [dauData, setDauData] = useState([]);
     const [mrrData, setMrrData] = useState(null);
     const [conversionData, setConversionData] = useState(null);
+    const [demographicsData, setDemographicsData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filterDays, setFilterDays] = useState(30);
@@ -46,14 +47,16 @@ const AnalyticsDashboard = () => {
             try {
                 // Fetch all data points again when filter changes.
                 // These are lightweight queries and this simplifies state management.
-                const [dau, mrr, conversion] = await Promise.all([
+                const [dau, mrr, conversion, demographics] = await Promise.all([
                     fetchApi(`${API_BASE}/admin/analytics/daily_active_users?days=${filterDays}`),
                     fetchApi(`${API_BASE}/admin/analytics/mrr`),
-                    fetchApi(`${API_BASE}/admin/analytics/premium_conversion_rate`)
+                    fetchApi(`${API_BASE}/admin/analytics/premium_conversion_rate`),
+                    fetchApi(`${API_BASE}/admin/analytics/user_demographics`)
                 ]);
                 setDauData(dau);
                 setMrrData(mrr);
                 setConversionData(conversion);
+                setDemographicsData(demographics);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -120,6 +123,42 @@ const AnalyticsDashboard = () => {
                     </ResponsiveContainer>
                 </div>
             </div>
+
+            {demographicsData && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-6 rounded-2xl shadow-sm">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4">Gender Distribution</h3>
+                        <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <PieChart>
+                                    <Pie data={demographicsData.gender_distribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} fill="#8884d8" label>
+                                        {demographicsData.gender_distribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={['#3b82f6', '#ec4899', '#f97316', '#8b5cf6'][index % 4]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                    <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-6 rounded-2xl shadow-sm">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4">Age Distribution</h3>
+                         <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <BarChart data={demographicsData.age_distribution} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                                    <XAxis dataKey="name" tick={{ fill: '#6b7280' }} />
+                                    <YAxis tick={{ fill: '#6b7280' }} />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="value" fill="#8884d8" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -5,7 +5,7 @@ import {
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import { Toaster } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import OutfitGenerator from './OutfitGenerator';
 import WardrobeManager from './WardrobeManager';
@@ -25,6 +25,8 @@ const Dashboard = () => {
   const [mood, setMood] = useState('casual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   useEffect(() => {
@@ -65,6 +67,24 @@ const Dashboard = () => {
   const handleTourEnd = () => {
     localStorage.setItem('hasCompletedTour', 'true');
     setRunTour(false);
+  };
+
+  // This effect synchronizes the URL with the active tab state
+  useEffect(() => {
+    const pathTab = location.pathname.split('/dashboard/')[1];
+    const validTabs = tabs.map(t => t.id);
+    if (pathTab && validTabs.includes(pathTab)) {
+      setActiveTab(pathTab);
+    } else {
+      // If URL is just /dashboard or invalid, default to 'outfit'
+      setActiveTab('outfit');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    navigate(`/dashboard/${tabId}`);
   };
 
   // --- Helper Functions ---
@@ -195,7 +215,7 @@ const Dashboard = () => {
                 {tabs.map(tab => (
                   <button
                     key={tab.id}
-                    onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
+                    onClick={() => { handleTabClick(tab.id); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
                       activeTab === tab.id
                         ? 'bg-indigo-100 text-indigo-700 dark:bg-gray-700 dark:text-indigo-400'
@@ -227,7 +247,7 @@ const Dashboard = () => {
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 className={`py-3 px-4 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap transition-colors ${
                   activeTab === tab.id
                     ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
@@ -252,7 +272,7 @@ const Dashboard = () => {
           {tabs.slice(0, 5).map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors min-w-0 flex-1 ${
                 activeTab === tab.id
                   ? 'text-indigo-600 dark:text-indigo-400'
