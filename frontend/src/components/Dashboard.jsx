@@ -110,7 +110,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen pb-16 md:pb-0">
-      <AppTour run={runTour} onTourEnd={handleTourEnd} />
+      <AppTour
+        run={runTour}
+        onTourEnd={handleTourEnd}
+        setActiveTab={setActiveTab}
+      />
       <Toaster position="top-center" reverseOrder={false} toastOptions={{
         // Define default options
         className: '',

@@ -22,6 +22,8 @@ const UserProfile = () => {
   // State for the controlled form inputs
   const [formData, setFormData] = useState({
     display_name: '',
+    age: '',
+    gender: '',
     location: '',
     profile_image_url: '',
     laundry_thresholds: {},
@@ -38,10 +40,12 @@ const UserProfile = () => {
     setFormData(prev => ({ ...prev, location: place }));
   });
 
-  // Fetch profile data when the component mounts
+  // Fetch profile data only if it's not already loaded
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (!profile) {
+      fetchProfile();
+    }
+  }, [profile, fetchProfile]);
 
   // When profile data is loaded from the store, update our local form state
   useEffect(() => {
@@ -50,6 +54,8 @@ const UserProfile = () => {
         display_name: profile.display_name || '',
         location: profile.location || '',
         profile_image_url: profile.profile_image_url || '',
+        age: profile.age || '',
+        gender: profile.gender || '',
         laundry_thresholds: profile.laundry_thresholds || {},
         notification_settings: profile.notification_settings || {},
       });
@@ -114,7 +120,7 @@ const UserProfile = () => {
   if (profileLoading && !profile) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         <span className="ml-3">Loading Your Profile...</span>
       </div>
     );
@@ -125,10 +131,10 @@ const UserProfile = () => {
       {/* --- 1. General Information Section --- */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-4 mb-6">
-          <UserCircleIcon className="h-10 w-10 text-purple-500 dark:text-purple-400" />
+          <UserCircleIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
           <div>
             <h2 className="text-xl font-bold">General Information</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Update your public profile and location details.</p>
+            <p className="text-sm">Update your public profile and location details.</p>
           </div>
         </div>
 
@@ -142,6 +148,22 @@ const UserProfile = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">Display Name</label>
                 <input type="text" name="display_name" value={formData.display_name} onChange={handleFormChange} className="w-full" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium mb-2">Age</label>
+                    <input type="number" name="age" value={formData.age} onChange={handleFormChange} className="w-full" />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium mb-2">Gender</label>
+                    <select name="gender" value={formData.gender} onChange={handleFormChange} className="w-full">
+                        <option value="" disabled>Select...</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Location (for weather)</label>
@@ -160,7 +182,7 @@ const UserProfile = () => {
       {/* --- 2. Laundry Thresholds Section --- */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">Laundry Preferences</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Set how many times you wear an item before it needs washing.</p>
+        <p className="text-sm mb-6">Set how many times you wear an item before it needs washing.</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Object.entries(formData.laundry_thresholds).map(([itemType, value]) => (
             <div key={itemType}>
@@ -184,7 +206,7 @@ const UserProfile = () => {
       {/* --- Notification Settings Section --- */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">Notification Settings</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Choose which notifications you want to receive.</p>
+        <p className="text-sm mb-6">Choose which notifications you want to receive.</p>
         <div className="space-y-4">
           {Object.entries(formData.notification_settings).map(([setting, value]) => (
             <div key={setting} className="flex items-center justify-between">
@@ -193,8 +215,8 @@ const UserProfile = () => {
                 type="button"
                 onClick={() => handleNotificationSettingChange(setting)}
                 className={`${
-                  value ? 'bg-purple-600' : 'bg-gray-200 dark:bg-gray-600'
-                } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                  value ? 'bg-blue-600' : 'bg-gray-200'
+                } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
               >
                 <span
                   className={`${
@@ -215,10 +237,10 @@ const UserProfile = () => {
       {/* --- 3. Security Section --- */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-4 mb-6">
-          <LockClosedIcon className="h-10 w-10 text-purple-500 dark:text-purple-400" />
+          <LockClosedIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
           <div>
             <h2 className="text-xl font-bold">Security</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Change your password.</p>
+            <p className="text-sm">Change your password.</p>
           </div>
         </div>
         <form onSubmit={handleChangePassword} className="space-y-4">
@@ -241,7 +263,7 @@ const UserProfile = () => {
          <div className="space-y-4">
            <div>
               <h3 className="font-semibold">Export Your Data</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Download a JSON file of all your wardrobe and outfit data.</p>
+              <p className="text-sm mb-2">Download a JSON file of all your wardrobe and outfit data.</p>
               <button onClick={exportData} className="btn btn-secondary sm:min-w-[200px]">
                 <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                 Export Data
@@ -249,7 +271,7 @@ const UserProfile = () => {
            </div>
            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <h3 className="font-semibold text-orange-600 dark:text-orange-500">Reset AI Personalization</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Reset the AI's memory of your style by deleting all your past outfit history. Your wardrobe items will not be affected.</p>
+            <p className="text-sm mb-2">Reset the AI's memory of your style by deleting all your past outfit history. Your wardrobe items will not be affected.</p>
             <button onClick={handleResetHistory} className="btn btn-warning sm:min-w-[200px]">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" /></svg>
                 Reset AI Memory
@@ -257,7 +279,7 @@ const UserProfile = () => {
            </div>
            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
              <h3 className="font-semibold text-red-600 dark:text-red-500">Delete Account</h3>
-             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Permanently delete your account and all of your data. This action is irreversible.</p>
+             <p className="text-sm mb-2">Permanently delete your account and all of your data. This action is irreversible.</p>
              <button onClick={handleDeleteAccount} className="btn btn-danger sm:min-w-[200px]">
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Delete My Account
