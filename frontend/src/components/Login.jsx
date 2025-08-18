@@ -48,9 +48,9 @@ const Login = () => {
     } else {
       result = await register(formData.email, formData.password, formData.location);
       if (result.success) {
-        // After successful registration, switch to login view with a message
+        // After successful registration, switch to login view.
+        // The toast is now handled by the store, which shows the backend message.
         setIsLogin(true);
-        toast.success('Registration successful! Please check your email to verify your account.');
       }
     }
 

@@ -187,15 +187,15 @@ const useWardrobeStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ email, password, location }),
       });
-      const userData = { email, id: data.user_id };
-      set({ user: userData, loading: false });
-      localStorage.setItem('wardrobeUser', JSON.stringify(userData));
-      toast.success("Welcome to WeWear!")
-      return true;
+      // DO NOT log the user in. They must verify their email first.
+      set({ loading: false });
+      toast.success(data.message || "Registration successful! Please check your email.");
+      return { success: true };
     } catch (error) {
       const errorMessage = error.message || 'Opsi... There has been a problem, please try again.';
       set({ error: errorMessage, loading: false });
-      toast.error(errorMessage); 
+      toast.error(errorMessage);
+      return { success: false };
     }
   },
 
