@@ -47,7 +47,7 @@ const AppTour = ({ run, onTourEnd, setActiveTab }) => {
   ];
 
   const handleJoyrideCallback = (data) => {
-    const { status, step, type, index } = data;
+    const { status, step, type } = data;
 
     if (type === 'step:before') {
       // If the next step has a tab, switch to it

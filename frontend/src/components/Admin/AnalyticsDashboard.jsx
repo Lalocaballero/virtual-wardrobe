@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import useWardrobeStore, { API_BASE } from '../../store/wardrobeStore';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 // Apple-inspired StatCard with better styling
 const StatCard = ({ title, value, icon, prefix = '', suffix = '' }) => (

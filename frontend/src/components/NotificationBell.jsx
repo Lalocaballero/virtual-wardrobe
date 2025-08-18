@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
-import { BellIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { BellIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 
 const NotificationBell = () => {

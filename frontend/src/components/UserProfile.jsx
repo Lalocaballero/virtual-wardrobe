@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
-import { toast } from 'react-hot-toast';
 import ImageUpload from './ImageUpload';
 import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline';
 import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';

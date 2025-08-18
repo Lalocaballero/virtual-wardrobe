@@ -17,7 +17,6 @@ const useWardrobeStore = create((set, get) => ({
   outfitHistory: [],
   loading: false,
   error: null,
-  analyticsLoading: false,
 
   // --- NEW PROFILE STATE ---
   profile: null,

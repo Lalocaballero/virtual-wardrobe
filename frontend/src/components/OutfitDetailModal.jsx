@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon, CalendarIcon, SunIcon, CloudIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, SunIcon, CloudIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 
 const OutfitDetailModal = ({ outfits, onClose }) => {

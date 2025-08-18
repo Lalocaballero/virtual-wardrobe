@@ -263,7 +263,6 @@ const PackingAssistant = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {trips.map((trip) => {
-            const isPast = new Date(trip.end_date) < new Date();
             const isCompleted = trip.packing_list?.status === 'completed';
             return (
           <div key={trip.id} className={`bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50 flex flex-col justify-between transition-all hover:shadow-lg hover:scale-[1.02] ${isCompleted ? 'opacity-60' : ''}`}>

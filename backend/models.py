@@ -40,8 +40,8 @@ class User(UserMixin, db.Model):
     laundry_preferences = db.Column(db.Text)  # JSON string of preferences
     
     # Relationships
-    clothing_items = db.relationship('ClothingItem', backref='owner', lazy=True)
-    outfits = db.relationship('Outfit', backref='user', lazy=True)
+    clothing_items = db.relationship('ClothingItem', backref='owner', lazy=True, cascade="all, delete-orphan")
+    outfits = db.relationship('Outfit', backref='user', lazy=True, cascade="all, delete-orphan")
     trips = db.relationship('Trip', backref='traveler', lazy=True, cascade="all, delete-orphan")
 
     def get_token(self, salt, expires_sec=3600):
@@ -101,7 +101,7 @@ class UserActivity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    user = db.relationship('User', backref='activities')
+    user = db.relationship('User', backref=db.backref('activities', cascade="all, delete-orphan"))
 
 class ClothingItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -339,7 +339,7 @@ class PackingList(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     trip = db.relationship('Trip', backref=db.backref('packing_list', uselist=False, cascade="all, delete-orphan"))
-    user = db.relationship('User', backref='packing_lists')
+    user = db.relationship('User', backref=db.backref('packing_lists', cascade="all, delete-orphan"))
     items = db.relationship('PackingListItem', backref='packing_list', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
@@ -377,7 +377,7 @@ class UserEssentialPreference(db.Model):
     item_type = db.Column(db.String(50), nullable=False) # e.g., 'socks', 'underwear'
     quantity = db.Column(db.Integer, default=1, nullable=False)
 
-    user = db.relationship('User', backref='essential_preferences')
+    user = db.relationship('User', backref=db.backref('essential_preferences', cascade="all, delete-orphan"))
     __table_args__ = (db.UniqueConstraint('user_id', 'item_type', name='_user_item_uc'),)
 
     def to_dict(self):

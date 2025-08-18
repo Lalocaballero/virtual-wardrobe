@@ -109,7 +109,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
         URL.revokeObjectURL(originalPreviewUrl);
       }
     }
-  }, [onImageUploaded, currentImage, API_BASE, compressImage, preview]);
+  }, [onImageUploaded, currentImage, compressImage, preview]);
 
   const onDrop = useCallback((acceptedFiles) => {
     handleUpload(acceptedFiles[0]);
