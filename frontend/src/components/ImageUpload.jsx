@@ -2,14 +2,13 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { PhotoIcon, XMarkIcon, CameraIcon } from '@heroicons/react/24/outline';
 import CameraModal from './CameraModal';
+import { API_BASE } from '../../store/wardrobeStore';
 
 const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(currentImage);
   const [error, setError] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   const compressImage = useCallback((imageFile, quality = 0.8, maxWidth = 1024, maxHeight = 1024) => {
     return new Promise((resolve, reject) => {

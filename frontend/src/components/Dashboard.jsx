@@ -16,9 +16,11 @@ import UsageAnalytics from './UsageAnalytics';
 import UserProfile from './UserProfile';
 import PackingAssistant from './PackingAssistant';
 import NotificationBell from './NotificationBell';
+import AppTour from './AppTour';
 
 const Dashboard = () => {
   // --- State and Hooks ---
+  const [runTour, setRunTour] = useState(false);
   const [activeTab, setActiveTab] = useState('outfit');
   const [mood, setMood] = useState('casual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -53,6 +55,19 @@ const Dashboard = () => {
     }
   }, [user, profile, fetchProfile]); // This hook runs when the user logs in
 
+  useEffect(() => {
+    const hasCompletedTour = localStorage.getItem('hasCompletedTour');
+    if (!hasCompletedTour) {
+      // Start the tour with a short delay to allow the page to render
+      setTimeout(() => setRunTour(true), 1000);
+    }
+  }, []);
+
+  const handleTourEnd = () => {
+    localStorage.setItem('hasCompletedTour', 'true');
+    setRunTour(false);
+  };
+
   // --- Helper Functions ---
   const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
   const handleGenerateOutfit = () => generateOutfit(mood);
@@ -70,7 +85,7 @@ const Dashboard = () => {
     if (badge === 'AI') return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1.5 py-0.5 rounded-full';
     if (badge === 'NEW') return 'bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full';
     if (parseInt(badge) > 0) return 'bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center';
-    return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 text-xs px-1.5 py-0.5 rounded-full';
+    return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 text-xs px-1.5 py-0.5 rounded-full';
   };
 
   // --- Data Definitions ---
@@ -87,14 +102,15 @@ const Dashboard = () => {
     { id: 'outfit', label: "Today's Outfit", shortLabel: 'Outfit', icon: SunIcon },
     { id: 'wardrobe', label: 'My Wardrobe', shortLabel: 'Wardrobe', icon: UserIcon },
     { id: 'packing', label: 'Packing Assistant', shortLabel: 'Packing', icon: BriefcaseIcon },
-    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon },
-    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon },
+    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon, badge: 'AI' },
+    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon, badge: 'NEW' },
     { id: 'laundry', label: 'Laundry Assistant', shortLabel: 'Laundry', icon: SparklesIcon, badge: getUrgentItemsCount(laundryAlerts) },
     { id: 'history', label: 'Outfit History', shortLabel: 'History', icon: CloudIcon }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-black pb-16 md:pb-0">
+    <div className="min-h-screen pb-16 md:pb-0">
+      <AppTour run={runTour} onTourEnd={handleTourEnd} />
       <Toaster position="top-center" reverseOrder={false} toastOptions={{
         // Define default options
         className: '',
@@ -121,11 +137,11 @@ const Dashboard = () => {
       }}
     />
       {/* --- Header --- */}
-      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40">
+      <header className="bg-white dark:bg-gray-800/50 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 md:py-4">
             <div className="flex items-center space-x-2 md:space-x-3">
-              <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-1.5 md:p-2 rounded-lg">
+              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-1.5 md:p-2 rounded-lg">
                 <BeakerIcon className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
               <div>
@@ -135,11 +151,11 @@ const Dashboard = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <NotificationBell />
-              <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800">
+              <div className="notification-bell"><NotificationBell /></div>
+              <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                 {theme === 'light' ? <MoonIcon className="h-6 w-6" /> : <SunIcon className="h-6 w-6 text-yellow-500" />}
               </button>
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 md:hidden">
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 md:hidden">
                 {mobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
               </button>
 
@@ -156,11 +172,11 @@ const Dashboard = () => {
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-200 dark:border-gray-700 animate-fadeIn" onMouseLeave={() => setProfileMenuOpen(false)}>
                     <div className="px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-700">
                       <p className="font-semibold">Signed in as</p>
-                      <p className="truncate text-gray-600 dark:text-gray-300">{user?.email}</p>
+                      <p className="truncate">{user?.email}</p>
                     </div>
-                    <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('profile'); setProfileMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">My Profile</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('profile'); setProfileMenuOpen(false); }} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">My Profile</a>
                     {user?.is_admin && (
-                      <Link to="/admin" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Admin</Link>
+                      <Link to="/admin" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Admin</Link>
                     )}
                     <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); setProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50">Logout</a>
                   </div>
@@ -171,7 +187,7 @@ const Dashboard = () => {
 
           {/* Mobile Dropdown Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 dark:border-gray-800 py-2">
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-2">
               <div className="space-y-1">
                 {tabs.map(tab => (
                   <button
@@ -179,7 +195,7 @@ const Dashboard = () => {
                     onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
                       activeTab === tab.id
-                        ? 'bg-purple-100 text-purple-700 dark:bg-gray-800 dark:text-purple-400'
+                        ? 'bg-indigo-100 text-indigo-700 dark:bg-gray-700 dark:text-indigo-400'
                         : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
                     }`}
                   >
@@ -190,7 +206,7 @@ const Dashboard = () => {
                     {tab.badge && <span className={getBadgeStyle(tab.badge)}>{tab.badge}</span>}
                   </button>
                 ))}
-                <div className="border-t border-gray-200 dark:border-gray-800 pt-2 mt-2">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                   <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-lg font-medium">
                     Logout
                   </button>
@@ -203,7 +219,7 @@ const Dashboard = () => {
       
       {/* --- Desktop Tab Navigation --- */}
       <div className="hidden md:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border-b border-gray-200 dark:border-gray-800">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="-mb-px flex space-x-1 overflow-x-auto">
             {tabs.map(tab => (
               <button
@@ -211,8 +227,11 @@ const Dashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-3 px-4 border-b-2 font-medium text-sm flex items-center space-x-2 whitespace-nowrap transition-colors ${
                   activeTab === tab.id
-                    ? 'border-purple-500 text-purple-600 dark:text-purple-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                    ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:hover:border-gray-600 dark:hover:text-gray-300'
+                } ${
+                  (tab.id === 'laundry' ? 'laundry-dashboard-link' : '') +
+                  (tab.id === 'packing' ? ' packing-assistant-link' : '')
                 }`}
               >
                 <tab.icon className="h-5 w-5" />
@@ -225,7 +244,7 @@ const Dashboard = () => {
       </div>
       
       {/* --- Mobile Bottom Navigation --- */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-t border-gray-200 dark:border-gray-800 px-2 py-1 z-30">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-2 py-1 z-30">
         <div className="flex justify-around">
           {tabs.slice(0, 5).map(tab => (
             <button
@@ -233,8 +252,11 @@ const Dashboard = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center py-2 px-1 rounded-lg transition-colors min-w-0 flex-1 ${
                 activeTab === tab.id
-                  ? 'text-purple-600 dark:text-purple-400'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  ? 'text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              } ${
+                (tab.id === 'laundry' ? 'laundry-dashboard-link' : '') +
+                (tab.id === 'packing' ? ' packing-assistant-link' : '')
               }`}
             >
               <div className="relative">
@@ -254,7 +276,7 @@ const Dashboard = () => {
       {/* --- Page-Specific Controls --- */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         {activeTab === 'outfit' && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="w-full sm:w-auto">
               <label htmlFor="mood-select" className="sr-only">Select your mood</label>
               <select
@@ -274,7 +296,7 @@ const Dashboard = () => {
               onClick={handleGenerateOutfit}
               disabled={loading}
               // Here we use a special gradient button that doesn't fit our standard .btn classes
-              className="w-full sm:w-auto flex items-center justify-center px-6 py-2 rounded-lg font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full sm:w-auto flex items-center justify-center px-6 py-2 rounded-lg font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
               <span>{loading ? 'Generating...' : 'Generate Outfit'}</span>
@@ -286,8 +308,8 @@ const Dashboard = () => {
       {/* --- Main Content --- */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         <div className="transition-all duration-300 ease-in-out">
-          {activeTab === 'outfit' && <div className="animate-fadeIn"><OutfitGenerator outfit={currentOutfit} mood={mood} /></div>}
-          {activeTab === 'wardrobe' && <div className="animate-fadeIn"><WardrobeManager /></div>}
+          {activeTab === 'outfit' && <div className="animate-fadeIn outfit-generator"><OutfitGenerator outfit={currentOutfit} mood={mood} /></div>}
+          {activeTab === 'wardrobe' && <div className="animate-fadeIn wardrobe-manager"><WardrobeManager /></div>}
           {activeTab === 'collections' && <div className="animate-fadeIn"><SmartCollections /></div>}
           {activeTab === 'analytics' && <div className="animate-fadeIn"><UsageAnalytics /></div>}
           {activeTab === 'laundry' && <div className="animate-fadeIn"><LaundryDashboard /></div>}

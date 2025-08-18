@@ -9,6 +9,8 @@ import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ImpersonationBanner from './components/ImpersonationBanner';
+import Onboarding from './components/Onboarding';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const { user, initUser, isImpersonating } = useWardrobeStore();
@@ -26,10 +28,14 @@ function App() {
         <Routes>
           <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-          <Route path="/dashboard/*" element={user ? <Dashboard /> : <Navigate to="/login" />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+
           <Route path="/admin/*" element={isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} />
         </Routes>
       </div>

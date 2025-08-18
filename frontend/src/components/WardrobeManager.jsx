@@ -134,7 +134,7 @@ const WardrobeManager = () => {
               {clothingTypes.map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}
             </select>
           </div>
-          <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary">
+          <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary add-item-button">
             {showAddForm ? 'Cancel' : 'Add Item'}
           </button>
         </div>

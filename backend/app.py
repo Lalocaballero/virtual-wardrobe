@@ -510,6 +510,8 @@ def create_app():
                 'display_name': user.display_name,
                 'profile_image_url': user.profile_image_url,
                 'location': user.location,
+                'age': user.age,
+                'gender': user.gender,
                 'laundry_thresholds': user.get_laundry_thresholds(),
                 'notification_settings': user.get_notification_settings(),
                 'theme': (user.settings or {}).get('theme', 'light'),
@@ -534,6 +536,8 @@ def create_app():
             user.display_name = data.get('display_name', user.display_name)
             user.profile_image_url = data.get('profile_image_url', user.profile_image_url)
             user.location = data.get('location', user.location)
+            user.age = data.get('age', user.age)
+            user.gender = data.get('gender', user.gender)
             
             # Handle all nested settings
             settings_changed = False
