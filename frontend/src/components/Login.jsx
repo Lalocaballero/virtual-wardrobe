@@ -12,7 +12,7 @@ const Login = () => {
 
   useGooglePlacesAutocomplete(locationInputRef, (place) => {
     setFormData(prev => ({ ...prev, location: place }));
-  });
+  }, formData.location);
   const [searchParams] = useSearchParams();
   
   const { login, register, resendVerificationEmail, loading, error, clearError } = useWardrobeStore();

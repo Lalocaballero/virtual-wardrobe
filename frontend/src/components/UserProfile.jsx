@@ -37,7 +37,7 @@ const UserProfile = () => {
   const locationInputRef = useRef(null);
   useGooglePlacesAutocomplete(locationInputRef, (place) => {
     setFormData(prev => ({ ...prev, location: place }));
-  });
+  }, formData.location);
 
   // Fetch profile data only if it's not already loaded
   useEffect(() => {

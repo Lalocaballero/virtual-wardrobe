@@ -1,7 +1,14 @@
 import { useEffect, useRef } from 'react';
 
-const useGooglePlacesAutocomplete = (inputRef, onPlaceSelected) => {
+const useGooglePlacesAutocomplete = (inputRef, onPlaceSelected, initialValue) => {
     const autocompleteRef = useRef(null);
+
+    // Effect to set the initial value of the input field
+    useEffect(() => {
+        if (inputRef.current && initialValue) {
+            inputRef.current.value = initialValue;
+        }
+    }, [initialValue, inputRef]);
 
     useEffect(() => {
         if (process.env.REACT_APP_GOOGLE_MAPS_API_KEY && window.google && inputRef.current) {
@@ -9,12 +16,26 @@ const useGooglePlacesAutocomplete = (inputRef, onPlaceSelected) => {
                 types: ['(cities)'],
             });
 
-            autocompleteRef.current.addListener('place_changed', () => {
+            const listener = autocompleteRef.current.addListener('place_changed', () => {
                 const place = autocompleteRef.current.getPlace();
+                const value = place.formatted_address || place.name || '';
+                
+                // This is the key fix: We manually update the input's value
+                // to ensure it's visually correct before calling the state update.
+                if (inputRef.current) {
+                    inputRef.current.value = value;
+                }
+
+                // Trigger the callback to update React state
                 if (onPlaceSelected) {
-                    onPlaceSelected(place.formatted_address || place.name);
+                    onPlaceSelected(value);
                 }
             });
+            
+            // Cleanup the listener on component unmount
+            return () => {
+                window.google.maps.event.removeListener(listener);
+            }
         }
     }, [inputRef, onPlaceSelected]);
 
