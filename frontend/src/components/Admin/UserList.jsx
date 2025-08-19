@@ -1,84 +1,121 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import useWardrobeStore, { API_BASE } from '../../store/wardrobeStore';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTable, useSortBy, usePagination, useFilters } from 'react-table';
+import { useNavigate } from 'react-router-dom';
+import useWardrobeStore from '../../store/wardrobeStore';
 
 const UserList = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [pageCount, setPageCount] = useState(0);
+    const [totalUsers, setTotalUsers] = useState(0);
     const { fetchApi } = useWardrobeStore();
+    const navigate = useNavigate();
+
+    const columns = useMemo(() => [
+        { Header: 'ID', accessor: 'id' },
+        { Header: 'Email', accessor: 'email' },
+        { Header: 'Premium', accessor: 'is_premium', Cell: ({ value }) => (value ? 'Yes' : 'No') },
+        { Header: 'Verified', accessor: 'is_verified', Cell: ({ value }) => (value ? 'Yes' : 'No') },
+        { Header: 'Created At', accessor: 'created_at', Cell: ({ value }) => new Date(value).toLocaleDateString() },
+    ], []);
+
+    const {
+        getTableProps,
+        getTableBodyProps,
+        headerGroups,
+        prepareRow,
+        page,
+        canPreviousPage,
+        canNextPage,
+        pageOptions,
+        pageCount: controlledPageCount,
+        gotoPage,
+        nextPage,
+        previousPage,
+        setPageSize,
+        state: { pageIndex, pageSize, sortBy, filters },
+    } = useTable(
+        {
+            columns,
+            data: users,
+            initialState: { pageIndex: 0, pageSize: 10 },
+            manualPagination: true,
+            manualSortBy: true,
+            manualFilters: true,
+            pageCount: pageCount,
+        },
+        useFilters,
+        useSortBy,
+        usePagination
+    );
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchData = async () => {
+            setLoading(true);
+            const params = new URLSearchParams({
+                page: pageIndex + 1,
+                per_page: pageSize,
+                sort_by: sortBy[0]?.id || 'created_at',
+                sort_direction: sortBy[0]?.desc ? 'desc' : 'asc',
+            });
+            filters.forEach(filter => params.append(filter.id, filter.value));
+
             try {
-                const data = await fetchApi(`${API_BASE}/admin/users`);
-                setUsers(data);
-            } catch (err) {
-                setError(err.message);
+                const data = await fetchApi(`/api/admin/users?${params.toString()}`);
+                setUsers(data.users);
+                setPageCount(data.pages);
+                setTotalUsers(data.total);
+            } catch (error) {
+                console.error("Failed to fetch users:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchUsers();
-    }, [fetchApi]);
-
-    if (loading) return (
-        <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-    );
-
-    if (error) return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Error:</strong>
-            <span className="block sm:inline"> {error}</span>
-        </div>
-    );
+        fetchData();
+    }, [fetchApi, pageIndex, pageSize, sortBy, filters]);
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roles</th>
-                            <th scope="col" className="relative px-6 py-3">
-                                <span className="sr-only">View</span>
-                            </th>
+        <div className="container mx-auto">
+            {/* Filtering UI would go here */}
+            <table {...getTableProps()} className="min-w-full bg-white">
+                <thead>
+                    {headerGroups.map(headerGroup => (
+                        <tr {...headerGroup.getHeaderGroupProps()}>
+                            {headerGroup.headers.map(column => (
+                                <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                                    {column.render('Header')}
+                                    <span>
+                                        {column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
+                                    </span>
+                                </th>
+                            ))}
                         </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {users.map(user => (
-                            <tr key={user.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.age || 'N/A'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{user.gender || 'N/A'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {user.is_banned && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 mr-2">Banned</span>}
-                                    {user.is_suspended && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 mr-2">Suspended</span>}
-                                    {user.is_verified ? (
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Verified</span>
-                                    ) : (
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Not Verified</span>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {user.is_admin && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 mr-2">Admin</span>}
-                                    {user.is_premium && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Premium</span>}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link to={`/admin/users/${user.id}`} className="text-indigo-600 hover:text-indigo-900">View</Link>
-                                </td>
+                    ))}
+                </thead>
+                <tbody {...getTableBodyProps()}>
+                    {page.map(row => {
+                        prepareRow(row);
+                        return (
+                            <tr {...row.getRowProps()} onClick={() => navigate(`/admin/users/${row.original.id}`)} className="cursor-pointer hover:bg-gray-100">
+                                {row.cells.map(cell => (
+                                    <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                                ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        );
+                    })}
+                </tbody>
+            </table>
+            <div className="pagination">
+                <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>{'<<'}</button>
+                <button onClick={() => previousPage()} disabled={!canPreviousPage}>{'<'}</button>
+                <button onClick={() => nextPage()} disabled={!canNextPage}>{'>'}</button>
+                <button onClick={() => gotoPage(controlledPageCount - 1)} disabled={!canNextPage}>{'>>'}</button>
+                <span>Page <strong>{pageIndex + 1} of {pageOptions.length}</strong></span>
+                <select value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
+                    {[10, 20, 30, 40, 50].map(pageSize => (
+                        <option key={pageSize} value={pageSize}>Show {pageSize}</option>
+                    ))}
+                </select>
             </div>
         </div>
     );

@@ -52,6 +52,10 @@ const useWardrobeStore = create((set, get) => ({
   notifications: [],
   notificationsLoading: false,
 
+  // App settings state
+  appSettings: {},
+  settingsLoading: false,
+
   // Helper function to handle fetch responses and errors
   // This centralizes error handling and JSON parsing
   fetchApi: async (url, options = {}) => {
@@ -86,6 +90,12 @@ const useWardrobeStore = create((set, get) => ({
       }
 
       if (response.status === 429) {
+        const user = get().profile;
+        if (user && !user.is_premium) {
+            const error = new Error("You have reached the maximum permitted requests. Please upgrade for better limits.");
+            error.code = 'UPGRADE_REQUIRED';
+            throw error;
+        }
         throw new Error("Ups, you are doing this a bit too fast, wait a bit longer to do this");
       }
 
@@ -532,10 +542,30 @@ const useWardrobeStore = create((set, get) => ({
       }
       return data;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to get packing list.';
-      set({ error: errorMessage, tripsLoading: false, currentTripPackingList: null });
-      toast.error(errorMessage);
-      return null;
+        if (error.code === 'UPGRADE_REQUIRED') {
+            toast.error(
+                (t) => (
+                    <span>
+                        {error.message}
+                        <button
+                            onClick={() => {
+                                window.location.href = '/dashboard/profile';
+                                toast.dismiss(t.id);
+                            }}
+                            className="ml-2 btn btn-primary btn-sm"
+                        >
+                            Upgrade
+                        </button>
+                    </span>
+                ),
+                { duration: 6000 }
+            );
+        } else {
+            const errorMessage = error.message || 'Failed to get packing list.';
+            toast.error(errorMessage);
+        }
+        set({ error: error.message, tripsLoading: false, currentTripPackingList: null });
+        return null;
     }
   },
 
@@ -916,9 +946,30 @@ fetchWardrobeHealth: async () => {
       set({ currentOutfit: data, loading: false });
       toast.success('Your outfit for today is ready!')
     } catch (error) {
-      const errorMessage = error.message || 'Opsi... we have a problem generating your outfit.';
-      set({ error: errorMessage, loading: false });
-      toast.error(errorMessage);
+        if (error.code === 'UPGRADE_REQUIRED') {
+            toast.error(
+                (t) => (
+                    <span>
+                        {error.message}
+                        <button
+                            onClick={() => {
+                                window.location.href = '/dashboard/profile';
+                                // Here you might want to switch to the billing tab
+                                toast.dismiss(t.id);
+                            }}
+                            className="ml-2 btn btn-primary btn-sm"
+                        >
+                            Upgrade
+                        </button>
+                    </span>
+                ),
+                { duration: 6000 }
+            );
+        } else {
+            const errorMessage = error.message || 'Opsi... we have a problem generating your outfit.';
+            toast.error(errorMessage);
+        }
+        set({ error: error.message, loading: false });
     }
   },
 
@@ -984,6 +1035,17 @@ fetchWardrobeHealth: async () => {
       const errorMessage = error.message || 'Could not fetch outfit history.';
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
+    }
+  },
+
+  fetchAppSettings: async () => {
+    set({ settingsLoading: true });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/admin/settings`);
+      set({ appSettings: data, settingsLoading: false });
+    } catch (error) {
+      // It's okay if this fails for non-admins, so don't show a toast
+      set({ settingsLoading: false });
     }
   },
 

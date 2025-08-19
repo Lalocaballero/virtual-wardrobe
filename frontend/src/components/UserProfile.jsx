@@ -3,10 +3,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
 import ImageUpload from './ImageUpload';
-import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
+import Billing from './Billing';
 
 const UserProfile = () => {
+  const { appSettings } = useWardrobeStore();
+  const [activeSubTab, setActiveSubTab] = useState('profile');
   const {
     profile,
     profileLoading,
@@ -131,8 +134,38 @@ const UserProfile = () => {
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto profile-tour-target">
-      {/* --- 1. General Information Section --- */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        {profile && profile.is_premium && (
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 rounded-lg shadow-lg flex items-center space-x-3">
+                <span className="text-2xl">✨</span>
+                <div>
+                    <h3 className="font-bold">Premium Member</h3>
+                    <p className="text-sm">You have access to all premium features. Thank you for your support!</p>
+                </div>
+            </div>
+        )}
+        <div className="flex border-b border-gray-200 dark:border-gray-700">
+            <button
+                onClick={() => setActiveSubTab('profile')}
+                className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'profile' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+                <UserCircleIcon className="h-5 w-5" />
+                <span>Profile</span>
+            </button>
+            {appSettings.monetization_enabled && (
+                <button
+                    onClick={() => setActiveSubTab('billing')}
+                    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'billing' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                    <CreditCardIcon className="h-5 w-5" />
+                    <span>Billing & Subscription</span>
+                </button>
+            )}
+        </div>
+
+        {activeSubTab === 'profile' && (
+            <div className="space-y-8">
+                {/* --- 1. General Information Section --- */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-4 mb-6">
           <UserCircleIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
           <div>
@@ -290,6 +323,12 @@ const UserProfile = () => {
            </div>
          </div>
       </div>
+        </div>
+        )}
+
+        {appSettings.monetization_enabled && activeSubTab === 'billing' && (
+            <Billing />
+        )}
     </div>
   );
 };

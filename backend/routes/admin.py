@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, make_response, current_app
 from sqlalchemy import text, func, case
 from flask_login import current_user
 from datetime import datetime, timedelta
-from models import User, db, ClothingItem, AdminAction, Outfit
+from models import User, db, ClothingItem, AdminAction, Outfit, AppSettings
 from utils.decorators import admin_required
 import csv
 from io import StringIO
@@ -12,19 +12,48 @@ admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
 def get_users():
-    users = User.query.all()
-    return jsonify([{
-        'id': user.id, 
-        'email': user.email, 
-        'is_admin': user.is_admin, 
-        'is_premium': user.is_premium, 
-        'is_verified': user.is_verified, 
-        'is_suspended': user.is_suspended,
-        'is_banned': user.is_banned,
-        'created_at': user.created_at,
-        'age': user.age,
-        'gender': user.gender
-    } for user in users])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    sort_by = request.args.get('sort_by', 'created_at')
+    sort_direction = request.args.get('sort_direction', 'desc')
+    email_filter = request.args.get('email', type=str)
+    is_premium_filter = request.args.get('is_premium', type=str)
+    is_verified_filter = request.args.get('is_verified', type=str)
+
+    query = User.query
+
+    if email_filter:
+        query = query.filter(User.email.ilike(f'%{email_filter}%'))
+    if is_premium_filter is not None:
+        query = query.filter(User.is_premium == (is_premium_filter.lower() == 'true'))
+    if is_verified_filter is not None:
+        query = query.filter(User.is_verified == (is_verified_filter.lower() == 'true'))
+
+    if hasattr(User, sort_by):
+        if sort_direction == 'desc':
+            query = query.order_by(getattr(User, sort_by).desc())
+        else:
+            query = query.order_by(getattr(User, sort_by).asc())
+
+    paginated_users = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    return jsonify({
+        'users': [{
+            'id': user.id, 
+            'email': user.email, 
+            'is_admin': user.is_admin, 
+            'is_premium': user.is_premium, 
+            'is_verified': user.is_verified, 
+            'is_suspended': user.is_suspended,
+            'is_banned': user.is_banned,
+            'created_at': user.created_at,
+            'age': user.age,
+            'gender': user.gender
+        } for user in paginated_users.items],
+        'total': paginated_users.total,
+        'pages': paginated_users.pages,
+        'current_page': page
+    })
 
 @admin_bp.route('/users/<int:user_id>', methods=['GET'])
 @admin_required
@@ -341,6 +370,32 @@ def export_data():
         return output
     else:
         return jsonify({'error': 'Invalid format specified'}), 400
+
+@admin_bp.route('/settings', methods=['GET'])
+@admin_required
+def get_app_settings():
+    settings = AppSettings.query.all()
+    return jsonify({setting.key: setting.value for setting in settings})
+
+@admin_bp.route('/settings', methods=['POST'])
+@admin_required
+def update_app_setting():
+    data = request.get_json()
+    key = data.get('key')
+    value = data.get('value')
+
+    if not key:
+        return jsonify({'error': 'Key is required'}), 400
+
+    setting = AppSettings.query.filter_by(key=key).first()
+    if setting:
+        setting.value = value
+    else:
+        setting = AppSettings(key=key, value=value)
+        db.session.add(setting)
+    
+    db.session.commit()
+    return jsonify({setting.key: setting.value})
 
 @admin_bp.route('/analytics/user_demographics', methods=['GET'])
 @admin_required

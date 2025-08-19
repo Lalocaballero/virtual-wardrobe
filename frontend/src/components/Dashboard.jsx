@@ -58,7 +58,8 @@ const Dashboard = () => {
     generateOutfit, 
     loading, 
     logout,
-    laundryAlerts
+    laundryAlerts,
+    fetchAppSettings
   } = useWardrobeStore();
 
   // --- CRITICAL FIX: Fetch profile data as soon as the user is logged in ---
@@ -66,8 +67,9 @@ const Dashboard = () => {
     // If we have a user but no profile data yet, fetch it.
     if (user && !profile) {
       fetchProfile();
+      fetchAppSettings();
     }
-  }, [user, profile, fetchProfile]); // This hook runs when the user logs in
+  }, [user, profile, fetchProfile, fetchAppSettings]); // This hook runs when the user logs in
 
   // This effect synchronizes the activeTab state with the URL.
   // This is necessary for handling navigation from outside the tab buttons,
