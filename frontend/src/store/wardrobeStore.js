@@ -12,6 +12,7 @@ export const API_BASE = (() => {
 
 const useWardrobeStore = create((set, get) => ({
   user: null,
+  authChecked: false, // Track if the initial auth check has been performed
   wardrobe: [],
   currentOutfit: null,
   outfitHistory: [],
@@ -304,10 +305,14 @@ const useWardrobeStore = create((set, get) => ({
   },
 
   initUser: async () => {
-    // initUser now primarily relies on checkAuth to determine user status
-    await get().checkAuth();
-    // The rest of the logic in initUser is largely redundant if checkAuth is robust
-    // and correctly clears user/localStorage on 401 or network errors.
+    try {
+      await get().checkAuth();
+    } catch (error) {
+      console.error("Error during initial auth check:", error);
+    } finally {
+      // Mark the initial auth check as complete, regardless of outcome.
+      set({ authChecked: true });
+    }
   },
 
   // ======================

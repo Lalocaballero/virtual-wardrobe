@@ -84,14 +84,25 @@ const Dashboard = () => {
   const handleJoyrideCallback = (data) => {
     const { action, index, status, type } = data;
 
+    // For debugging tour completion issues
+    console.log('Joyride callback:', { action, index, status, type, step: tourSteps[index] });
+
     if (type === 'step:after' || type === 'target:not-found') {
       const nextIndex = index + (action === 'prev' ? -1 : 1);
+      
+      // The tour is finished when the user clicks "Next" on the last step
+      if (action === 'next' && index === tourSteps.length - 1) {
+        setRunTour(false);
+        setTourStepIndex(0);
+        localStorage.setItem('hasCompletedTour', 'true');
+        console.log('Tour explicitly finished on last step next click.');
+        return;
+      }
+      
       const nextStep = tourSteps[nextIndex];
-
       if (nextStep) {
         if (nextStep.tab && nextStep.tab !== activeTab) {
           handleTabClick(nextStep.tab);
-          // Use a timeout to allow the tab to render before advancing the tour
           setTimeout(() => {
             setTourStepIndex(nextIndex);
           }, 300);
@@ -103,6 +114,7 @@ const Dashboard = () => {
       setRunTour(false);
       setTourStepIndex(0);
       localStorage.setItem('hasCompletedTour', 'true');
+      console.log(`Tour officially ${status}. Setting hasCompletedTour.`);
     }
   };
 

@@ -9,7 +9,7 @@ const LoadingSpinner = () => (
 );
 
 const ProtectedRoute = ({ children }) => {
-  const { user, profile, fetchProfile, profileLoading } = useWardrobeStore();
+  const { user, authChecked, profile, fetchProfile, profileLoading } = useWardrobeStore();
   const location = useLocation();
 
   useEffect(() => {
@@ -18,8 +18,13 @@ const ProtectedRoute = ({ children }) => {
     }
   }, [user, profile, fetchProfile]);
 
+  // While the initial authentication check is running, show a loading screen.
+  if (!authChecked) {
+    return <LoadingSpinner />;
+  }
+
+  // After the check, if there's still no user, redirect to login.
   if (!user) {
-    // If no user, redirect to login, preserving the intended destination
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
