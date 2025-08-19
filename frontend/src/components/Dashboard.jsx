@@ -233,7 +233,7 @@ const Dashboard = () => {
                       <p className="font-semibold">Signed in as</p>
                       <p className="truncate">{user?.email}</p>
                     </div>
-                    <button onClick={() => { setActiveTab('profile'); setProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">My Profile</button>
+                    <button onClick={() => { handleTabClick('profile'); setProfileMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">My Profile</button>
                     {user?.is_admin && (
                       <Link to="/admin" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Admin</Link>
                     )}

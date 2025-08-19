@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import { BellIcon } from '@heroicons/react/24/outline';
 
 const NotificationBell = () => {
+    const navigate = useNavigate();
     const { 
         notifications, 
         fetchNotifications, 
@@ -38,8 +40,12 @@ const NotificationBell = () => {
         }
         setIsOpen(false);
         if (notification.link) {
-            // Use a full navigation to ensure the dashboard can read the path
-            window.location.href = notification.link;
+            let finalLink = notification.link;
+            // For backwards compatibility, prepend /dashboard to old, relative links
+            if (finalLink.startsWith('/') && !finalLink.startsWith('/dashboard')) {
+                finalLink = `/dashboard${finalLink}`;
+            }
+            navigate(finalLink);
         }
     };
 

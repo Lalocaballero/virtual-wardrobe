@@ -5,6 +5,7 @@ export const tourSteps = [
         placement: 'bottom',
         title: 'Get Outfit Ideas',
         tab: 'outfit',
+        disableBeacon: true,
     },
     {
       target: '.wardrobe-manager',
