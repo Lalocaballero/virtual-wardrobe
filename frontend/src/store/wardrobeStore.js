@@ -85,6 +85,10 @@ const useWardrobeStore = create((set, get) => ({
         throw new Error('Unauthorized');
       }
 
+      if (response.status === 429) {
+        throw new Error("Ups, you are doing this a bit too fast, wait a bit longer to do this");
+      }
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const error = new Error(errorData.error || `API Error: ${response.status} ${response.statusText}`);

@@ -19,6 +19,7 @@ import cloudinary.api
 # Import db, User, ClothingItem, Outfit from models.
 from models import db, User, ClothingItem, Outfit, UserActivity, Notification
 from utils.auth import get_actual_user
+from utils.limiter import limiter, get_user_specific_limit
 
 # Initialize extensions globally
 login_manager = LoginManager()
@@ -99,6 +100,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    limiter.init_app(app)
     login_manager.session_protection = "strong"
 
     @login_manager.unauthorized_handler
@@ -874,6 +876,7 @@ def create_app():
 
     @app.route('/api/get-outfit', methods=['POST'])
     @login_required
+    @limiter.limit(get_user_specific_limit)
     def get_outfit_suggestion():
         try:
             data = request.get_json()
