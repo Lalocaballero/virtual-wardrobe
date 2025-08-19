@@ -29,7 +29,7 @@ class LaundryIntelligenceService:
                 # Create a notification if urgency is high or urgent
                 existing_notification = Notification.query.filter_by(
                     user_id=item.user_id, 
-                    link="/laundry",
+                    link="/dashboard/laundry",
                     is_read=False
                 ).first()
 
@@ -96,7 +96,7 @@ class LaundryIntelligenceService:
                 user_id = items[0].user_id
                 existing_notification = Notification.query.filter_by(
                     user_id=user_id, 
-                    link="/laundry",
+                    link="/dashboard/laundry",
                     is_read=False
                 ).first()
 

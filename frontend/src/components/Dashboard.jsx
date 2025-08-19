@@ -21,15 +21,29 @@ import AppTour from './AppTour';
 import { tourSteps } from '../tourSteps';
 
 const Dashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Helper function to derive the tab from the URL path.
+  // It uses a preliminary list of tabs because the final `tabs` array,
+  // with its dynamic badge counts, is defined later.
+  const getTabFromPath = (pathname) => {
+    const pathTab = pathname.split('/dashboard/')[1] || 'outfit';
+    const preliminaryValidTabs = ['outfit', 'wardrobe', 'packing', 'collections', 'analytics', 'laundry', 'history', 'profile'];
+    if (preliminaryValidTabs.includes(pathTab)) {
+        return pathTab;
+    }
+    return 'outfit';
+  };
+
   // --- State and Hooks ---
   const [runTour, setRunTour] = useState(false);
   const [tourStepIndex, setTourStepIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState('outfit');
+  // Initialize state directly from the URL path to prevent flicker
+  const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
   const [mood, setMood] = useState('casual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   useEffect(() => {
@@ -91,19 +105,6 @@ const Dashboard = () => {
       localStorage.setItem('hasCompletedTour', 'true');
     }
   };
-
-  // This effect synchronizes the URL with the active tab state
-  useEffect(() => {
-    const pathTab = location.pathname.split('/dashboard/')[1];
-    const validTabs = tabs.map(t => t.id);
-    if (pathTab && validTabs.includes(pathTab)) {
-      setActiveTab(pathTab);
-    } else {
-      // If URL is just /dashboard or invalid, default to 'outfit'
-      setActiveTab('outfit');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);

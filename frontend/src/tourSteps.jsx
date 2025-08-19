@@ -35,6 +35,13 @@ export const tourSteps = [
       tab: 'packing',
     },
     {
+      target: '.profile-tour-target',
+      content: 'This is your profile, where you can manage your personal details and app preferences.',
+      placement: 'bottom',
+      title: 'Manage Your Profile',
+      tab: 'profile',
+    },
+    {
         target: '.notification-bell',
         content: "We'll send you helpful notifications here, like laundry reminders or wardrobe suggestions.",
         placement: 'bottom',

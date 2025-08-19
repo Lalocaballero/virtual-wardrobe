@@ -49,7 +49,9 @@ const Login = () => {
     if (isLogin) {
       result = await login(formData.email, formData.password);
     } else {
-      result = await register(formData.email, formData.password, formData.location);
+      // Read location directly from the ref to capture the autocompleted value
+      const location = locationInputRef.current ? locationInputRef.current.value : formData.location;
+      result = await register(formData.email, formData.password, location);
       if (result.success) {
         // After successful registration, redirect to a page telling them to check their email.
         navigate('/check-email');

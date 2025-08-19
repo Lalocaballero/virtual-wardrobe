@@ -90,7 +90,13 @@ const UserProfile = () => {
 
   const handleSaveChanges = (e) => {
     e.preventDefault();
-    updateProfile(formData);
+    // To ensure the autocomplete value is captured even if the user doesn't select an item
+    // from the dropdown, we read the value directly from the input ref.
+    const finalFormData = {
+      ...formData,
+      location: locationInputRef.current ? locationInputRef.current.value : formData.location,
+    };
+    updateProfile(finalFormData);
   };
   
   const handleChangePassword = async (e) => {
@@ -124,7 +130,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto profile-tour-target">
       {/* --- 1. General Information Section --- */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-4 mb-6">
