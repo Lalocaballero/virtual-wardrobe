@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   SunIcon, MoonIcon, CloudIcon, UserIcon, SparklesIcon,
   ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon,
@@ -24,22 +24,18 @@ const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Helper function to derive the tab from the URL path.
-  // It uses a preliminary list of tabs because the final `tabs` array,
-  // with its dynamic badge counts, is defined later.
-  const getTabFromPath = (pathname) => {
+  const getTabFromPath = useCallback((pathname) => {
     const pathTab = pathname.split('/dashboard/')[1] || 'outfit';
     const preliminaryValidTabs = ['outfit', 'wardrobe', 'packing', 'collections', 'analytics', 'laundry', 'history', 'profile'];
     if (preliminaryValidTabs.includes(pathTab)) {
         return pathTab;
     }
     return 'outfit';
-  };
+  }, []);
 
   // --- State and Hooks ---
   const [runTour, setRunTour] = useState(false);
   const [tourStepIndex, setTourStepIndex] = useState(0);
-  // Initialize state directly from the URL path to prevent flicker
   const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
   const [mood, setMood] = useState('casual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -73,6 +69,16 @@ const Dashboard = () => {
     }
   }, [user, profile, fetchProfile]); // This hook runs when the user logs in
 
+  // This effect synchronizes the activeTab state with the URL.
+  // This is necessary for handling navigation from outside the tab buttons,
+  // such as from notification clicks or browser back/forward actions.
+  useEffect(() => {
+    const newTab = getTabFromPath(location.pathname);
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location.pathname, activeTab, getTabFromPath]);
+
   useEffect(() => {
     const hasCompletedTour = localStorage.getItem('hasCompletedTour');
     if (!hasCompletedTour) {
@@ -80,6 +86,11 @@ const Dashboard = () => {
       setTimeout(() => setRunTour(true), 1000);
     }
   }, []);
+
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    navigate(`/dashboard/${tabId}`);
+  };
 
   const handleJoyrideCallback = (data) => {
     const { action, index, status, type } = data;
@@ -116,11 +127,6 @@ const Dashboard = () => {
       localStorage.setItem('hasCompletedTour', 'true');
       console.log(`Tour officially ${status}. Setting hasCompletedTour.`);
     }
-  };
-
-  const handleTabClick = (tabId) => {
-    setActiveTab(tabId);
-    navigate(`/dashboard/${tabId}`);
   };
 
   // --- Helper Functions ---
