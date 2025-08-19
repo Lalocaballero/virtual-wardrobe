@@ -17,10 +17,12 @@ import UserProfile from './UserProfile';
 import PackingAssistant from './PackingAssistant';
 import NotificationBell from './NotificationBell';
 import AppTour from './AppTour';
+import { tourSteps } from '../tourSteps';
 
 const Dashboard = () => {
   // --- State and Hooks ---
   const [runTour, setRunTour] = useState(false);
+  const [tourStepIndex, setTourStepIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('outfit');
   const [mood, setMood] = useState('casual');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -64,9 +66,29 @@ const Dashboard = () => {
     }
   }, []);
 
-  const handleTourEnd = () => {
-    localStorage.setItem('hasCompletedTour', 'true');
-    setRunTour(false);
+  const handleJoyrideCallback = (data) => {
+    const { action, index, status, type } = data;
+
+    if (type === 'step:after' || type === 'target:not-found') {
+      const nextIndex = index + (action === 'prev' ? -1 : 1);
+      const nextStep = tourSteps[nextIndex];
+
+      if (nextStep) {
+        if (nextStep.tab && nextStep.tab !== activeTab) {
+          handleTabClick(nextStep.tab);
+          // Use a timeout to allow the tab to render before advancing the tour
+          setTimeout(() => {
+            setTourStepIndex(nextIndex);
+          }, 300);
+        } else {
+          setTourStepIndex(nextIndex);
+        }
+      }
+    } else if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+      setTourStepIndex(0);
+      localStorage.setItem('hasCompletedTour', 'true');
+    }
   };
 
   // This effect synchronizes the URL with the active tab state
@@ -131,8 +153,8 @@ const Dashboard = () => {
     <div className="min-h-screen pb-16 md:pb-0">
       <AppTour
         run={runTour}
-        onTourEnd={handleTourEnd}
-        setActiveTab={setActiveTab}
+        stepIndex={tourStepIndex}
+        handleJoyrideCallback={handleJoyrideCallback}
       />
       <Toaster position="top-center" reverseOrder={false} toastOptions={{
         // Define default options

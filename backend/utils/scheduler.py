@@ -32,7 +32,7 @@ def outfit_reminder_job(app):
                     notification = Notification(
                         user_id=user.id,
                         message="Don't forget to plan your outfit for today!",
-                        link="/outfit-generator"
+                        link="/dashboard/outfit"
                     )
                     db.session.add(notification)
         db.session.commit()
@@ -62,7 +62,7 @@ def trip_reminder_job(app):
                 notification = Notification(
                     user_id=user.id,
                     message=f"Your trip to {trip.destination} is in 3 days! Time to start packing.",
-                    link="/packing-assistant"
+                    link="/dashboard/packing"
                 )
                 db.session.add(notification)
         db.session.commit()

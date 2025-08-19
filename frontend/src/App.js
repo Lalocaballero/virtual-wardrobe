@@ -11,6 +11,7 @@ import AdminDashboard from './components/Admin/AdminDashboard';
 import ImpersonationBanner from './components/ImpersonationBanner';
 import Onboarding from './components/Onboarding';
 import ProtectedRoute from './components/ProtectedRoute';
+import CheckEmail from './components/CheckEmail';
 
 function App() {
   const { user, initUser, isImpersonating } = useWardrobeStore();
@@ -31,6 +32,7 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/check-email" element={<CheckEmail />} />
           
           {/* Protected Routes */}
           <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import toast from 'react-hot-toast';
 import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '', location: '' });
   const [showResend, setShowResend] = useState(false);
   const locationInputRef = useRef(null);
 
-  useGooglePlacesAutocomplete(locationInputRef, (place) => {
-    setFormData(prev => ({ ...prev, location: place }));
-  }, formData.location);
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  useGooglePlacesAutocomplete(locationInputRef, handleChange);
   const [searchParams] = useSearchParams();
   
   const { login, register, resendVerificationEmail, loading, error, clearError } = useWardrobeStore();
@@ -48,9 +51,8 @@ const Login = () => {
     } else {
       result = await register(formData.email, formData.password, formData.location);
       if (result.success) {
-        // After successful registration, switch to login view.
-        // The toast is now handled by the store, which shows the backend message.
-        setIsLogin(true);
+        // After successful registration, redirect to a page telling them to check their email.
+        navigate('/check-email');
       }
     }
 
@@ -75,19 +77,19 @@ const Login = () => {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">Email address</label>
-              <input id="email" name="email" type="email" required className="w-full" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+              <input id="email" name="email" type="email" required className="w-full" value={formData.email} onChange={handleChange} />
             </div>
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label htmlFor="password" className="block text-sm font-medium">Password</label>
                 {isLogin && <Link to="/forgot-password" className="text-sm font-medium">Forgot password?</Link>}
               </div>
-              <input id="password" name="password" type="password" required className="w-full" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
+              <input id="password" name="password" type="password" required className="w-full" value={formData.password} onChange={handleChange} />
             </div>
             {!isLogin && (
               <div>
                 <label htmlFor="location" className="block text-sm font-medium mb-1">Location (for weather)</label>
-                <input ref={locationInputRef} id="location" name="location" type="text" placeholder="e.g., New York, NY" className="w-full" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+                <input ref={locationInputRef} id="location" name="location" type="text" placeholder="e.g., New York, NY" className="w-full" defaultValue={formData.location} onChange={handleChange} />
               </div>
             )}
           </div>

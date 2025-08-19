@@ -20,15 +20,16 @@ const useGooglePlacesAutocomplete = (inputRef, onPlaceSelected, initialValue) =>
                 const place = autocompleteRef.current.getPlace();
                 const value = place.formatted_address || place.name || '';
                 
-                // This is the key fix: We manually update the input's value
-                // to ensure it's visually correct before calling the state update.
-                if (inputRef.current) {
-                    inputRef.current.value = value;
-                }
+                // Create a synthetic event to pass to the parent's onChange handler
+                const syntheticEvent = {
+                    target: {
+                        name: inputRef.current.name,
+                        value: value,
+                    },
+                };
 
-                // Trigger the callback to update React state
                 if (onPlaceSelected) {
-                    onPlaceSelected(value);
+                    onPlaceSelected(syntheticEvent);
                 }
             });
             

@@ -225,7 +225,7 @@ class WardrobeIntelligenceService:
                             notification = Notification(
                                 user_id=user_id,
                                 message=message,
-                                link='/collections' # Link to smart collections page
+                                link='/dashboard/collections' # Link to smart collections page
                             )
                             db.session.add(notification)
                 db.session.commit()

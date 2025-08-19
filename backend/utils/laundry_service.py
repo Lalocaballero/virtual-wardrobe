@@ -38,7 +38,7 @@ class LaundryIntelligenceService:
                     notification = Notification(
                         user_id=item.user_id,
                         message=message,
-                        link="/laundry"
+                        link="/dashboard/laundry"
                     )
                     db.session.add(notification)
 
@@ -105,7 +105,7 @@ class LaundryIntelligenceService:
                     notification = Notification(
                         user_id=user_id,
                         message=message,
-                        link="/laundry"
+                        link="/dashboard/laundry"
                     )
                     db.session.add(notification)
 

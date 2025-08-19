@@ -35,9 +35,7 @@ const UserProfile = () => {
   });
 
   const locationInputRef = useRef(null);
-  useGooglePlacesAutocomplete(locationInputRef, (place) => {
-    setFormData(prev => ({ ...prev, location: place }));
-  }, formData.location);
+  useGooglePlacesAutocomplete(locationInputRef, (e) => handleFormChange(e), formData.location);
 
   // Fetch profile data only if it's not already loaded
   useEffect(() => {
@@ -166,7 +164,7 @@ const UserProfile = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Location (for weather)</label>
-                <input ref={locationInputRef} type="text" name="location" value={formData.location} onChange={handleFormChange} className="w-full" />
+                <input ref={locationInputRef} type="text" name="location" defaultValue={formData.location} onChange={handleFormChange} className="w-full" />
               </div>
             </div>
           </div>

@@ -564,7 +564,7 @@ def create_app():
             notification = Notification(
                 user_id=user.id,
                 message="Your profile has been updated successfully.",
-                link="/profile"
+                link="/dashboard/profile"
             )
             db.session.add(notification)
 
