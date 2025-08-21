@@ -13,47 +13,13 @@ admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 @admin_bp.route('/users', methods=['GET'])
 @admin_required
 def get_users():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    sort_by = request.args.get('sort_by', 'created_at')
-    sort_direction = request.args.get('sort_direction', 'desc')
-    email_filter = request.args.get('email', type=str)
-    is_premium_filter = request.args.get('is_premium', type=str)
-    is_verified_filter = request.args.get('is_verified', type=str)
-
-    query = User.query
-
-    if email_filter:
-        query = query.filter(User.email.ilike(f'%{email_filter}%'))
-    if is_premium_filter is not None:
-        query = query.filter(User.is_premium == (is_premium_filter.lower() == 'true'))
-    if is_verified_filter is not None:
-        query = query.filter(User.is_verified == (is_verified_filter.lower() == 'true'))
-
-    if hasattr(User, sort_by):
-        if sort_direction == 'desc':
-            query = query.order_by(getattr(User, sort_by).desc())
-        else:
-            query = query.order_by(getattr(User, sort_by).asc())
-
-    paginated_users = query.paginate(page=page, per_page=per_page, error_out=False)
-    
+    # TEMPORARY DEBUGGING CODE
     return jsonify({
-        'users': [{
-            'id': user.id, 
-            'email': user.email, 
-            'is_admin': user.is_admin, 
-            'is_premium': user.is_premium, 
-            'is_verified': user.is_verified, 
-            'is_suspended': user.is_suspended,
-            'is_banned': user.is_banned,
-            'created_at': user.created_at,
-            'age': user.age,
-            'gender': user.gender
-        } for user in paginated_users.items],
-        'total': paginated_users.total,
-        'pages': paginated_users.pages,
-        'current_page': page
+        'status': 'ok', 
+        'test': 'hello from the simplified get_users function', 
+        'users': [], 
+        'pages': 0, 
+        'total': 0
     })
 
 @admin_bp.route('/users/<int:user_id>', methods=['GET'])
