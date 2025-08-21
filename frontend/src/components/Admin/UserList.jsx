@@ -63,6 +63,7 @@ const UserList = () => {
 
             try {
                 const data = await fetchApi(`/api/admin/users?${params.toString()}`);
+                console.log('Raw API data for user list:', data); // Temporary debug log
                 
                 // Defensive validation
                 if (Array.isArray(data.users)) {
