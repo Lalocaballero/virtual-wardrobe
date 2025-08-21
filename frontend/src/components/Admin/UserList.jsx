@@ -58,7 +58,9 @@ const UserList = () => {
                 sort_by: sortBy[0]?.id || 'created_at',
                 sort_direction: sortBy[0]?.desc ? 'desc' : 'asc',
             });
-            filters.forEach(filter => params.append(filter.id, filter.value));
+            if (filters) {
+                filters.forEach(filter => params.append(filter.id, filter.value));
+            }
 
             try {
                 const data = await fetchApi(`/api/admin/users?${params.toString()}`);
