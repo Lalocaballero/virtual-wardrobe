@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useTable, useSortBy, usePagination, useFilters } from 'react-table';
+import { useTable, useSortBy, usePagination } from 'react-table';
 import { useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../../store/wardrobeStore';
 
@@ -8,6 +8,7 @@ const UserList = () => {
     const [loading, setLoading] = useState(true);
     const [pageCount, setPageCount] = useState(0);
     const [totalUsers, setTotalUsers] = useState(0);
+    const [emailFilter, setEmailFilter] = useState('');
     const { fetchApi } = useWardrobeStore();
     const navigate = useNavigate();
 
@@ -33,7 +34,7 @@ const UserList = () => {
         nextPage,
         previousPage,
         setPageSize,
-        state: { pageIndex, pageSize, sortBy, filters = [] },
+        state: { pageIndex, pageSize, sortBy },
     } = useTable(
         {
             columns,
@@ -41,10 +42,8 @@ const UserList = () => {
             initialState: { pageIndex: 0, pageSize: 10 },
             manualPagination: true,
             manualSortBy: true,
-            manualFilters: true,
             pageCount: pageCount,
         },
-        useFilters,
         useSortBy,
         usePagination
     );
@@ -58,7 +57,9 @@ const UserList = () => {
                 sort_by: sortBy[0]?.id || 'created_at',
                 sort_direction: sortBy[0]?.desc ? 'desc' : 'asc',
             });
-            filters.forEach(filter => params.append(filter.id, filter.value));
+            if (emailFilter) {
+                params.append('email', emailFilter);
+            }
 
             try {
                 const data = await fetchApi(`/api/admin/users?${params.toString()}`);
@@ -72,11 +73,18 @@ const UserList = () => {
             }
         };
         fetchData();
-    }, [fetchApi, pageIndex, pageSize, sortBy, filters]);
+    }, [fetchApi, pageIndex, pageSize, sortBy, emailFilter]);
 
     return (
-        <div className="container mx-auto">
-            {/* Filtering UI would go here */}
+        <div className="container mx-auto p-4">
+            <div className="mb-4">
+                <input
+                    value={emailFilter}
+                    onChange={e => setEmailFilter(e.target.value)}
+                    placeholder={"Search by email..."}
+                    className="p-2 border border-gray-300 rounded"
+                />
+            </div>
             <table {...getTableProps()} className="min-w-full bg-white">
                 <thead>
                     {headerGroups.map(headerGroup => (

@@ -379,13 +379,18 @@ def get_app_settings():
 
     # Ensure a default monetization setting exists and is a proper boolean
     if 'monetization_enabled' not in settings:
-        default_setting = AppSettings(key='monetization_enabled', value=False)
+        # Save the default in the new, robust object format
+        default_setting = AppSettings(key='monetization_enabled', value={'enabled': False})
         db.session.add(default_setting)
         db.session.commit()
-        settings['monetization_enabled'] = False
+        settings['monetization_enabled'] = False # Return the raw boolean
     else:
-        # Ensure the value from DB is a boolean, not something else from JSON
-        settings['monetization_enabled'] = bool(settings['monetization_enabled'])
+        # Extract the boolean from the stored object, with a fallback
+        if isinstance(settings['monetization_enabled'], dict):
+            settings['monetization_enabled'] = settings['monetization_enabled'].get('enabled', False)
+        else:
+            # Fallback for old data that might be a raw boolean
+            settings['monetization_enabled'] = bool(settings['monetization_enabled'])
 
     return jsonify(settings)
 
@@ -399,21 +404,25 @@ def update_app_setting():
     if not key:
         return jsonify({'error': 'Key is required'}), 400
     
-    # For the monetization toggle, be explicit with the boolean value.
+    final_value = value
+    # For the monetization toggle, be explicit and store as a JSON object
     if key == 'monetization_enabled':
         if not isinstance(value, bool):
             return jsonify({'error': 'Invalid value for monetization_enabled, boolean required.'}), 400
-    
+        final_value = {'enabled': value}
+
     setting = AppSettings.query.filter_by(key=key).first()
 
     if setting:
-        setting.value = value
+        setting.value = final_value
     else:
-        setting = AppSettings(key=key, value=value)
+        setting = AppSettings(key=key, value=final_value)
         db.session.add(setting)
     
     db.session.commit()
-    return jsonify({setting.key: setting.value})
+    
+    # Return the raw value for confirmation, not the stored object
+    return jsonify({setting.key: value})
 
 @admin_bp.route('/analytics/user_demographics', methods=['GET'])
 @admin_required
