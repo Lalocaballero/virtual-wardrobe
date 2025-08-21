@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import useWardrobeStore, { API_BASE } from '../../store/wardrobeStore';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 
@@ -41,7 +41,7 @@ const AnalyticsDashboard = () => {
     const [filterDays, setFilterDays] = useState(30);
     const { fetchApi } = useWardrobeStore();
 
-    const fetchAllAnalytics = async () => {
+    const fetchAllAnalytics = useCallback(async () => {
         setLoading(true);
         try {
             // Fetch all data points again when filter changes.
@@ -61,11 +61,11 @@ const AnalyticsDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [fetchApi, filterDays]);
 
     useEffect(() => {
         fetchAllAnalytics();
-    }, [fetchAllAnalytics, filterDays]);
+    }, [fetchAllAnalytics]);
 
     if (loading) return (
         <div className="flex justify-center items-center h-full">
