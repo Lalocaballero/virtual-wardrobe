@@ -20,7 +20,7 @@ const NotificationBell = () => {
         // Poll for new notifications every 30 seconds
         const interval = setInterval(fetchNotifications, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchNotifications]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

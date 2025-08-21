@@ -65,7 +65,7 @@ const AnalyticsDashboard = () => {
 
     useEffect(() => {
         fetchAllAnalytics();
-    }, [fetchApi, filterDays]);
+    }, [fetchAllAnalytics, filterDays]);
 
     if (loading) return (
         <div className="flex justify-center items-center h-full">
