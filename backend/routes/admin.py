@@ -6,6 +6,7 @@ from models import User, db, ClothingItem, AdminAction, Outfit, AppSettings
 from utils.decorators import admin_required
 import csv
 from io import StringIO
+import json
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 
@@ -375,22 +376,29 @@ def export_data():
 @admin_required
 def get_app_settings():
     settings_query = AppSettings.query.all()
-    settings = {setting.key: setting.value for setting in settings_query}
+    settings = {}
+    for setting in settings_query:
+        try:
+            # Try to parse the value as JSON; if it fails, use the raw value
+            settings[setting.key] = json.loads(setting.value)
+        except (json.JSONDecodeError, TypeError):
+            settings[setting.key] = setting.value
 
-    # Ensure a default monetization setting exists and is a proper boolean
+    # Ensure a default monetization setting exists and is a proper boolean for the frontend
     if 'monetization_enabled' not in settings:
-        # Save the default in the new, robust object format
-        default_setting = AppSettings(key='monetization_enabled', value={'enabled': False})
+        # Save the default in the new, robust JSON string format
+        default_setting = AppSettings(key='monetization_enabled', value=json.dumps({'enabled': False}))
         db.session.add(default_setting)
         db.session.commit()
-        settings['monetization_enabled'] = False # Return the raw boolean
+        settings['monetization_enabled'] = False # Return the raw boolean to the frontend
     else:
-        # Extract the boolean from the stored object, with a fallback
-        if isinstance(settings['monetization_enabled'], dict):
-            settings['monetization_enabled'] = settings['monetization_enabled'].get('enabled', False)
+        # Extract the boolean from the stored object, with robust fallbacks
+        mono_setting = settings.get('monetization_enabled')
+        if isinstance(mono_setting, dict):
+            settings['monetization_enabled'] = mono_setting.get('enabled', False)
         else:
-            # Fallback for old data that might be a raw boolean
-            settings['monetization_enabled'] = bool(settings['monetization_enabled'])
+            # This handles old raw boolean data or other unexpected formats
+            settings['monetization_enabled'] = bool(mono_setting)
 
     return jsonify(settings)
 
@@ -404,12 +412,16 @@ def update_app_setting():
     if not key:
         return jsonify({'error': 'Key is required'}), 400
     
+    # Prepare the value for database storage
     final_value = value
-    # For the monetization toggle, be explicit and store as a JSON object
     if key == 'monetization_enabled':
         if not isinstance(value, bool):
             return jsonify({'error': 'Invalid value for monetization_enabled, boolean required.'}), 400
-        final_value = {'enabled': value}
+        # Always store the monetization setting as a JSON string representing an object
+        final_value = json.dumps({'enabled': value})
+    elif isinstance(value, (dict, list)):
+        # For any other setting, if it's a dict or list, store it as a JSON string
+        final_value = json.dumps(value)
 
     setting = AppSettings.query.filter_by(key=key).first()
 
@@ -421,8 +433,8 @@ def update_app_setting():
     
     db.session.commit()
     
-    # Return the raw value for confirmation, not the stored object
-    return jsonify({setting.key: value})
+    # Return the original value for confirmation, not the stored JSON string
+    return jsonify({key: value})
 
 @admin_bp.route('/analytics/user_demographics', methods=['GET'])
 @admin_required

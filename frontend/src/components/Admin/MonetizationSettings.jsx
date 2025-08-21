@@ -36,6 +36,8 @@ const MonetizationSettings = () => {
 
     const handleSave = async () => {
         setIsSaving(true);
+        const originalSettings = { ...initialSettings };
+
         try {
             await fetchApi('/api/admin/settings', {
                 method: 'POST',
@@ -45,11 +47,13 @@ const MonetizationSettings = () => {
                 }),
             });
             toast.success("Settings saved successfully!");
-            // Refetch settings to confirm and reset dirty state
+            // Refetch settings to confirm the new state
             fetchSettings();
         } catch (error) {
             console.error("Failed to update setting:", error);
-            toast.error("Failed to save settings.");
+            toast.error("Failed to save settings. Reverting changes.");
+            // Revert to the original state on failure
+            setCurrentSettings(originalSettings);
         } finally {
             setIsSaving(false);
         }

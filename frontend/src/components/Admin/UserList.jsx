@@ -63,11 +63,27 @@ const UserList = () => {
 
             try {
                 const data = await fetchApi(`/api/admin/users?${params.toString()}`);
-                setUsers(data.users);
-                setPageCount(data.pages);
-                setTotalUsers(data.total);
+                
+                // Defensive validation
+                if (Array.isArray(data.users)) {
+                    const validUsers = data.users.filter(user => {
+                        if (!user || typeof user.id === 'undefined' || !user.email) {
+                            console.warn('Invalid user object received from API:', user);
+                            return false;
+                        }
+                        return true;
+                    });
+                    setUsers(validUsers);
+                } else {
+                    console.warn('API did not return a user array as expected, defaulting to empty. Data:', data);
+                    setUsers([]);
+                }
+
+                setPageCount(data.pages || 0);
+                setTotalUsers(data.total || 0);
             } catch (error) {
                 console.error("Failed to fetch users:", error);
+                setUsers([]); // Ensure users is an array on error
             } finally {
                 setLoading(false);
             }
