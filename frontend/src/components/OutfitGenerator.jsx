@@ -17,7 +17,12 @@ const OutfitGenerator = ({ outfit, mood }) => {
   };
 
   const handleGenerateAnother = () => {
-    generateOutfit(mood);
+    if (outfit && outfit.items) {
+      const exclude_ids = outfit.items.map(item => item.id);
+      generateOutfit(mood, exclude_ids);
+    } else {
+      generateOutfit(mood);
+    }
   };
 
   if (loading) {

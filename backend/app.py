@@ -110,7 +110,7 @@ def create_app():
     # --- CORS Configuration ---
     origins = [
         "https://wewear.app",
-        "https://api.wewear.app",
+        "https://api.wewear.app"
         "https://virtual-wardrobe-frontend-qvoh.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000"
@@ -697,6 +697,9 @@ def create_app():
                 except (ValueError, TypeError):
                     purchase_date = None # Keep it None if format is wrong or type is not string
 
+            cost = data.get('purchase_cost')
+            purchase_cost = float(cost) if cost is not None and cost != '' else None
+
             item = ClothingItem(
                 user_id=user.id,
                 name=data['name'],
@@ -713,7 +716,7 @@ def create_app():
                 custom_tags=json.dumps(data.get('custom_tags', [])),
                 # New fields
                 purchase_date=purchase_date,
-                purchase_cost=data.get('purchase_cost'),
+                purchase_cost=purchase_cost,
                 care_instructions=json.dumps(data.get('care_instructions', {})),
                 wash_temperature=data.get('wash_temperature'),
                 dry_clean_only=data.get('dry_clean_only', False),
@@ -885,6 +888,8 @@ def create_app():
         try:
             data = request.get_json()
             mood = data.get('mood', 'casual')
+            exclude_ids = data.get('exclude_ids', []) # Get the list of IDs to exclude
+            
             # Let the backend determine the season for reliability
             season = _get_current_season()
 
@@ -921,7 +926,8 @@ def create_app():
                 weather=weather_str,
                 mood=mood,
                 season=season,
-                outfit_history=outfit_history_data
+                outfit_history=outfit_history_data,
+                exclude_ids=exclude_ids
             )
             suggested_items = []
             user = get_actual_user()

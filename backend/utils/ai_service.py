@@ -16,9 +16,13 @@ class AIOutfitService:
             self.client_available = False
             print("⚠️  OpenAI API key not provided - using fallback outfit suggestions")
     
-    def generate_outfit_suggestion(self, wardrobe: List[Dict], weather: str, mood: str, season: str = "any", outfit_history: List[Dict] = None) -> Dict[str, Any]:
+    def generate_outfit_suggestion(self, wardrobe: List[Dict], weather: str, mood: str, season: str = "any", outfit_history: List[Dict] = None, exclude_ids: List[int] = None) -> Dict[str, Any]:
         """Generate outfit suggestion using OpenAI with enhanced prompting"""
         
+        # Exclude items from the previous suggestion if provided
+        if exclude_ids:
+            wardrobe = [item for item in wardrobe if item.get('id') not in exclude_ids]
+
         # Filter available (clean) items
         clean_items = [item for item in wardrobe if item.get('is_clean', True)]
         

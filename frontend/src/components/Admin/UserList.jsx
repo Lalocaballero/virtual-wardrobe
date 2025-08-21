@@ -16,7 +16,7 @@ const UserList = () => {
         { Header: 'Email', accessor: 'email' },
         { Header: 'Premium', accessor: 'is_premium', Cell: ({ value }) => (value ? 'Yes' : 'No') },
         { Header: 'Verified', accessor: 'is_verified', Cell: ({ value }) => (value ? 'Yes' : 'No') },
-        { Header: 'Created At', accessor: 'created_at', Cell: ({ value }) => new Date(value).toLocaleDateString() },
+        { Header: 'Created At', accessor: 'created_at', Cell: ({ value }) => value ? new Date(value).toLocaleDateString() : 'N/A' },
     ], []);
 
     const {

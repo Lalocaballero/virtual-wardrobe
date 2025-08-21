@@ -374,8 +374,17 @@ def export_data():
 @admin_bp.route('/settings', methods=['GET'])
 @admin_required
 def get_app_settings():
-    settings = AppSettings.query.all()
-    return jsonify({setting.key: setting.value for setting in settings})
+    settings_query = AppSettings.query.all()
+    settings = {setting.key: setting.value for setting in settings_query}
+
+    # Ensure a default monetization setting exists if not found
+    if 'monetization_enabled' not in settings:
+        default_setting = AppSettings(key='monetization_enabled', value=False)
+        db.session.add(default_setting)
+        db.session.commit()
+        settings['monetization_enabled'] = False
+
+    return jsonify(settings)
 
 @admin_bp.route('/settings', methods=['POST'])
 @admin_required

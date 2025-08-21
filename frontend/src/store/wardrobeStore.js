@@ -936,15 +936,19 @@ fetchWardrobeHealth: async () => {
   },
 
   // Outfit actions
-  generateOutfit: async (mood) => {
+  generateOutfit: async (mood, exclude_ids = []) => {
     set({ loading: true, error: null });
     try {
+      const payload = { mood };
+      if (exclude_ids && exclude_ids.length > 0) {
+        payload.exclude_ids = exclude_ids;
+      }
       const data = await get().fetchApi(`${API_BASE}/get-outfit`, {
         method: 'POST',
-        body: JSON.stringify({ mood }),
+        body: JSON.stringify(payload),
       });
       set({ currentOutfit: data, loading: false });
-      toast.success('Your outfit for today is ready!')
+      toast.success('Your new outfit is ready!');
     } catch (error) {
         if (error.code === 'UPGRADE_REQUIRED') {
             toast.error(

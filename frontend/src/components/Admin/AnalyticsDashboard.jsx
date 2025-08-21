@@ -41,28 +41,29 @@ const AnalyticsDashboard = () => {
     const [filterDays, setFilterDays] = useState(30);
     const { fetchApi } = useWardrobeStore();
 
+    const fetchAllAnalytics = async () => {
+        setLoading(true);
+        try {
+            // Fetch all data points again when filter changes.
+            // These are lightweight queries and this simplifies state management.
+            const [dau, mrr, conversion, demographics] = await Promise.all([
+                fetchApi(`${API_BASE}/admin/analytics/daily_active_users?days=${filterDays}`),
+                fetchApi(`${API_BASE}/admin/analytics/mrr`),
+                fetchApi(`${API_BASE}/admin/analytics/premium_conversion_rate`),
+                fetchApi(`${API_BASE}/admin/analytics/user_demographics`)
+            ]);
+            setDauData(dau);
+            setMrrData(mrr);
+            setConversionData(conversion);
+            setDemographicsData(demographics);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchAllAnalytics = async () => {
-            setLoading(true);
-            try {
-                // Fetch all data points again when filter changes.
-                // These are lightweight queries and this simplifies state management.
-                const [dau, mrr, conversion, demographics] = await Promise.all([
-                    fetchApi(`${API_BASE}/admin/analytics/daily_active_users?days=${filterDays}`),
-                    fetchApi(`${API_BASE}/admin/analytics/mrr`),
-                    fetchApi(`${API_BASE}/admin/analytics/premium_conversion_rate`),
-                    fetchApi(`${API_BASE}/admin/analytics/user_demographics`)
-                ]);
-                setDauData(dau);
-                setMrrData(mrr);
-                setConversionData(conversion);
-                setDemographicsData(demographics);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchAllAnalytics();
     }, [fetchApi, filterDays]);
 
@@ -103,6 +104,13 @@ const AnalyticsDashboard = () => {
                                 {days} Days
                             </button>
                         ))}
+                        <button
+                            onClick={fetchAllAnalytics}
+                            disabled={loading}
+                            className="px-3 py-1 rounded-md text-sm font-medium bg-green-500 text-white hover:bg-green-600 disabled:bg-green-300"
+                        >
+                            Refresh
+                        </button>
                     </div>
                 </div>
                 <div style={{ width: '100%', height: 350 }}>
