@@ -62,7 +62,7 @@ const UserList = () => {
             }
 
             try {
-                const data = await fetchApi(`/api/admin/user-list?${params.toString()}`);
+                const data = await fetchApi(`/api/admin/users?${params.toString()}`);
                 
                 // Defensive validation
                 if (Array.isArray(data.users)) {

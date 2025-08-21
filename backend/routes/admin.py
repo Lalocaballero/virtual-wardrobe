@@ -10,7 +10,7 @@ import json
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/api/admin')
 
-@admin_bp.route('/user-list', methods=['GET'])
+@admin_bp.route('/users', methods=['GET'])
 @admin_required
 def get_users():
     page = request.args.get('page', 1, type=int)
