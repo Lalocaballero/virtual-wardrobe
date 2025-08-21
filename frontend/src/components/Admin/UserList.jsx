@@ -33,7 +33,7 @@ const UserList = () => {
         nextPage,
         previousPage,
         setPageSize,
-        state: { pageIndex, pageSize, sortBy, filters },
+        state: { pageIndex, pageSize, sortBy, filters = [] },
     } = useTable(
         {
             columns,
@@ -58,9 +58,7 @@ const UserList = () => {
                 sort_by: sortBy[0]?.id || 'created_at',
                 sort_direction: sortBy[0]?.desc ? 'desc' : 'asc',
             });
-            if (filters) {
-                filters.forEach(filter => params.append(filter.id, filter.value));
-            }
+            filters.forEach(filter => params.append(filter.id, filter.value));
 
             try {
                 const data = await fetchApi(`/api/admin/users?${params.toString()}`);

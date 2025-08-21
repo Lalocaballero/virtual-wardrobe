@@ -377,12 +377,15 @@ def get_app_settings():
     settings_query = AppSettings.query.all()
     settings = {setting.key: setting.value for setting in settings_query}
 
-    # Ensure a default monetization setting exists if not found
+    # Ensure a default monetization setting exists and is a proper boolean
     if 'monetization_enabled' not in settings:
         default_setting = AppSettings(key='monetization_enabled', value=False)
         db.session.add(default_setting)
         db.session.commit()
         settings['monetization_enabled'] = False
+    else:
+        # Ensure the value from DB is a boolean, not something else from JSON
+        settings['monetization_enabled'] = bool(settings['monetization_enabled'])
 
     return jsonify(settings)
 
@@ -395,8 +398,14 @@ def update_app_setting():
 
     if not key:
         return jsonify({'error': 'Key is required'}), 400
-
+    
+    # For the monetization toggle, be explicit with the boolean value.
+    if key == 'monetization_enabled':
+        if not isinstance(value, bool):
+            return jsonify({'error': 'Invalid value for monetization_enabled, boolean required.'}), 400
+    
     setting = AppSettings.query.filter_by(key=key).first()
+
     if setting:
         setting.value = value
     else:
