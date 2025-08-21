@@ -102,7 +102,11 @@ def create_app():
     login_manager.init_app(app)
     limiter.init_app(app)
     login_manager.session_protection = "strong"
-
+    
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+          db.session.remove()
+        
     @login_manager.unauthorized_handler
     def unauthorized():
         return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
