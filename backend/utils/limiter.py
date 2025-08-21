@@ -22,7 +22,6 @@ def safe_key_func():
 
 limiter = Limiter(
     key_func=safe_key_func,
-    default_limits=["200 per day", "50 per hour"],
     storage_uri="memory://",
     strategy="fixed-window"
 )
