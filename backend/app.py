@@ -105,7 +105,11 @@ def create_app():
     
     @app.teardown_appcontext
     def shutdown_session(exception=None):
+<<<<<<< HEAD
         db.session.remove()
+=======
+          db.session.remove()
+>>>>>>> a4b9aa25f80aa2b2a1c4307117b0b48d6bab968f
         
     @login_manager.unauthorized_handler
     def unauthorized():
