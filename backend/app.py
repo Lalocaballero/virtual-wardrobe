@@ -102,7 +102,11 @@ def create_app():
     login_manager.init_app(app)
     limiter.init_app(app)
     login_manager.session_protection = "strong"
-
+    
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db.session.remove()
+        
     @login_manager.unauthorized_handler
     def unauthorized():
         return jsonify({"error": "Unauthorized: Please log in to access this resource."}), 401
@@ -110,7 +114,7 @@ def create_app():
     # --- CORS Configuration ---
     origins = [
         "https://wewear.app",
-        "https://api.wewear.app"
+        "https://api.wewear.app",
         "https://virtual-wardrobe-frontend-qvoh.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000"
