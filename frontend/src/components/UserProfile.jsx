@@ -8,7 +8,6 @@ import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
 import Billing from './Billing';
 
 const UserProfile = () => {
-  const { appSettings } = useWardrobeStore();
   const [activeSubTab, setActiveSubTab] = useState('profile');
   const {
     profile,
@@ -151,7 +150,7 @@ const UserProfile = () => {
                 <UserCircleIcon className="h-5 w-5" />
                 <span>Profile</span>
             </button>
-            {appSettings.monetization_enabled && (
+            {true && (
                 <button
                     onClick={() => setActiveSubTab('billing')}
                     className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'billing' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'}`}
@@ -326,7 +325,7 @@ const UserProfile = () => {
         </div>
         )}
 
-        {appSettings.monetization_enabled && activeSubTab === 'billing' && (
+        {true && activeSubTab === 'billing' && (
             <Billing />
         )}
     </div>
