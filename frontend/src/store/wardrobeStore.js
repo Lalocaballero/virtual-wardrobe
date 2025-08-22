@@ -52,10 +52,6 @@ const useWardrobeStore = create((set, get) => ({
   notifications: [],
   notificationsLoading: false,
 
-  // App settings state
-  appSettings: {},
-  settingsLoading: false,
-
   // Helper function to handle fetch responses and errors
   // This centralizes error handling and JSON parsing
   fetchApi: async (url, options = {}) => {
@@ -1039,17 +1035,6 @@ fetchWardrobeHealth: async () => {
       const errorMessage = error.message || 'Could not fetch outfit history.';
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
-    }
-  },
-
-  fetchAppSettings: async () => {
-    set({ settingsLoading: true });
-    try {
-      const data = await get().fetchApi(`${API_BASE}/admin/settings`);
-      set({ appSettings: data, settingsLoading: false });
-    } catch (error) {
-      // It's okay if this fails for non-admins, so don't show a toast
-      set({ settingsLoading: false });
     }
   },
 

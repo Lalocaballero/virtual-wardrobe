@@ -431,8 +431,3 @@ class AdminAction(db.Model):
             'details': self.details,
             'created_at': self.created_at.isoformat()
         }
-
-class AppSettings(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(50), unique=True, nullable=False)
-    value = db.Column(JSON, nullable=False)

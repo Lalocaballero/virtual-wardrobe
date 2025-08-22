@@ -7,7 +7,6 @@ import ContentModeration from './ContentModeration';
 import DataExport from './DataExport';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import SystemHealth from './SystemHealth';
-import MonetizationSettings from './MonetizationSettings';
 
 const AdminDashboard = () => {
     const location = useLocation();
@@ -67,12 +66,6 @@ const AdminDashboard = () => {
                         <span>💾</span>
                         <span className="ml-3">Data Export</span>
                     </NavLink>
-                    <div className="border-t pt-2 mt-2">
-                        <NavLink to="/admin/monetization" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>
-                            <span>💰</span>
-                            <span className="ml-3">Monetization</span>
-                        </NavLink>
-                    </div>
                 </nav>
                 <div className="mt-auto p-4 border-t">
                     <Link to="/dashboard" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md">
@@ -97,7 +90,6 @@ const AdminDashboard = () => {
                         <Route path="log" element={<AdminActionLog />} />
                         <Route path="moderation" element={<ContentModeration />} />
                         <Route path="export" element={<DataExport />} />
-                        <Route path="monetization" element={<MonetizationSettings />} />
                     </Routes>
                 </div>
             </main>
