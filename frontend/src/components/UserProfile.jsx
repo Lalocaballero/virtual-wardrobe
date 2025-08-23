@@ -19,9 +19,8 @@ const UserProfile = () => {
     deleteAccount,
     resetOutfitHistory,
     syncSubscription,
+    isSyncing,
   } = useWardrobeStore();
-
-  const [isSyncing, setIsSyncing] = useState(false);
 
   // State for the controlled form inputs
   const [formData, setFormData] = useState({
@@ -44,14 +43,7 @@ const UserProfile = () => {
 
   // Fetch profile data and sync subscription status on component mount
   useEffect(() => {
-    const initialLoad = async () => {
-      setIsSyncing(true);
-      // The syncSubscription action calls fetchProfile internally, so we don't need to call it separately.
-      await syncSubscription();
-      setIsSyncing(false);
-    };
-
-    initialLoad();
+    syncSubscription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // We explicitly want this to run only ONCE on mount to prevent loops.
 
@@ -167,7 +159,7 @@ const UserProfile = () => {
                 >
                     <CreditCardIcon className="h-5 w-5" />
                     <span>Billing & Subscription</span>
-                    {(isSyncing || profileLoading) && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 ml-2"></div>}
+                    {isSyncing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 ml-2"></div>}
                 </button>
             )}
         </div>

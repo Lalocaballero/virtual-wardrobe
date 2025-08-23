@@ -22,6 +22,7 @@ const useWardrobeStore = create((set, get) => ({
   // --- NEW PROFILE STATE ---
   profile: null,
   profileLoading: false,
+  isSyncing: false,
   // --- END NEW PROFILE STATE ---
 
   // --- NEW IMPERSONATION STATE ---
@@ -361,19 +362,19 @@ const useWardrobeStore = create((set, get) => ({
   },
 
   syncSubscription: async () => {
-    set({ profileLoading: true });
+    set({ isSyncing: true });
     try {
-      const data = await get().fetchApi(`${API_BASE}/profile/sync-subscription`, {
+      await get().fetchApi(`${API_BASE}/profile/sync-subscription`, {
         method: 'POST',
       });
-      // After syncing, refetch the full profile to get the latest data
+      // After syncing, refetch the full profile to get the latest data, which will also set profileLoading.
       await get().fetchProfile();
       toast.success('Subscription status updated!');
-      return data;
     } catch (error) {
       const errorMessage = error.message || 'Failed to sync subscription status.';
-      set({ profileLoading: false });
       toast.error(errorMessage);
+    } finally {
+      set({ isSyncing: false });
     }
   },
 
