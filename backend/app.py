@@ -115,6 +115,7 @@ def create_app():
     origins = [
         "https://wewear.app",
         "https://api.wewear.app",
+        "https://checkout.wewear.app",
         "https://virtual-wardrobe-frontend-qvoh.onrender.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000"

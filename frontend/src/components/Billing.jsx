@@ -24,7 +24,7 @@ const Billing = () => {
 
 const FreeUserView = () => {
     // The Lemon Squeezy checkout link
-    const lemonSqueezyCheckoutLink = 'https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2';
+    const lemonSqueezyCheckoutLink = 'https://checkout.wewear.app/buy/b57504d5-bc14-4870-aa22-a7196fe68db2';
 
     return (
         // Added a container div for better structure
