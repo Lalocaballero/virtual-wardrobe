@@ -363,13 +363,19 @@ const useWardrobeStore = create((set, get) => ({
 
   syncSubscription: async () => {
     set({ isSyncing: true });
+    const previousPremiumStatus = get().profile?.is_premium;
     try {
       await get().fetchApi(`${API_BASE}/profile/sync-subscription`, {
         method: 'POST',
       });
-      // After syncing, refetch the full profile to get the latest data, which will also set profileLoading.
+      // After syncing, refetch the full profile to get the latest data.
       await get().fetchProfile();
-      toast.success('Subscription status updated!');
+      const newPremiumStatus = get().profile?.is_premium;
+
+      // Only show toast if the status changed from false to true
+      if (newPremiumStatus === true && previousPremiumStatus === false) {
+        toast.success('Subscription status updated! Welcome to Premium! ✨');
+      }
     } catch (error) {
       const errorMessage = error.message || 'Failed to sync subscription status.';
       toast.error(errorMessage);
