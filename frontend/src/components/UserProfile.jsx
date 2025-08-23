@@ -45,15 +45,15 @@ const UserProfile = () => {
   // Fetch profile data and sync subscription status on component mount
   useEffect(() => {
     const initialLoad = async () => {
-      if (!profile) {
-        await fetchProfile();
-      }
       setIsSyncing(true);
+      // The syncSubscription action calls fetchProfile internally, so we don't need to call it separately.
       await syncSubscription();
       setIsSyncing(false);
     };
+
     initialLoad();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // We explicitly want this to run only ONCE on mount to prevent loops.
 
   // When profile data is loaded from the store, update our local form state
   useEffect(() => {
