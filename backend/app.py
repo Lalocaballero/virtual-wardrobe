@@ -517,6 +517,7 @@ def create_app():
                 'id': user.id,
                 'email': user.email,
                 'is_admin': user.is_admin,
+                'is_premium': user.is_premium,
                 'display_name': user.display_name,
                 'profile_image_url': user.profile_image_url,
                 'location': user.location,
