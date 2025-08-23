@@ -58,18 +58,21 @@ const Dashboard = () => {
     generateOutfit, 
     loading, 
     logout,
-    laundryAlerts,
-    fetchAppSettings
+    laundryAlerts
+    // fetchAppSettings was removed as it does not exist in the store
   } = useWardrobeStore();
 
-  // --- CRITICAL FIX: Fetch profile data as soon as the user is logged in ---
+  // Fetch profile data once when the user logs in.
   useEffect(() => {
     // If we have a user but no profile data yet, fetch it.
     if (user && !profile) {
       fetchProfile();
-      fetchAppSettings();
     }
-  }, [user, profile, fetchProfile, fetchAppSettings]); // This hook runs when the user logs in
+    // We disable the lint rule because adding `profile` to the dependency array
+    // would cause an infinite loop, as this effect itself fetches the profile.
+    // This effect should only run when the user object is first available.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, fetchProfile]);
 
   // This effect synchronizes the activeTab state with the URL.
   // This is necessary for handling navigation from outside the tab buttons,
