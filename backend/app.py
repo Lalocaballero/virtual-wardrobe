@@ -163,6 +163,9 @@ def create_app():
     from routes.profile import profile_bp
     app.register_blueprint(profile_bp)
 
+    from routes.webhooks import webhooks_bp
+    app.register_blueprint(webhooks_bp)
+
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
     from utils.laundry_service import LaundryIntelligenceService

@@ -23,11 +23,17 @@ const Billing = () => {
 };
 
 const FreeUserView = () => {
+    // The Lemon Squeezy checkout link
+    const lemonSqueezyCheckoutLink = 'https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2';
+
     return (
-        <div>
-            <p className="mt-4">You are currently on the free plan.</p>
-            <p className="mt-2">Upgrade to premium to unlock unlimited AI suggestions, packing lists, and more!</p>
-            <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary mt-6" target="_blank" rel="noopener noreferrer">
+        // Added a container div for better structure
+        <div className="mt-4"> 
+            <p>You are currently on the free plan.</p>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Upgrade to premium to unlock unlimited AI suggestions, packing lists, and more!</p>
+            
+            {/* The button is now a link with more top margin (mt-6) */}
+            <a href={lemonSqueezyCheckoutLink} className="btn btn-primary mt-6 inline-block">
                 Upgrade to Premium
             </a>
         </div>
