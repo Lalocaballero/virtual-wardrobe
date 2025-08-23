@@ -160,8 +160,8 @@ def create_app():
     from routes.notifications import notifications_bp
     app.register_blueprint(notifications_bp)
 
-    from routes.billing import billing_bp
-    app.register_blueprint(billing_bp)
+    from routes.profile import profile_bp
+    app.register_blueprint(profile_bp)
 
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService

@@ -18,7 +18,10 @@ const UserProfile = () => {
     exportData,
     deleteAccount,
     resetOutfitHistory,
+    syncSubscription,
   } = useWardrobeStore();
+
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // State for the controlled form inputs
   const [formData, setFormData] = useState({
@@ -39,12 +42,18 @@ const UserProfile = () => {
   const locationInputRef = useRef(null);
   useGooglePlacesAutocomplete(locationInputRef, (e) => handleFormChange(e), formData.location);
 
-  // Fetch profile data only if it's not already loaded
+  // Fetch profile data and sync subscription status on component mount
   useEffect(() => {
-    if (!profile) {
-      fetchProfile();
-    }
-  }, [profile, fetchProfile]);
+    const initialLoad = async () => {
+      if (!profile) {
+        await fetchProfile();
+      }
+      setIsSyncing(true);
+      await syncSubscription();
+      setIsSyncing(false);
+    };
+    initialLoad();
+  }, []);
 
   // When profile data is loaded from the store, update our local form state
   useEffect(() => {
@@ -154,9 +163,11 @@ const UserProfile = () => {
                 <button
                     onClick={() => setActiveSubTab('billing')}
                     className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'billing' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'}`}
+                    disabled={isSyncing || profileLoading}
                 >
                     <CreditCardIcon className="h-5 w-5" />
                     <span>Billing & Subscription</span>
+                    {(isSyncing || profileLoading) && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 ml-2"></div>}
                 </button>
             )}
         </div>

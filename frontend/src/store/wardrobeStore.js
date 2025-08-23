@@ -360,6 +360,23 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
+  syncSubscription: async () => {
+    set({ profileLoading: true });
+    try {
+      const data = await get().fetchApi(`${API_BASE}/profile/sync-subscription`, {
+        method: 'POST',
+      });
+      // After syncing, refetch the full profile to get the latest data
+      await get().fetchProfile();
+      toast.success('Subscription status updated!');
+      return data;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to sync subscription status.';
+      set({ profileLoading: false });
+      toast.error(errorMessage);
+    }
+  },
+
   changePassword: async (passwordData) => {
     try {
       const data = await get().fetchApi(`${API_BASE}/profile/change-password`, {
@@ -429,21 +446,6 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
   
-  manageSubscription: async () => {
-    set({ loading: true });
-    try {
-        const { url } = await get().fetchApi(`${API_BASE}/billing/create-portal-session`, {
-            method: 'POST',
-        });
-        // Redirect the user to the Stripe Customer Portal
-        window.location.href = url;
-    } catch (error) {
-        const errorMessage = error.message || 'Could not open subscription management.';
-        set({ error: errorMessage, loading: false });
-        toast.error(errorMessage);
-    }
-  },
-
   resetOutfitHistory: async () => {
     try {
       const data = await get().fetchApi(`${API_BASE}/profile/reset-outfit-history`, {

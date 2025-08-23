@@ -25,8 +25,6 @@ class User(UserMixin, db.Model):
     is_suspended = db.Column(db.Boolean, nullable=False, default=False)
     suspension_end_date = db.Column(db.DateTime, nullable=True)
     is_banned = db.Column(db.Boolean, nullable=False, default=False)
-    stripe_customer_id = db.Column(db.String(120), unique=True, nullable=True)
-    stripe_subscription_id = db.Column(db.String(120), unique=True, nullable=True)
     location = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login_at = db.Column(db.DateTime, nullable=True)
