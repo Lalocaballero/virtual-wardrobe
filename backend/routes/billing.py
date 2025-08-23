@@ -78,7 +78,7 @@ def create_portal_session():
 
 @billing_bp.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
-    payload = request.get_data(as_text=True)
+    payload = request.get_data()
     sig_header = request.headers.get('Stripe-Signature')
     endpoint_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
@@ -87,44 +87,44 @@ def stripe_webhook():
             payload, sig_header, endpoint_secret
         )
     except ValueError as e:
-        # Invalid payload
+        current_app.logger.error(f"Webhook - Invalid payload: {e}")
         return 'Invalid payload', 400
     except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
+        current_app.logger.error(f"Webhook - Invalid signature: {e}")
         return 'Invalid signature', 400
 
-    # Handle the event
+    # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         customer_id = session.get('customer')
         subscription_id = session.get('subscription')
+
         user = User.query.filter_by(stripe_customer_id=customer_id).first()
         if user:
-            user.is_premium = True
-            user.stripe_subscription_id = subscription_id
-            db.session.commit()
+            try:
+                user.is_premium = True
+                user.stripe_subscription_id = subscription_id
+                db.session.commit()
+                current_app.logger.info(f"SUCCESS: User {user.email} successfully updated to premium.")
+            except Exception as e:
+                current_app.logger.error(f"DATABASE ERROR: Failed to update user {user.email}. Rolling back. Error: {e}")
+                db.session.rollback()
+        else:
+            current_app.logger.warning(f"Webhook received for checkout.session.completed, but no user found with customer_id {customer_id}")
 
+    # Handle the customer.subscription.deleted event
     if event['type'] == 'customer.subscription.deleted':
         session = event['data']['object']
         customer_id = session.get('customer')
         user = User.query.filter_by(stripe_customer_id=customer_id).first()
         if user:
-            user.is_premium = False
-            user.stripe_subscription_id = None
-            db.session.commit()
-            
-    if event['type'] == 'customer.subscription.updated':
-        session = event['data']['object']
-        customer_id = session.get('customer')
-        user = User.query.filter_by(stripe_customer_id=customer_id).first()
-        if user:
-            # Update subscription status, for example if payment fails
-            status = session.get('status')
-            if status != 'active':
-                 user.is_premium = False
-            else:
-                 user.is_premium = True
-            db.session.commit()
-
+            try:
+                user.is_premium = False
+                user.stripe_subscription_id = None
+                db.session.commit()
+                current_app.logger.info(f"SUCCESS: User {user.email} subscription deleted, premium status revoked.")
+            except Exception as e:
+                current_app.logger.error(f"DATABASE ERROR: Failed to update user {user.email} after subscription deletion. Rolling back. Error: {e}")
+                db.session.rollback()
 
     return jsonify({'status': 'success'})
