@@ -11,6 +11,11 @@ stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 @billing_bp.route('/create-checkout-session', methods=['POST'])
 @login_required
 def create_checkout_session():
+    price_id = os.environ.get('STRIPE_PRICE_ID')
+    if not price_id:
+        current_app.logger.error("STRIPE_PRICE_ID environment variable is not set.")
+        return jsonify(error={'message': 'The server is not configured for billing. Missing STRIPE_PRICE_ID.'}), 500
+
     try:
         user = current_user
         if not user.stripe_customer_id:
@@ -31,7 +36,7 @@ def create_checkout_session():
             payment_method_types=['card'],
             line_items=[
                 {
-                    'price': os.environ.get('STRIPE_PRICE_ID'),
+                    'price': price_id,
                     'quantity': 1,
                 },
             ],
