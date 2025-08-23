@@ -428,6 +428,21 @@ const useWardrobeStore = create((set, get) => ({
       return false;
     }
   },
+  
+  manageSubscription: async () => {
+    set({ loading: true });
+    try {
+        const { url } = await get().fetchApi(`${API_BASE}/billing/create-portal-session`, {
+            method: 'POST',
+        });
+        // Redirect the user to the Stripe Customer Portal
+        window.location.href = url;
+    } catch (error) {
+        const errorMessage = error.message || 'Could not open subscription management.';
+        set({ error: errorMessage, loading: false });
+        toast.error(errorMessage);
+    }
+  },
 
   resetOutfitHistory: async () => {
     try {

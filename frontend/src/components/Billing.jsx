@@ -29,8 +29,6 @@ const Billing = () => {
 };
 
 const FreeUserView = () => {
-    const { user } = useWardrobeStore();
-
     const { fetchApi } = useWardrobeStore();
 
     const handleUpgrade = async () => {
@@ -38,6 +36,7 @@ const FreeUserView = () => {
             const { id: sessionId } = await fetchApi('/api/billing/create-checkout-session', {
                 method: 'POST',
                 body: JSON.stringify({
+                    // Pass the current page URL to Stripe so it can redirect back correctly
                     success_url: window.location.href,
                     cancel_url: window.location.href,
                 }),
@@ -63,12 +62,21 @@ const FreeUserView = () => {
     );
 };
 
+// --- UPDATED COMPONENT ---
 const PremiumUserView = () => {
+    const { manageSubscription } = useWardrobeStore();
+
+    const handleManageSubscription = () => {
+        manageSubscription();
+    };
+
     return (
         <div>
             <p className="mt-4">You are a premium user! ✨</p>
-            <p className="mt-2">Thank you for your support.</p>
-            {/* Subscription management to be implemented here */}
+            <p className="mt-2">Thank you for your support. You can manage your subscription and billing details below.</p>
+            <button onClick={handleManageSubscription} className="btn btn-secondary mt-4">
+                Manage Subscription
+            </button>
         </div>
     );
 };

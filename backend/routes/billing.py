@@ -28,8 +28,9 @@ def create_checkout_session():
 
         # Get success and cancel URLs from frontend, with defaults
         frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
-        success_url = request.json.get('success_url', f'{frontend_url}/profile?stripe_success=true')
-        cancel_url = request.json.get('cancel_url', f'{frontend_url}/profile?stripe_cancel=true')
+        success_url = request.json.get('success_url', f'{frontend_url}/dashboard/profile?stripe_success=true')
+        cancel_url = request.json.get('cancel_url', f'{frontend_url}/dashboard/profile?stripe_cancel=true')
+
 
         checkout_session = stripe.checkout.Session.create(
             customer=user.stripe_customer_id,
@@ -49,6 +50,31 @@ def create_checkout_session():
     except Exception as e:
         current_app.logger.error(f"Stripe checkout session error: {e}")
         return jsonify(error={'message': str(e)}), 500
+
+# --- NEW FUNCTION ---
+@billing_bp.route('/create-portal-session', methods=['POST'])
+@login_required
+def create_portal_session():
+    """Creates a Stripe Customer Portal session for the logged-in user."""
+    try:
+        user = current_user
+        if not user.stripe_customer_id:
+            return jsonify(error={'message': 'User does not have a Stripe customer ID.'}), 400
+
+        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+        # The return_url is where the user will be redirected after they are
+        # done managing their billing in the portal.
+        return_url = f'{frontend_url}/dashboard/profile'
+
+        portal_session = stripe.billing_portal.Session.create(
+            customer=user.stripe_customer_id,
+            return_url=return_url,
+        )
+        return jsonify({'url': portal_session.url})
+    except Exception as e:
+        current_app.logger.error(f"Stripe portal session error: {e}")
+        return jsonify(error={'message': str(e)}), 500
+
 
 @billing_bp.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
@@ -86,5 +112,19 @@ def stripe_webhook():
             user.is_premium = False
             user.stripe_subscription_id = None
             db.session.commit()
+            
+    if event['type'] == 'customer.subscription.updated':
+        session = event['data']['object']
+        customer_id = session.get('customer')
+        user = User.query.filter_by(stripe_customer_id=customer_id).first()
+        if user:
+            # Update subscription status, for example if payment fails
+            status = session.get('status')
+            if status != 'active':
+                 user.is_premium = False
+            else:
+                 user.is_premium = True
+            db.session.commit()
+
 
     return jsonify({'status': 'success'})
