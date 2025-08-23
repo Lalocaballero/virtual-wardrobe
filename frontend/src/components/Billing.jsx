@@ -27,7 +27,7 @@ const FreeUserView = () => {
         <div>
             <p className="mt-4">You are currently on the free plan.</p>
             <p className="mt-2">Upgrade to premium to unlock unlimited AI suggestions, packing lists, and more!</p>
-            <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary mt-4" target="_blank" rel="noopener noreferrer">
+            <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary mt-6" target="_blank" rel="noopener noreferrer">
                 Upgrade to Premium
             </a>
         </div>

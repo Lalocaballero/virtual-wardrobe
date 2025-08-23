@@ -1,6 +1,7 @@
 // src/components/UserProfile.jsx
 
 import React, { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import ImageUpload from './ImageUpload';
 import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon, CreditCardIcon } from '@heroicons/react/24/outline';
@@ -9,10 +10,10 @@ import Billing from './Billing';
 
 const UserProfile = () => {
   const [activeSubTab, setActiveSubTab] = useState('profile');
+  const location = useLocation();
   const {
     profile,
     profileLoading,
-    fetchProfile,
     updateProfile,
     changePassword,
     exportData,
@@ -20,6 +21,8 @@ const UserProfile = () => {
     resetOutfitHistory,
     syncSubscription,
     isSyncing,
+    handlePostCheckoutSync,
+    isSmartSyncing,
   } = useWardrobeStore();
 
   // State for the controlled form inputs
@@ -43,9 +46,16 @@ const UserProfile = () => {
 
   // Fetch profile data and sync subscription status on component mount
   useEffect(() => {
-    syncSubscription();
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('from_checkout') === 'true') {
+      handlePostCheckoutSync();
+      // Optionally, remove the query param from the URL so it doesn't run again on refresh
+      window.history.replaceState(null, '', location.pathname);
+    } else {
+      syncSubscription();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // We explicitly want this to run only ONCE on mount to prevent loops.
+  }, []); // We explicitly want this to run only ONCE on mount.
 
   // When profile data is loaded from the store, update our local form state
   useEffect(() => {
@@ -153,11 +163,11 @@ const UserProfile = () => {
                   <button
                       onClick={() => setActiveSubTab('billing')}
                       className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'billing' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'}`}
-                      disabled={isSyncing || profileLoading}
+                      disabled={isSyncing || profileLoading || isSmartSyncing}
                   >
                       <CreditCardIcon className="h-5 w-5" />
                       <span>Billing & Subscription</span>
-                      {isSyncing && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 ml-2"></div>}
+                      {(isSyncing || isSmartSyncing) && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 ml-2"></div>}
                   </button>
               )}
           </div>

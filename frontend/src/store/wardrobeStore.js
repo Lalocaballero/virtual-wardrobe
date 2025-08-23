@@ -23,6 +23,7 @@ const useWardrobeStore = create((set, get) => ({
   profile: null,
   profileLoading: false,
   isSyncing: false,
+  isSmartSyncing: false,
   // --- END NEW PROFILE STATE ---
 
   // --- NEW IMPERSONATION STATE ---
@@ -382,6 +383,32 @@ const useWardrobeStore = create((set, get) => ({
     } finally {
       set({ isSyncing: false });
     }
+  },
+
+  handlePostCheckoutSync: async () => {
+    set({ isSmartSyncing: true });
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const maxRetries = 5;
+    const retryInterval = 3000; // 3 seconds
+
+    for (let i = 0; i < maxRetries; i++) {
+        await get().syncSubscription();
+        const isPremium = get().profile?.is_premium;
+        if (isPremium) {
+            // The regular syncSubscription already shows the "Welcome" toast.
+            set({ isSmartSyncing: false });
+            return;
+        }
+        // If not premium yet, wait before the next try.
+        if (i < maxRetries - 1) {
+          await sleep(retryInterval);
+        }
+    }
+
+    // If it's still not premium after all retries
+    toast.error("We're still confirming your subscription status. Please check back in a moment.");
+    set({ isSmartSyncing: false });
   },
 
   changePassword: async (passwordData) => {
