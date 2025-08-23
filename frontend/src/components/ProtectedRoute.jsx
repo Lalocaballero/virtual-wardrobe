@@ -9,14 +9,8 @@ const LoadingSpinner = () => (
 );
 
 const ProtectedRoute = ({ children }) => {
-  const { user, authChecked, profile, fetchProfile, profileLoading } = useWardrobeStore();
+  const { user, authChecked } = useWardrobeStore();
   const location = useLocation();
-
-  useEffect(() => {
-    if (user && !profile) {
-      fetchProfile();
-    }
-  }, [user, profile, fetchProfile]);
 
   // While the initial authentication check is running, show a loading screen.
   if (!authChecked) {
@@ -28,28 +22,12 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // While profile is loading, show a full-screen spinner
-  if (profileLoading || (user && !profile)) {
-    return <LoadingSpinner />;
-  }
+  // The child components (like Dashboard and UserProfile) are now responsible
+  // for fetching their own data and handling their own loading states.
+  // This prevents the unmount/remount loop.
 
-  // If there's a user but the profile fetch failed (profile is still null), something is wrong.
-  // For now, we'll let them sit on a loading screen. A better implementation might show an error.
-  if (!profile) {
-      return <LoadingSpinner />;
-  }
-
-  // Check if user needs to be onboarded.
-  // We also check that they are not already on the onboarding page to avoid a redirect loop.
-  const needsOnboarding = !profile.age || !profile.gender;
-  if (needsOnboarding && location.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // If user is onboarded but tries to access the onboarding page, redirect them to the dashboard
-  if (!needsOnboarding && location.pathname === '/onboarding') {
-      return <Navigate to="/dashboard" replace />;
-  }
+  // We are removing the checks for profile, profileLoading, and onboarding
+  // from this component to render the children unconditionally once auth is checked.
 
   return children;
 };
