@@ -16,10 +16,9 @@ const NotificationBell = () => {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
+        // Initial fetch of notifications when the component mounts.
+        // Subsequent updates will be handled by the WebSocket listener in Dashboard.jsx
         fetchNotifications();
-        // Poll for new notifications every 30 seconds
-        const interval = setInterval(fetchNotifications, 30000);
-        return () => clearInterval(interval);
     }, [fetchNotifications]);
 
     useEffect(() => {

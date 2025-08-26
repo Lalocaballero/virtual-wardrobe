@@ -61,8 +61,17 @@ def lemonsqueezy_webhook():
             # Only grant premium if the status is active. Ignore other statuses like 'on_trial', 'past_due', etc.
             if attributes.get('status') == 'active':
                 user.is_premium = True
+                
+                # Get the 'urls' object from the attributes
+                urls = attributes.get('urls', {})
+                portal_url = urls.get('customer_portal')
+                
+                # If the portal URL exists, save it to the user
+                if portal_url:
+                    user.customer_portal_url = portal_url
+                    current_app.logger.info(f"Updated customer portal URL for {user_email}.")
+                
                 current_app.logger.info(f"Set user {user_email} to premium via '{event_name}' (status: active) webhook.")
-            # IMPORTANT: No 'else' block here. We don't want to downgrade users based on intermediate statuses.
         
         elif event_name in ['subscription_cancelled', 'subscription_expired']:
             user.is_premium = False

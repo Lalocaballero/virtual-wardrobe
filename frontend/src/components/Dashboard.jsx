@@ -19,6 +19,8 @@ import PackingAssistant from './PackingAssistant';
 import NotificationBell from './NotificationBell';
 import AppTour from './AppTour';
 import { tourSteps } from '../tourSteps';
+import { io } from 'socket.io-client';
+import { API_BASE } from '../store/wardrobeStore';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -90,6 +92,36 @@ const Dashboard = () => {
       // Start the tour with a short delay to allow the page to render
       setTimeout(() => setRunTour(true), 1000);
     }
+  }, []);
+
+  // Establish WebSocket connection
+  useEffect(() => {
+    // The API_BASE for websockets needs to be the root URL, not the /api path
+    const socketURL = API_BASE.replace('/api', '');
+    const socket = io(socketURL, {
+        withCredentials: true // Important for sending session cookie
+    });
+
+    socket.on('connect', () => {
+        console.log('Socket.IO connected');
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Socket.IO disconnected');
+    });
+
+    // Listen for new notifications
+    socket.on('new_notification', (data) => {
+        console.log('New notification received:', data);
+        toast.info(data.message || 'You have a new notification!');
+        // Refetch notifications to update the list and count
+        useWardrobeStore.getState().fetchNotifications();
+    });
+
+    // Clean up the connection when the component unmounts
+    return () => {
+        socket.disconnect();
+    };
   }, []);
 
   const handleTabClick = (tabId) => {

@@ -5,6 +5,7 @@ from models import ClothingItem, Outfit, User, UserActivity, db, Notification
 from collections import defaultdict, Counter
 import json
 import statistics
+from app import socketio
 
 class WardrobeIntelligenceService:
     
@@ -228,6 +229,8 @@ class WardrobeIntelligenceService:
                                 link='/dashboard/collections' # Link to smart collections page
                             )
                             db.session.add(notification)
+                            db.session.flush()
+                            socketio.emit('new_notification', {'message': notification.message, 'link': notification.link}, room=str(user_id))
                 db.session.commit()
 
             return {

@@ -1,6 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from models import db, User, Trip, Outfit, Notification
+from app import socketio
 
 def outfit_reminder_job(app):
     """
@@ -35,6 +36,8 @@ def outfit_reminder_job(app):
                         link="/dashboard/outfit"
                     )
                     db.session.add(notification)
+                    db.session.flush()
+                    socketio.emit('new_notification', {'message': notification.message, 'link': notification.link}, room=str(user.id))
         db.session.commit()
 
 def trip_reminder_job(app):
@@ -65,6 +68,8 @@ def trip_reminder_job(app):
                     link="/dashboard/packing"
                 )
                 db.session.add(notification)
+                db.session.flush()
+                socketio.emit('new_notification', {'message': notification.message, 'link': notification.link}, room=str(user.id))
         db.session.commit()
 
 def init_scheduler(app):

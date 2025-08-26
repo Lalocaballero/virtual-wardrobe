@@ -33,6 +33,7 @@ class User(UserMixin, db.Model):
     profile_image_url = db.Column(db.String(255), nullable=True)
     age = db.Column(db.Integer, nullable=True)
     gender = db.Column(db.String(30), nullable=True)
+    customer_portal_url = db.Column(db.String(255), nullable=True)
 
     settings = db.Column(JSON, nullable=True)
 
