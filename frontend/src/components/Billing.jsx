@@ -23,17 +23,11 @@ const Billing = () => {
 };
 
 const FreeUserView = () => {
-    // The Lemon Squeezy checkout link
-    const lemonSqueezyCheckoutLink = 'https://checkout.wewear.app/buy/b57504d5-bc14-4870-aa22-a7196fe68db2';
-
     return (
-        // Added a container div for better structure
-        <div className="mt-4"> 
-            <p>You are currently on the free plan.</p>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">Upgrade to premium to unlock unlimited AI suggestions, packing lists, and more!</p>
-            
-            {/* The button is now a link with more top margin (mt-6) */}
-            <a href={lemonSqueezyCheckoutLink} className="btn btn-primary mt-6 inline-block">
+        <div>
+            <p className="mt-4">You are currently on the free plan.</p>
+            <p className="mt-2">Upgrade to premium to unlock unlimited AI suggestions, packing lists, and more!</p>
+            <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary mt-6" target="_blank" rel="noopener noreferrer">
                 Upgrade to Premium
             </a>
         </div>
@@ -41,10 +35,22 @@ const FreeUserView = () => {
 };
 
 const PremiumUserView = () => {
+    const { profile } = useWardrobeStore();
+
     return (
         <div>
             <p className="mt-4">You are a premium user! ✨</p>
-            <p className="mt-2">Thank you for your support. You have access to all premium features.</p>
+            <p className="mt-2">Thank you for your support. You can manage your subscription and billing details through our secure payment portal.</p>
+            {profile?.customer_portal_url && (
+                <a 
+                    href={profile.customer_portal_url} 
+                    className="btn btn-secondary mt-6" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                >
+                    Manage Subscription
+                </a>
+            )}
         </div>
     );
 };
