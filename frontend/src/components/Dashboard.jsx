@@ -5,6 +5,7 @@ import {
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { STATUS } from 'react-joyride';
 import useWardrobeStore from '../store/wardrobeStore';
