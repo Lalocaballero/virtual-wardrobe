@@ -52,21 +52,24 @@ def lemonsqueezy_webhook():
             return jsonify({'status': 'success', 'message': 'User not found.'}), 200
 
         # Handle subscription events
-        if event_name in ['subscription_created', 'subscription_updated']:
+        if event_name == 'subscription_payment_success':
+            # This event is a strong indicator that the user should be premium.
+            user.is_premium = True
+            current_app.logger.info(f"Set user {user_email} to premium via '{event_name}' webhook.")
+
+        elif event_name in ['subscription_created', 'subscription_updated']:
+            # Only grant premium if the status is active. Ignore other statuses like 'on_trial', 'past_due', etc.
             if attributes.get('status') == 'active':
                 user.is_premium = True
-                current_app.logger.info(f"Set user {user_email} to premium via '{event_name}' webhook.")
-            # You could also handle other statuses like 'paused' or 'unpaid' here if needed
-            else:
-                user.is_premium = False
-                current_app.logger.info(f"User {user_email} subscription status is '{attributes.get('status')}'. Setting premium to false.")
+                current_app.logger.info(f"Set user {user_email} to premium via '{event_name}' (status: active) webhook.")
+            # IMPORTANT: No 'else' block here. We don't want to downgrade users based on intermediate statuses.
         
         elif event_name in ['subscription_cancelled', 'subscription_expired']:
             user.is_premium = False
             current_app.logger.info(f"Revoked premium for user {user_email} via '{event_name}' webhook.")
         
         else:
-            current_app.logger.info(f"Received unhandled Lemon Squeezy webhook event: {event_name}")
+            current_app.logger.info(f"Received and ignored unhandled Lemon Squeezy webhook event: {event_name}")
 
         db.session.commit()
 

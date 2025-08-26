@@ -9,15 +9,20 @@ profile_bp = Blueprint('profile_bp', __name__, url_prefix='/api/profile')
 @profile_bp.route('/sync-subscription', methods=['POST'])
 @login_required
 def sync_subscription():
+    # This endpoint is designed to be non-destructive.
+    # It can grant premium, but it will never revoke it.
+    # Revocation should only happen via explicit webhook events (e.g., subscription_cancelled).
+    user = current_user
+    if user.is_premium:
+        return jsonify({'is_premium': True, 'message': 'User is already premium.'})
+
     api_key = os.environ.get('LEMONSQUEEZY_API_KEY')
     if not api_key:
         current_app.logger.error("LEMONSQUEEZY_API_KEY environment variable is not set.")
         return jsonify(error={'message': 'The server is not configured for billing.'}), 500
 
     try:
-        user = current_user
         email = user.email
-
         # Fetch subscriptions from Lemon Squeezy
         url = f"https://api.lemonsqueezy.com/v1/subscriptions?filter[user_email]={email}"
         headers = {
@@ -26,20 +31,21 @@ def sync_subscription():
             "Authorization": f"Bearer {api_key}"
         }
         response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response.raise_for_status()
 
         data = response.json()
         subscriptions = data.get('data', [])
 
-        # Check for an active subscription
-        is_premium = any(
+        # Check if any subscription is active
+        is_premium_on_lemon = any(
             sub.get('attributes', {}).get('status') == 'active'
             for sub in subscriptions
         )
 
-        # Update user's premium status in the database
-        user.is_premium = is_premium
-        db.session.commit()
+        if is_premium_on_lemon:
+            user.is_premium = True
+            db.session.commit()
+            current_app.logger.info(f"Granted premium to {user.email} via manual profile sync.")
 
         return jsonify({'is_premium': user.is_premium})
 
