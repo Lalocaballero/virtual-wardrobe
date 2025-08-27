@@ -17,8 +17,11 @@ const SmartCollections = () => {
   } = useWardrobeStore();
 
   useEffect(() => {
-    fetchSmartCollections();
-  }, [fetchSmartCollections]);
+    // Only fetch if the collections haven't been loaded yet.
+    if (!smartCollections || Object.keys(smartCollections).length === 0) {
+      fetchSmartCollections();
+    }
+  }, [smartCollections, fetchSmartCollections]);
 
   const getCollectionIcon = (collectionId) => {
     const iconMap = {

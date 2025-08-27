@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Tuple
 from sqlalchemy import func, distinct, cast, Date
+from sqlalchemy.orm import selectinload
 from models import ClothingItem, Outfit, User, UserActivity, db, Notification
 from collections import defaultdict, Counter
 import json
@@ -13,8 +14,10 @@ class WardrobeIntelligenceService:
     def get_smart_collections(user_id: int) -> Dict[str, Any]:
         """Generate smart collections based on user's wardrobe and patterns"""
         try:
-            items = ClothingItem.query.filter_by(user_id=user_id).all()
-            outfits = Outfit.query.filter_by(user_id=user_id).all()
+            items = ClothingItem.query.options(selectinload(ClothingItem.owner)).filter_by(user_id=user_id).all()
+            outfits = Outfit.query.options(
+                selectinload(Outfit.clothing_items).selectinload(ClothingItem.owner)
+            ).filter_by(user_id=user_id).all()
             
             collections = {}
             
@@ -416,8 +419,10 @@ class AnalyticsService:
     def get_usage_analytics(user_id: int) -> Dict[str, Any]:
         """Get comprehensive usage analytics for user's wardrobe"""
         try:
-            items = ClothingItem.query.filter_by(user_id=user_id).all()
-            outfits = Outfit.query.filter_by(user_id=user_id).all()
+            items = ClothingItem.query.options(selectinload(ClothingItem.owner)).filter_by(user_id=user_id).all()
+            outfits = Outfit.query.options(
+                selectinload(Outfit.clothing_items).selectinload(ClothingItem.owner)
+            ).filter_by(user_id=user_id).all()
             
             # Most/Least worn analysis
             items_with_wear = [(item, item.wear_count or 0) for item in items]

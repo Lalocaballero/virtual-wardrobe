@@ -15,8 +15,10 @@ const UsageAnalytics = () => {
   } = useWardrobeStore();
 
   useEffect(() => {
-    fetchUsageAnalytics();
-  }, [fetchUsageAnalytics]);
+    if (!usageAnalytics) {
+      fetchUsageAnalytics();
+    }
+  }, [usageAnalytics, fetchUsageAnalytics]);
 
   if (analyticsLoading) {
     return (

@@ -43,8 +43,11 @@ const WardrobeManager = () => {
   });
 
   useEffect(() => {
-    fetchWardrobe();
-  }, [fetchWardrobe]);
+    // Only fetch the wardrobe if it's not already loaded.
+    if (wardrobe.length === 0) {
+      fetchWardrobe();
+    }
+  }, [wardrobe.length, fetchWardrobe]);
 
   const handleAddItem = async (e) => {
     e.preventDefault();

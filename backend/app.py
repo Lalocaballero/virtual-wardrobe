@@ -20,6 +20,7 @@ import cloudinary.api
 # Import db, User, ClothingItem, Outfit from models.
 from models import db, User, ClothingItem, Outfit, UserActivity, Notification
 from utils.auth import get_actual_user
+from sqlalchemy.orm import selectinload
 from utils.limiter import limiter, get_user_specific_limit
 
 # Initialize extensions globally
@@ -765,7 +766,7 @@ def create_app():
     def get_wardrobe():
         try:
             user = get_actual_user()
-            items = ClothingItem.query.filter_by(user_id=user.id).all()
+            items = ClothingItem.query.options(selectinload(ClothingItem.owner)).filter_by(user_id=user.id).all()
             return jsonify({'items': [item.to_dict() for item in items]})
         except Exception as e:
             if app.debug:
@@ -1017,7 +1018,9 @@ def create_app():
             month = request.args.get('month', type=int)
 
             user = get_actual_user()
-            query = Outfit.query.filter_by(user_id=user.id)
+            query = Outfit.query.options(
+                selectinload(Outfit.clothing_items).selectinload(ClothingItem.owner)
+            ).filter_by(user_id=user.id)
 
             # Date range filter (for list view)
             if start_date_str:

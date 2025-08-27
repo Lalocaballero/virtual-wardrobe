@@ -90,14 +90,18 @@ const OutfitHistory = () => {
   }, [fetchOutfitHistory]);
 
   useEffect(() => {
+    // For list view, only fetch if the history is empty to prevent re-fetching on tab switch.
+    // For calendar view, we always fetch for the current month.
     if (view === 'list') {
-      handleFetchHistory();
+      if (outfitHistory.length === 0) {
+        handleFetchHistory();
+      }
     } else {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
       handleFetchHistory({ year, month });
     }
-  }, [view, currentDate, handleFetchHistory]);
+  }, [view, currentDate, handleFetchHistory, outfitHistory.length]);
 
   const handleFilter = () => {
     if (startDate && endDate) {

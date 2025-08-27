@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
+from sqlalchemy.orm import selectinload
 from models import ClothingItem, User, db, Notification
 import json
 from app import socketio
@@ -125,8 +126,8 @@ class LaundryIntelligenceService:
     def get_laundry_alerts(user_id: int) -> Dict[str, Any]:
         """Get laundry alerts and recommendations for a user."""
         try:
-            # Get all user's items
-            items = ClothingItem.query.filter_by(user_id=user_id).all()
+            # Get all user's items, eagerly loading the owner to prevent N+1 queries
+            items = ClothingItem.query.options(selectinload(ClothingItem.owner)).filter_by(user_id=user_id).all()
             
             # Get all items that are not clean or are marked as needing washing
             items_needing_wash = [
