@@ -1,5 +1,4 @@
 import os
-import time
 import requests
 from flask import Blueprint, jsonify, current_app
 from flask_login import login_required, current_user
@@ -28,15 +27,7 @@ def create_portal_session():
             "Content-Type": "application/vnd.api+json",
             "Authorization": f"Bearer {api_key}"
         }
-        
-        start_time = time.time()
-        current_app.logger.info(f"Requesting customer portal URL for user {user.id} from Lemon Squeezy.")
-        
-        response = requests.get(url, headers=headers, timeout=15) # Add a 15-second timeout
-        
-        duration = time.time() - start_time
-        current_app.logger.info(f"Lemon Squeezy API call for user {user.id} completed in {duration:.2f} seconds.")
-
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
 
         data = response.json()
@@ -48,10 +39,6 @@ def create_portal_session():
 
         return jsonify({'url': portal_url})
 
-    except requests.exceptions.Timeout:
-        duration = time.time() - start_time
-        current_app.logger.error(f"Lemon Squeezy API request timed out after {duration:.2f} seconds for user {user.id}.")
-        return jsonify(error={'message': 'The request to our billing provider timed out. Please try again in a few moments.'}), 504
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"Lemon Squeezy API request failed: {e}")
         return jsonify(error={'message': 'Failed to create customer portal session.'}), 502
