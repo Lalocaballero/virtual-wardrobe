@@ -62,15 +62,12 @@ def lemonsqueezy_webhook():
             if attributes.get('status') == 'active':
                 user.is_premium = True
                 
-                # Get the 'urls' object from the attributes
-                urls = attributes.get('urls', {})
-                portal_url = urls.get('customer_portal')
-                
-                # If the portal URL exists, save it to the user
-                if portal_url:
-                    user.customer_portal_url = portal_url
-                    current_app.logger.info(f"Updated customer portal URL for {user_email}.")
-                
+                # Get the subscription ID and save it to the user
+                subscription_id = data.get('data', {}).get('id')
+                if subscription_id:
+                    user.subscription_id = subscription_id
+                    current_app.logger.info(f"Updated subscription ID for {user_email} to {subscription_id}.")
+
                 current_app.logger.info(f"Set user {user_email} to premium via '{event_name}' (status: active) webhook.")
         
         elif event_name in ['subscription_cancelled', 'subscription_expired']:

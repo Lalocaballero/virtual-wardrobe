@@ -167,6 +167,9 @@ def create_app():
     from routes.profile import profile_bp
     app.register_blueprint(profile_bp)
 
+    from routes.billing import billing_bp
+    app.register_blueprint(billing_bp)
+
     from routes.webhooks import webhooks_bp
     app.register_blueprint(webhooks_bp)
 
@@ -525,7 +528,6 @@ def create_app():
                 'email': user.email,
                 'is_admin': user.is_admin,
                 'is_premium': user.is_premium,
-                'customer_portal_url': user.customer_portal_url,
                 'display_name': user.display_name,
                 'profile_image_url': user.profile_image_url,
                 'location': user.location,
@@ -534,33 +536,8 @@ def create_app():
                 'laundry_thresholds': user.get_laundry_thresholds(),
                 'notification_settings': user.get_notification_settings(),
                 'theme': (user.settings or {}).get('theme', 'light'),
-                'wardrobe_stats': wardrobe_stats,
-                'customer_portal_url': None # Default to None
+                'wardrobe_stats': wardrobe_stats
             }
-
-            if user.is_premium:
-                import requests
-                api_key = os.environ.get('LEMONSQUEEZY_API_KEY')
-                if api_key:
-                    try:
-                        url = f"https://api.lemonsqueezy.com/v1/subscriptions?filter[user_email]={user.email}"
-                        headers = {
-                            "Accept": "application/vnd.api+json",
-                            "Authorization": f"Bearer {api_key}"
-                        }
-                        response = requests.get(url, headers=headers)
-                        response.raise_for_status()
-                        subscriptions = response.json().get('data', [])
-                        
-                        # Find the first active subscription and get its portal URL
-                        for sub in subscriptions:
-                            if sub.get('attributes', {}).get('status') == 'active':
-                                profile_data['customer_portal_url'] = sub.get('attributes', {}).get('urls', {}).get('customer_portal')
-                                break # Stop after finding the first active one
-                    except requests.exceptions.RequestException as e:
-                        current_app.logger.error(f"Could not fetch Lemon Squeezy subscription for portal URL: {e}")
-                else:
-                    current_app.logger.warning("LEMONSQUEEZY_API_KEY not set; cannot fetch customer portal URL.")
 
             return jsonify(profile_data)
             

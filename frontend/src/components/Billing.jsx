@@ -35,22 +35,41 @@ const FreeUserView = () => {
 };
 
 const PremiumUserView = () => {
-    const { profile } = useWardrobeStore();
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    const handleManageSubscription = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/billing/create-portal-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to create portal session');
+            }
+            const data = await response.json();
+            window.location.href = data.url;
+        } catch (error) {
+            console.error('Error managing subscription:', error);
+            // You might want to show an error message to the user
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div>
             <p className="mt-4">You are a premium user! ✨</p>
             <p className="mt-2">Thank you for your support. You can manage your subscription and billing details through our secure payment portal.</p>
-            {profile?.customer_portal_url && (
-                <a 
-                    href={profile.customer_portal_url} 
-                    className="btn btn-secondary mt-6" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                >
-                    Manage Subscription
-                </a>
-            )}
+            <button 
+                onClick={handleManageSubscription}
+                className="btn btn-secondary mt-6"
+                disabled={isLoading}
+            >
+                {isLoading ? 'Redirecting...' : 'Manage Subscription'}
+            </button>
         </div>
     );
 };
