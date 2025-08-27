@@ -513,16 +513,6 @@ def create_app():
         """Fetches all profile data for the currently logged-in user."""
         user = get_actual_user()
         try:
-            total_items = ClothingItem.query.filter_by(user_id=user.id).count()
-            total_outfits = Outfit.query.filter_by(user_id=user.id).count()
-            items_never_worn = ClothingItem.query.filter_by(user_id=user.id, outfits=None).count()
-
-            wardrobe_stats = {
-                'total_items': total_items,
-                'total_outfits': total_outfits,
-                'items_never_worn': items_never_worn
-            }
-
             profile_data = {
                 'id': user.id,
                 'email': user.email,
@@ -535,8 +525,7 @@ def create_app():
                 'gender': user.gender,
                 'laundry_thresholds': user.get_laundry_thresholds(),
                 'notification_settings': user.get_notification_settings(),
-                'theme': (user.settings or {}).get('theme', 'light'),
-                'wardrobe_stats': wardrobe_stats
+                'theme': (user.settings or {}).get('theme', 'light')
             }
 
             return jsonify(profile_data)
@@ -544,6 +533,26 @@ def create_app():
         except Exception as e:
             traceback.print_exc()
             return jsonify({'error': 'Failed to fetch profile data.'}), 500
+
+    @app.route('/api/profile/stats', methods=['GET'])
+    @login_required
+    def get_profile_stats():
+        """Fetches wardrobe statistics for the currently logged-in user."""
+        user = get_actual_user()
+        try:
+            total_items = ClothingItem.query.filter_by(user_id=user.id).count()
+            total_outfits = Outfit.query.filter_by(user_id=user.id).count()
+            items_never_worn = ClothingItem.query.filter_by(user_id=user.id, outfits=None).count()
+
+            wardrobe_stats = {
+                'total_items': total_items,
+                'total_outfits': total_outfits,
+                'items_never_worn': items_never_worn
+            }
+            return jsonify(wardrobe_stats)
+        except Exception as e:
+            traceback.print_exc()
+            return jsonify({'error': 'Failed to fetch wardrobe stats.'}), 500
 
     @app.route('/api/profile', methods=['PUT'])
     @login_required

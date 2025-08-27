@@ -1,6 +1,7 @@
 // src/components/UserProfile.jsx
 
 import React, { useEffect, useState, useRef } from 'react';
+import { ChartPieIcon, CubeIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
 import { useLocation } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import ImageUpload from './ImageUpload';
@@ -8,8 +9,26 @@ import { UserCircleIcon, LockClosedIcon, ArrowDownTrayIcon, TrashIcon, CreditCar
 import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
 import Billing from './Billing';
 
+const StatCard = ({ title, value, icon: Icon, isLoading }) => (
+    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg flex items-center space-x-4">
+        <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full">
+            <Icon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+        </div>
+        <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+            {isLoading ? (
+                <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-12 mt-1 animate-pulse"></div>
+            ) : (
+                <p className="text-2xl font-bold">{value}</p>
+            )}
+        </div>
+    </div>
+);
+
 const UserProfile = () => {
   const [activeSubTab, setActiveSubTab] = useState('profile');
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const location = useLocation();
   const {
     profile,
@@ -71,6 +90,25 @@ const UserProfile = () => {
       });
     }
   }, [profile]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/profile/stats');
+        if (!response.ok) {
+          throw new Error('Failed to fetch stats');
+        }
+        const data = await response.json();
+        setStats(data);
+      } catch (error) {
+        console.error("Error fetching profile stats:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const handleNotificationSettingChange = (setting) => {
     setFormData(prev => ({
@@ -151,6 +189,29 @@ const UserProfile = () => {
                   </div>
               </div>
           )}
+
+          {/* --- Wardrobe Stats Section --- */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <StatCard 
+                  title="Total Items" 
+                  value={stats?.total_items} 
+                  icon={CubeIcon}
+                  isLoading={statsLoading}
+              />
+              <StatCard 
+                  title="Total Outfits" 
+                  value={stats?.total_outfits} 
+                  icon={ChartPieIcon}
+                  isLoading={statsLoading}
+              />
+              <StatCard 
+                  title="Items Never Worn" 
+                  value={stats?.items_never_worn} 
+                  icon={ArchiveBoxIcon}
+                  isLoading={statsLoading}
+              />
+          </div>
+
           <div className="flex border-b border-gray-200 dark:border-gray-700">
               <button
                   onClick={() => setActiveSubTab('profile')}
