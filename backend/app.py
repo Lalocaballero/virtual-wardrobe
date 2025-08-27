@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from collections import Counter
+from sqlalchemy import func, case
 import json
 import traceback
 import uuid
@@ -513,14 +514,18 @@ def create_app():
         """Fetches all profile data for the currently logged-in user."""
         user = get_actual_user()
         try:
-            total_items = ClothingItem.query.filter_by(user_id=user.id).count()
+            # Optimized query for wardrobe stats
+            item_stats = db.session.query(
+                func.count(ClothingItem.id).label('total_items'),
+                func.sum(case([(ClothingItem.outfits.any(), 0)], else_=1)).label('items_never_worn')
+            ).filter(ClothingItem.user_id == user.id).one()
+
             total_outfits = Outfit.query.filter_by(user_id=user.id).count()
-            items_never_worn = ClothingItem.query.filter(ClothingItem.user_id == user.id, ~ClothingItem.outfits.any()).count()
 
             wardrobe_stats = {
-                'total_items': total_items,
-                'total_outfits': total_outfits,
-                'items_never_worn': items_never_worn
+                'total_items': item_stats.total_items or 0,
+                'total_outfits': total_outfits or 0,
+                'items_never_worn': item_stats.items_never_worn or 0
             }
 
             profile_data = {
