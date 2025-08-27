@@ -4,8 +4,7 @@ import {
   ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon,
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
-import { Toaster } from 'react-hot-toast';
-import toast from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { STATUS } from 'react-joyride';
 import useWardrobeStore from '../store/wardrobeStore';
@@ -97,8 +96,10 @@ const Dashboard = () => {
 
   // Establish WebSocket connection
   useEffect(() => {
-    // The API_BASE for websockets needs to be the root URL, not the /api path
-    const socketURL = API_BASE.replace('/api', '');
+    // Properly derive the root URL for the WebSocket connection from the API base URL.
+    const url = new URL(API_BASE);
+    const socketURL = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}`;
+    
     const socket = io(socketURL, {
         withCredentials: true // Important for sending session cookie
     });
