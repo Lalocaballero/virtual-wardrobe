@@ -515,7 +515,7 @@ def create_app():
         try:
             total_items = ClothingItem.query.filter_by(user_id=user.id).count()
             total_outfits = Outfit.query.filter_by(user_id=user.id).count()
-            items_never_worn = ClothingItem.query.filter_by(user_id=user.id, outfits=None).count()
+            items_never_worn = ClothingItem.query.filter(ClothingItem.user_id == user.id, ~ClothingItem.outfits.any()).count()
 
             wardrobe_stats = {
                 'total_items': total_items,
