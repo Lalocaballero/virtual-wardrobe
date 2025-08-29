@@ -236,6 +236,37 @@ const PackingAssistant = () => {
                 )
               ))}
             </div>
+
+            {/* NEW: Special Outfits Section */}
+            {currentTripPackingList.special_outfits && Object.keys(currentTripPackingList.special_outfits).length > 0 && (
+              <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Outfits for Special Activities</h3>
+                <div className="space-y-8">
+                  {Object.entries(currentTripPackingList.special_outfits).map(([activity, outfit]) => (
+                    <div key={activity} className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50 p-5">
+                      <h4 className="font-semibold text-lg capitalize text-indigo-600 dark:text-indigo-400 mb-2">{activity}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 italic">"{outfit.reasoning}"</p>
+                      <ul className="space-y-2">
+                        {outfit.selected_items.map(itemId => {
+                          // Find the full item details from the main packing list
+                          const allItems = Object.values(organizedList).flat();
+                          const fullItem = allItems.find(i => i.clothing_item?.id === itemId)?.clothing_item;
+                          return fullItem ? (
+                            <li key={itemId} className="flex items-center">
+                              <img src={fullItem.image_url} alt={fullItem.name} className="h-10 w-10 rounded-md object-cover mr-3" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{fullItem.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{fullItem.type} - {fullItem.color}</p>
+                              </div>
+                            </li>
+                          ) : null;
+                        })}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

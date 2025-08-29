@@ -223,13 +223,73 @@ class AIOutfitService:
             content = response.choices[0].message.content.strip()
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
             if json_match:
-                return json.loads(json_match.group())
+                result = json.loads(json_match.group())
+                
+                # --- NEW: Step 2 - Generate outfits for special activities ---
+                activities = result.get('special_activities', [])
+                if activities:
+                    # Get the full item details for the packed items
+                    packed_item_ids = set()
+                    for category in result.get('packing_list', {}).values():
+                        if isinstance(category, list) and category and isinstance(category[0], dict):
+                           packed_item_ids.update(item['id'] for item in category)
+                    
+                    packed_items = [item for item in clean_items if item['id'] in packed_item_ids]
+                    
+                    # Use average weather for activity outfit suggestions
+                    weather_str = weather_forecast.get('forecast_summary_text', 'mild weather')
+                    # Determine season from trip dates
+                    start_month = trip_details.get('start_date').month
+                    season = 'winter' if start_month in [12,1,2] else 'spring' if start_month in [3,4,5] else 'summer' if start_month in [6,7,8] else 'fall'
+
+                    activity_outfits = self._generate_outfits_for_activities(packed_items, activities, weather_str, season)
+                    result['special_outfits'] = activity_outfits
+
+                return result
             else:
                 return {"error": "Failed to parse AI response."}
 
         except Exception as e:
             print(f"AI packing list service error: {e}")
             return {"error": "Failed to generate packing list from AI."}
+
+    def _generate_outfits_for_activities(self, packing_list: List[Dict], activities: List[str], weather: str, season: str) -> Dict[str, Any]:
+        """Generates specific outfits for a list of special activities."""
+        
+        activity_outfits = {}
+        
+        # A simple mapping from keywords to moods
+        activity_mood_map = {
+            'dinner': 'elegant', 'party': 'party', 'wedding': 'formal',
+            'formal': 'formal', 'business': 'professional', 'meeting': 'professional',
+            'gym': 'sporty', 'running': 'sporty', 'workout': 'sporty', 'hike': 'sporty',
+            'beach': 'casual', 'pool': 'casual', 'tourist': 'casual', 'explore': 'casual',
+        }
+
+        for activity in activities:
+            activity_lower = activity.lower()
+            mood = 'casual' # Default mood
+            
+            # Find the most appropriate mood for the activity
+            for keyword, mapped_mood in activity_mood_map.items():
+                if keyword in activity_lower:
+                    mood = mapped_mood
+                    break
+            
+            # Generate an outfit for this specific activity using only the clothes from the packing list
+            # We pass a blank outfit history to avoid conflicts with general history
+            outfit_suggestion = self.generate_outfit_suggestion(
+                wardrobe=packing_list,
+                weather=weather,
+                mood=mood,
+                season=season,
+                outfit_history=[]
+            )
+            
+            # Add the suggested outfit to our results
+            activity_outfits[activity] = outfit_suggestion
+            
+        return activity_outfits
 
     def _get_packing_system_prompt(self) -> str:
         """Generates the system prompt for the packing list feature."""
@@ -251,7 +311,8 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
     "Shoes": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
     "Accessories": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
     "Essentials": [ "Socks", "Underwear", "Pajamas" ]
-  }
+  },
+  "special_activities": ["activity one", "activity two", ...]
 }
 """
 
@@ -304,8 +365,9 @@ Accessories: {json.dumps(wardrobe_by_category['Accessories'], indent=2)}
 2. The number of items should be appropriate for the trip duration. For example, for a 7-day trip, suggest maybe 4-5 tops, 2-3 bottoms, etc.
 3. Prioritize items that can be mixed and matched.
 4. Ensure the list is appropriate for the weather and the trip's purpose.
-5. Include a list of essentials like socks, underwear, and pajamas.
-6. Respond ONLY with a valid JSON object in the specified format.
+5. **Analyze the 'Notes' section of the Trip Details. Identify any special activities or events mentioned (e.g., "fancy dinner", "wedding", "gym", "beach day"). Populate the `special_activities` array in the JSON output with these activities. If no activities are mentioned, return an empty array `[]`.**
+6. Include a list of essentials like socks, underwear, and pajamas.
+7. Respond ONLY with a valid JSON object in the specified format.
 """
         return prompt
 
