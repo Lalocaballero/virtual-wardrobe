@@ -115,6 +115,8 @@ class ClothingItem(db.Model):
     fabric = db.Column(db.String(50))
     mood_tags = db.Column(db.Text)
     brand = db.Column(db.String(50))
+    fit = db.Column(db.String(50), nullable=True)
+    pattern = db.Column(db.String(50), nullable=True)
     condition = db.Column(db.String(20), default='good')
     is_clean = db.Column(db.Boolean, default=True)
     image_url = db.Column(db.String(255))
@@ -159,6 +161,8 @@ class ClothingItem(db.Model):
             'fabric': self.fabric,
             'mood_tags': json.loads(self.mood_tags) if self.mood_tags else [],
             'brand': self.brand,
+            'fit': self.fit,
+            'pattern': self.pattern,
             'condition': self.condition,
             'is_clean': self.is_clean,
             'image_url': self.image_url,

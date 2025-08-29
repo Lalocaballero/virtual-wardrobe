@@ -8,6 +8,8 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
     type: item?.type || '',
     color: item?.color || '',
     style: item?.style || '',
+    fit: item?.fit || '',
+    pattern: item?.pattern || '',
     season: item?.season || 'all',
     brand: item?.brand || '',
     fabric: item?.fabric || '',
@@ -109,9 +111,10 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Color</label>
+              <label className="block text-sm font-medium mb-2">Color *</label>
               <input
                 type="text"
+                required
                 value={formData.color}
                 onChange={(e) => setFormData({...formData, color: e.target.value})}
                 className="w-full"
@@ -119,8 +122,9 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Style</label>
+              <label className="block text-sm font-medium mb-2">Style *</label>
               <select
+                required
                 value={formData.style}
                 onChange={(e) => setFormData({...formData, style: e.target.value})}
                 className="w-full"
@@ -135,6 +139,28 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 <option value="vintage">Vintage</option>
                 <option value="trendy">Trendy</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Fit</label>
+              <input
+                type="text"
+                value={formData.fit}
+                onChange={(e) => setFormData({...formData, fit: e.target.value})}
+                className="w-full"
+                placeholder="e.g., slim, relaxed, oversized"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Pattern</label>
+              <input
+                type="text"
+                value={formData.pattern}
+                onChange={(e) => setFormData({...formData, pattern: e.target.value})}
+                className="w-full"
+                placeholder="e.g., solid, striped, floral"
+              />
             </div>
 
             <div>

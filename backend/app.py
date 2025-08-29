@@ -716,14 +716,20 @@ def create_app():
         try:
             user = get_actual_user()
             data = request.get_json()
+
+            # --- Validation for mandatory fields ---
+            required_fields = ['name', 'type', 'color', 'style']
+            for field in required_fields:
+                if not data.get(field) or not data.get(field).strip():
+                    return jsonify({'error': f'The "{field}" field is required and cannot be empty.'}), 400
+            
             purchase_date_str = data.get('purchase_date')
             purchase_date = None
             if purchase_date_str:
                 try:
-                    # Handle ISO format strings (e.g., from JavaScript's toISOString)
                     purchase_date = datetime.fromisoformat(purchase_date_str.replace('Z', '+00:00'))
                 except (ValueError, TypeError):
-                    purchase_date = None # Keep it None if format is wrong or type is not string
+                    purchase_date = None
 
             cost = data.get('purchase_cost')
             purchase_cost = float(cost) if cost is not None and cost != '' else None
@@ -732,8 +738,10 @@ def create_app():
                 user_id=user.id,
                 name=data['name'],
                 type=data['type'],
-                style=data.get('style', ''),
-                color=data.get('color', ''),
+                style=data['style'],
+                color=data['color'],
+                pattern=data.get('pattern'),
+                fit=data.get('fit'),
                 season=data.get('season', 'all'),
                 fabric=data.get('fabric', ''),
                 mood_tags=json.dumps(data.get('mood_tags', [])),
@@ -782,10 +790,19 @@ def create_app():
             if not item or item.user_id != user.id:
                 return jsonify({'error': 'Item not found'}), 404
             data = request.get_json()
+
+            # --- Validation for mandatory fields ---
+            # Ensure mandatory fields are not updated to be empty
+            for field in ['name', 'type', 'color', 'style']:
+                if field in data and (data[field] is None or not str(data[field]).strip()):
+                    return jsonify({'error': f'The "{field}" field cannot be empty.'}), 400
+
             item.name = data.get('name', item.name)
             item.type = data.get('type', item.type)
             item.style = data.get('style', item.style)
             item.color = data.get('color', item.color)
+            item.pattern = data.get('pattern', item.pattern)
+            item.fit = data.get('fit', item.fit)
             item.season = data.get('season', item.season)
             item.fabric = data.get('fabric', item.fabric)
             item.mood_tags = json.dumps(data.get('mood_tags', json.loads(item.mood_tags or '[]')))
