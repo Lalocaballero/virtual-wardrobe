@@ -29,6 +29,7 @@ socketio = SocketIO()
 migrate = Migrate()
 
 def create_app():
+    print("--- [1] STARTING APP FACTORY ---")
     app = Flask(__name__)
 
     # --- Application Configuration ---
@@ -100,12 +101,16 @@ def create_app():
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize extensions with the app instance
+    print("--- [2] CONFIGURING DATABASE ---")
     db.init_app(app)
     migrate.init_app(app, db)
+    print("--- [3] DATABASE CONFIGURED ---")
+    print("--- [4] INITIALIZING EXTENSIONS (LOGIN, LIMITER) ---")
     login_manager.init_app(app)
     limiter.init_app(app)
+    print("--- [5] EXTENSIONS INITIALIZED ---")
     login_manager.session_protection = "strong"
-    
+
     @app.teardown_appcontext
     def shutdown_session(exception=None):
           db.session.remove()
@@ -127,7 +132,9 @@ def create_app():
          supports_credentials=True,
          methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 
+    print("--- [6] CONFIGURING SOCKET.IO ---")
     socketio.init_app(app, cors_allowed_origins=origins)
+    print("--- [7] SOCKET.IO CONFIGURED ---")
 
     if app.debug:
         print(f"CORS configured with origins: {origins}")
@@ -153,6 +160,7 @@ def create_app():
         print("⚠️ CLOUDINARY_URL environment variable not found. Image uploads will fail.")    
 
     # --- Initialize services ---
+    print("--- [8] REGISTERING BLUEPRINTS ---")
     from routes.admin import admin_bp
     app.register_blueprint(admin_bp)
 
@@ -173,6 +181,7 @@ def create_app():
 
     from routes.webhooks import webhooks_bp
     app.register_blueprint(webhooks_bp)
+    print("--- [9] BLUEPRINTS REGISTERED ---")
 
     from utils.ai_service import AIOutfitService
     from utils.weather_service import WeatherService
@@ -189,9 +198,11 @@ def create_app():
     app.analytics_service = AnalyticsService()
 
     # Initialize and start the scheduler
+    print("--- [10] INITIALIZING SCHEDULER ---")
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         with app.app_context():
             init_scheduler(app)
+    print("--- [11] SCHEDULER INITIALIZED ---")
 
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -1350,6 +1361,7 @@ def create_app():
                 print(f"Cloudinary Upload error: {e}")
             return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
+    print("--- [12] APP CREATION COMPLETE ---")
     return app
 
 app = create_app()
