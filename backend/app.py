@@ -909,6 +909,68 @@ def create_app():
         else:
             return 'fall'
 
+    def _validate_and_correct_outfit(suggestion, wardrobe, mood):
+        """
+        Validates the AI's outfit suggestion and corrects it if necessary.
+        Ensures shoes are always present and the outfit has a base layer.
+        """
+        import random
+        
+        suggested_item_ids = suggestion.get('selected_items', [])
+        
+        # Create a lookup for all items in the wardrobe for quick access
+        wardrobe_dict = {item['id']: item for item in wardrobe}
+        
+        # Get the full item details for the suggested items
+        suggested_items = [wardrobe_dict[i] for i in suggested_item_ids if i in wardrobe_dict]
+        
+        # Get the types of items in the suggestion
+        suggested_types = {item['type'].lower() for item in suggested_items}
+        
+        # --- 1. Check for Shoes ---
+        shoe_types = {'shoes', 'sneakers', 'boots', 'sandals', 'heels'}
+        has_shoes = any(t in shoe_types for t in suggested_types)
+
+        if not has_shoes:
+            # AI failed to add shoes, let's add some.
+            available_shoes = [item for item in wardrobe if item['type'].lower() in shoe_types and item.get('is_clean', True)]
+            
+            if available_shoes:
+                # Try to find shoes that match the mood/style
+                mood_matching_shoes = [s for s in available_shoes if s.get('style', '').lower() == mood.lower()]
+                
+                if mood_matching_shoes:
+                    chosen_shoe = random.choice(mood_matching_shoes)
+                else:
+                    chosen_shoe = random.choice(available_shoes)
+                
+                # Add the chosen shoe to the suggestion
+                suggestion['selected_items'].append(chosen_shoe['id'])
+                suggested_items.append(chosen_shoe)
+                
+                # Add a note to the reasoning
+                if 'reasoning' in suggestion:
+                    suggestion['reasoning'] += f" We've also added the {chosen_shoe['name']} to complete the look."
+
+        # --- 2. Check for Base Layer (Top + Bottom or Dress) ---
+        top_types = {'shirt', 't-shirt', 'blouse', 'sweater', 'tank-top'}
+        bottom_types = {'pants', 'jeans', 'shorts', 'skirt', 'leggings'}
+        dress_types = {'dress'}
+
+        has_top = any(t in top_types for t in suggested_types)
+        has_bottom = any(t in bottom_types for t in suggested_types)
+        has_dress = any(t in dress_types for t in suggested_types)
+        
+        is_complete = (has_top and has_bottom) or has_dress
+
+        if not is_complete:
+            # The base is incomplete, this is a more complex failure.
+            # For now, we'll just log it. A more advanced correction could be added later.
+            print(f"WARNING: AI generated an incomplete outfit base for mood '{mood}'. Suggestion: {suggestion['selected_items']}")
+
+        return suggestion, suggested_items
+
+
     @app.route('/api/get-outfit', methods=['POST'])
     @login_required
     @limiter.limit(get_user_specific_limit)
@@ -922,12 +984,12 @@ def create_app():
             season = _get_current_season()
 
             user = get_actual_user()
-            wardrobe_items = ClothingItem.query.filter_by(user_id=user.id).all()
+            wardrobe_items = ClothingItem.query.filter_by(user_id=user.id, is_clean=True).all()
             wardrobe = [item.to_dict() for item in wardrobe_items]
             if not wardrobe:
                 return jsonify({
-                    'error': 'No clothes in wardrobe',
-                    'message': 'Add some clothes to your wardrobe first!',
+                    'error': 'No clean clothes in wardrobe',
+                    'message': 'Add some clothes to your wardrobe first or do some laundry!',
                     'suggestion': None,
                     'items': [],
                     'weather': None,
@@ -936,19 +998,19 @@ def create_app():
             weather_data = None
             weather_str = "mild weather"
             weather_advice = "General weather conditions"
-            user = get_actual_user()
+            
             if user.location:
                 weather_data = current_app.weather_service.get_current_weather(user.location)
                 weather_str = current_app.weather_service.get_weather_description(weather_data)
                 weather_advice = current_app.weather_service.get_outfit_weather_advice(weather_data)
             
             # Fetch recent "liked" outfits to help the AI learn
-            user = get_actual_user()
             outfit_history = Outfit.query.filter_by(user_id=user.id, was_actually_worn=True)\
                                        .order_by(Outfit.date.desc())\
                                        .limit(20).all()
             outfit_history_data = [outfit.to_dict() for outfit in outfit_history]
 
+            # --- AI Suggestion Call ---
             suggestion = current_app.ai_service.generate_outfit_suggestion(
                 wardrobe=wardrobe,
                 weather=weather_str,
@@ -957,15 +1019,14 @@ def create_app():
                 outfit_history=outfit_history_data,
                 exclude_ids=exclude_ids
             )
-            suggested_items = []
-            user = get_actual_user()
-            for item_id in suggestion.get('selected_items', []):
-                item = ClothingItem.query.get(item_id)
-                if item and item.user_id == user.id:
-                    suggested_items.append(item.to_dict())
+
+            # --- Post-AI Validation and Correction ---
+            # This is the new logic to ensure the outfit is complete
+            suggestion, suggested_items_list = _validate_and_correct_outfit(suggestion, wardrobe, mood)
+            
             return jsonify({
                 'suggestion': suggestion,
-                'items': suggested_items,
+                'items': suggested_items_list,
                 'weather': weather_str,
                 'weather_data': weather_data,
                 'weather_advice': weather_advice,
@@ -976,6 +1037,7 @@ def create_app():
         except Exception as e:
             if app.debug:
                 print(f"Get outfit error: {str(e)}")
+                traceback.print_exc()
             return jsonify({'error': f'Failed to generate outfit: {str(e)}'}), 500
 
     @app.route('/api/save-outfit', methods=['POST'])

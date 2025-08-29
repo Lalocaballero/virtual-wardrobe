@@ -361,10 +361,15 @@ CONTEXT:
 - Recently worn items to avoid (IDs): {recent_item_ids}
 - Special instruction: {variety_instruction}
 
-NEGATIVE CONSTRAINTS (Rules you MUST follow):
-- DO NOT suggest an outfit with more than 3 primary colors (neutrals like black, white, grey, beige do not count).
-- DO NOT suggest items that are clearly for the wrong season, even if they are in the available list. This is a hard rule.
-- DO NOT suggest incomplete outfits. The outfit must contain at least a top and a bottom, OR a dress. It must always include shoes.
+OUTFIT RULES (You MUST follow these):
+- **Completeness:** An outfit MUST be complete. This means it needs a base (a top + a bottom, OR a dress) AND it MUST include shoes.
+- **Weather-Appropriate Layers:** You MUST add weather-appropriate layers. If the weather is 'cold', 'cool', or 'rainy', you MUST include an 'outerwear' item. If the weather is 'sunny', you should consider adding an 'accessory' like sunglasses.
+- **Seasonal Accuracy:** DO NOT suggest items that are clearly for the wrong season (e.g., a winter coat in summer). This is a hard rule.
+- **The 3-Color Rule (60/30/10 Principle):** Create a harmonious look by using a maximum of three colors.
+    -   **Dominant Color (60%):** Assign this to the largest items, like a coat, dress, or pants.
+    -   **Secondary Color (30%):** Use this for a major piece like a shirt or top.
+    -   **Accent Color (10%):** Use this for small accessories like a belt, scarf, or jewelry to add a pop of color.
+    -   (Neutrals like black, white, grey, and beige can be used freely and don't strictly count towards this limit).
 
 AVAILABLE WARDROBE:
 Tops: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['tops']], indent=2)}
@@ -375,16 +380,15 @@ Dresses: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_incl
 Accessories: {json.dumps([{k: v for k, v in item.items() if k in item_fields_to_include} for item in wardrobe_by_category['accessories']], indent=2)}
 
 REQUIREMENTS:
-1. Create a weather-appropriate and SEASONALLY-APPROPRIATE outfit for a '{mood}' mood. The user's requested season is '{season}'.
-2. **Personalize the outfit based on the user's STYLE DNA and OUTFIT HISTORY.** This is crucial.
-3. **Adhere strictly to the requested mood/style.** For a '{mood}' request, the outfit's overall aesthetic must be '{mood}'. Avoid including items from other distinct styles (like sporty, formal) unless they are versatile basics (e.g., plain t-shirts, simple jeans).
-4. AVOID recently worn items when possible (see IDs above).
-5. Ensure color coordination and style harmony.
-6. Consider layering for weather conditions.
-7. Include essential pieces (top + bottom OR dress, plus shoes).
-8. Add outerwear/accessories if weather/mood appropriate.
-9. {variety_instruction}
-10. BE CREATIVE (but within the user's style) and suggest different combinations each time.
+1. **Create a COMPLETE and LAYERED outfit.** Your goal is to create a full look, not just pick a few items.
+2. The outfit must be weather-appropriate and SEASONALLY-APPROPRIATE for a '{mood}' mood in '{season}'.
+3. **Personalize the outfit** based on the user's STYLE DNA and OUTFIT HISTORY. This is crucial.
+4. **Adhere strictly to the requested mood/style.** For a '{mood}' request, the outfit's overall aesthetic must be '{mood}'.
+5. **Include appropriate outerwear and accessories** as dictated by the weather and mood. A complete outfit often has more than 3 pieces.
+6. AVOID recently worn items when possible (see IDs above).
+7. Ensure color coordination and style harmony according to the 60/30/10 rule.
+8. {variety_instruction}
+9. BE CREATIVE (but within the user's style) and suggest different combinations each time.
 
 RESPONSE FORMAT (JSON only):
 {{
