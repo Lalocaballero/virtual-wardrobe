@@ -1,5 +1,4 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.executors.gevent import GeventExecutor
 from datetime import datetime, timedelta
 from models import db, User, Trip, Outfit, Notification
 from app import socketio
@@ -75,13 +74,9 @@ def trip_reminder_job(app):
 
 def init_scheduler(app):
     """Initializes and starts the scheduler."""
-    executors = {
-        'default': GeventExecutor()
-    }
-    scheduler = BackgroundScheduler(daemon=True, executors=executors)
+    scheduler = BackgroundScheduler(daemon=True)
     # Schedule jobs to run once a day at a specific time (e.g., 8 AM UTC)
     scheduler.add_job(func=outfit_reminder_job, args=[app], trigger='cron', hour=8)
     scheduler.add_job(func=trip_reminder_job, args=[app], trigger='cron', hour=9)
-
     scheduler.start()
-    app.logger.info("Scheduler started with GeventExecutor...")
+    print("Scheduler started...")
