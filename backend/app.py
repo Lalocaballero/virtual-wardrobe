@@ -168,6 +168,7 @@ def create_app():
             print(f"⚠️ Failed to configure Cloudinary from URL: {e}")
     else:
         print("⚠️ CLOUDINARY_URL environment variable not found. Image uploads will fail.")    
+    print("--- [12] APP CREATION COMPLETE ---")
 
     @socketio.on('connect')
     def handle_connect():
@@ -205,6 +206,9 @@ def create_app():
 
     from routes.webhooks import webhooks_bp
     app.register_blueprint(webhooks_bp)
+
+    from routes.cron import cron_bp
+    app.register_blueprint(cron_bp)
     print("--- [9] BLUEPRINTS REGISTERED ---")
 
     from utils.ai_service import AIOutfitService
@@ -212,7 +216,6 @@ def create_app():
     from utils.laundry_service import LaundryIntelligenceService
     from utils.wardrobe_intelligence import WardrobeIntelligenceService, AnalyticsService
     from utils.email_service import EmailService
-    from utils.scheduler import init_scheduler
 
     app.ai_service = AIOutfitService(os.environ.get('OPENAI_API_KEY'))
     app.weather_service = WeatherService(os.environ.get('WEATHER_API_KEY'))
@@ -220,14 +223,6 @@ def create_app():
     app.email_service = EmailService(os.environ.get('BREVO_API_KEY'))
     app.wardrobe_intelligence_service = WardrobeIntelligenceService()
     app.analytics_service = AnalyticsService()
-
-    # Initialize and start the scheduler
-    print("--- [10] INITIALIZING SCHEDULER ---")
-    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-        with app.app_context():
-            init_scheduler(app)
-    print("--- [11] SCHEDULER INITIALIZED ---")
-    print("--- [12] APP CREATION COMPLETE ---")
 
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
