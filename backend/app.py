@@ -286,19 +286,6 @@ def create_app():
                 'database_type': 'Unknown'
             }), 500
 
-    @app.route('/api/debug-dns', methods=['GET'])
-    def debug_dns():
-        import socket
-        results = {}
-        domains_to_test = ['api.openweathermap.org', 'google.com', 'api.openai.com']
-        for domain in domains_to_test:
-            try:
-                ip_address = socket.gethostbyname(domain)
-                results[domain] = {'status': 'success', 'ip': ip_address}
-            except Exception as e:
-                results[domain] = {'status': 'error', 'message': str(e)}
-        return jsonify(results)
-
     @app.route('/api/init-db', methods=['POST'])
     def init_database():
         try:
