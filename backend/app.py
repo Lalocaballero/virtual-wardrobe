@@ -1362,7 +1362,7 @@ def create_app():
             return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
     print("--- [12] APP CREATION COMPLETE ---")
-    return app
+    return app, socketio
 
 app = create_app()
 
