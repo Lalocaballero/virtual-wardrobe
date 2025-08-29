@@ -136,7 +136,7 @@ def create_app():
     socketio.init_app(
         app, 
         cors_allowed_origins=origins,
-        async_mode='eventlet',
+        async_mode='gevent',
         ping_timeout=60,
         ping_interval=25,
         logger=True if app.debug else False,
