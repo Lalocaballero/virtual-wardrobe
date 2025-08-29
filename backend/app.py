@@ -133,7 +133,17 @@ def create_app():
          methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 
     print("--- [6] CONFIGURING SOCKET.IO ---")
-    socketio.init_app(app, cors_allowed_origins=origins)
+    socketio.init_app(
+        app, 
+        cors_allowed_origins=origins,
+        async_mode='eventlet',
+        ping_timeout=60,
+        ping_interval=25,
+        logger=True if app.debug else False,
+        engineio_logger=True if app.debug else False,
+        # Allow both polling and websocket, let the client upgrade
+        transports=['polling', 'websocket']
+    )
     print("--- [7] SOCKET.IO CONFIGURED ---")
 
     if app.debug:

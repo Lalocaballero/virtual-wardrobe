@@ -7,6 +7,89 @@ import time
 from collections import Counter
 
 class AIOutfitService:
+
+    # A simplified color wheel for fashion.
+    COLOR_WHEEL = [
+        'red', 'red-orange', 'orange', 'yellow-orange', 'yellow', 
+        'yellow-green', 'green', 'blue-green', 'blue', 'blue-violet', 
+        'violet', 'red-violet'
+    ]
+    
+    # Map common clothing colors to the wheel
+    COLOR_MAP = {
+        'pink': 'red', 'rose': 'red-violet', 'burgundy': 'red', 'maroon': 'red',
+        'coral': 'red-orange', 'peach': 'orange', 'tan': 'yellow-orange', 'beige': 'yellow-orange',
+        'mustard': 'yellow', 'gold': 'yellow', 'lime': 'yellow-green', 'olive': 'yellow-green',
+        'teal': 'blue-green', 'turquoise': 'blue-green', 'aqua': 'blue-green', 'mint': 'green',
+        'navy': 'blue', 'sky blue': 'blue', 'royal blue': 'blue', 'indigo': 'blue-violet',
+        'purple': 'violet', 'lavender': 'violet', 'magenta': 'red-violet',
+        # Neutrals are handled separately but can have undertones
+        'brown': 'orange', 'cream': 'yellow', 'ivory': 'yellow',
+    }
+
+    def _get_color_relationships(self, color: str) -> Dict[str, List[str]]:
+        """Finds analogous and complementary colors on the wheel."""
+        color = color.lower()
+        
+        # Normalize color name
+        base_color = self.COLOR_MAP.get(color, color)
+        
+        if base_color not in self.COLOR_WHEEL:
+            return {"analogous": [], "complementary": []}
+            
+        idx = self.COLOR_WHEEL.index(base_color)
+        num_colors = len(self.COLOR_WHEEL)
+        
+        # Analogous: one color on each side
+        analogous_colors = [
+            self.COLOR_WHEEL[(idx - 1 + num_colors) % num_colors],
+            self.COLOR_WHEEL[(idx + 1) % num_colors]
+        ]
+        
+        # Complementary: the color directly opposite
+        complementary_color = self.COLOR_WHEEL[(idx + num_colors // 2) % num_colors]
+        
+        return {
+            "analogous": analogous_colors,
+            "complementary": [complementary_color]
+        }
+
+    def _get_preferred_color_scheme(self, favorite_colors: List[str]) -> str:
+        """Analyzes favorite colors to determine a preferred scheme."""
+        if not favorite_colors or len(favorite_colors) < 2:
+            return "random" # Not enough data, so be random
+
+        # Normalize all favorite colors to their base color on the wheel
+        base_favorites = [self.COLOR_MAP.get(c.lower(), c.lower()) for c in favorite_colors]
+        base_favorites = [c for c in base_favorites if c in self.COLOR_WHEEL]
+        
+        if len(base_favorites) < 2:
+            return "random"
+
+        # --- Monochromatic Check ---
+        # If all favorite colors map to the same base color (e.g., navy, sky blue -> blue)
+        if len(set(base_favorites)) == 1:
+            return "monochromatic"
+
+        # --- Complementary Check ---
+        # Check if any two of the user's favorite colors are complementary
+        first_color = base_favorites[0]
+        relationships = self._get_color_relationships(first_color)
+        complementary_color = relationships['complementary'][0]
+        
+        if complementary_color in base_favorites[1:]:
+            return "complementary"
+            
+        # --- Analogous Check ---
+        # Check if the user's colors are next to each other on the wheel
+        analogous_colors = relationships['analogous']
+        if any(color in base_favorites[1:] for color in analogous_colors):
+            return "analogous"
+
+        # If no strong signal is found, default to random to provide variety
+        return "random"
+
+
     def __init__(self, api_key: str):
         if api_key:
             self.client = OpenAI(api_key=api_key)
@@ -259,15 +342,26 @@ You will be given a prompt with the following structure:
 1.  **PRIORITY 1: Season & Weather (Non-negotiable):** The outfit MUST be appropriate for the specified `Season` and `Weather`. A winter coat is not for summer. Sandals are not for snow.
 2.  **PRIORITY 2: User's Personal Style (Crucial):** The outfit MUST align with the user's `STYLE DNA` and `OUTFIT HISTORY`. This is the most important creative constraint. Your main goal is to reflect the user's taste, not to be overly experimental. The suggestion should feel like it was made specifically for them.
 3.  **PRIORITY 3: Mood & Occasion:** The `Mood` should refine the selection. A 'professional' outfit should be more formal than a 'casual' one, but still within the user's personal style.
-4.  **PRIORITY 4: Variety & Creativity:** While respecting the user's style, introduce some variety. Don't suggest the exact same outfit repeatedly. Use the `Special instruction` to guide your creativity.
+4.  **PRIORITY 4: Color Harmony:** You must use your knowledge of color theory to create a visually pleasing outfit. See the 'Color Theory' section below for your rules.
+5.  **PRIORITY 5: Variety & Creativity:** While respecting the user's style, introduce some variety. Don't suggest the exact same outfit repeatedly. Use the `Special instruction` to guide your creativity.
+
+**Expert Knowledge: Color Theory**
+You will use one of the following color theories to build the outfit's color palette. The user's prompt will indicate a `preferred_color_scheme` based on their history. If the preference is 'random', you should choose a scheme that works well with the available clothes.
+
+*   **Monochromatic:** Uses variations of a single color (e.g., different shades of blue). This creates a sophisticated, cohesive look.
+*   **Analogous:** Uses colors that are adjacent on the color wheel (e.g., blue, blue-green, green). This creates a harmonious and subtle palette.
+*   **Complementary:** Uses colors directly opposite on the color wheel (e.g., blue and orange). This creates a bold, high-contrast look.
+*   **Split-Complementary:** A color and the two colors adjacent to its complement (e.g., blue with yellow-orange and red-orange). A strong contrast that's softer than complementary.
+*   **Triadic:** Three colors equally spaced on the wheel (e.g., red, yellow, blue). Vibrant and rewarding, but challenging.
+*   **Neutral-Based:** Uses neutrals (black, white, grey, beige, navy) as the foundation, with one or two accent colors for interest.
 
 **Output Requirements:**
 You MUST respond ONLY with a valid JSON object. Do not include any text before or after the JSON. The JSON object must have the exact following structure:
 {
     "selected_items": [array of integer item IDs],
-    "reasoning": "Detailed explanation of your choices. Explain HOW the outfit fits the user's Style DNA and History, and WHY it is appropriate for the season, weather, and mood.",
+    "reasoning": "Detailed explanation of your choices. Explain HOW the outfit fits the user's Style DNA and History, and WHY it is appropriate for the season, weather, and mood. **You must also explain the color theory you used (e.g., 'I chose a complementary color scheme...').**",
     "style_notes": "Actionable styling tips (e.g., 'Tuck the shirt in', 'Roll up the sleeves', 'Consider adding a belt').",
-    "color_story": "A brief, evocative description of the color palette.",
+    "color_story": "A brief, evocative description of the color palette you created.",
     "weather_notes": "Specific notes on how the outfit choice addresses the weather conditions.",
     "confidence": 0.95
 }
@@ -361,6 +455,7 @@ Season: {season}
 {style_dna_prompt_section}
 {history_prompt_section}
 CONTEXT:
+- User's preferred color scheme: {style_dna.get('preferred_color_scheme', 'random')}
 - Recently worn items to avoid (IDs): {recent_item_ids}
 - Special instruction: {variety_instruction}
 
@@ -441,11 +536,13 @@ RESPONSE FORMAT (JSON only):
                             fabric_counter[item['fabric']] += 2
 
         # Construct the Style DNA profile
+        favorite_colors = [color for color, count in color_counter.most_common(3)]
         style_dna = {
             "dominant_styles": [style for style, count in style_counter.most_common(3)],
-            "favorite_colors": [color for color, count in color_counter.most_common(3)],
+            "favorite_colors": favorite_colors,
             "preferred_brands": [brand for brand, count in brand_counter.most_common(3)],
-            "common_fabrics": [fabric for fabric, count in fabric_counter.most_common(3)]
+            "common_fabrics": [fabric for fabric, count in fabric_counter.most_common(3)],
+            "preferred_color_scheme": self._get_preferred_color_scheme(favorite_colors)
         }
         
         # Filter out empty lists

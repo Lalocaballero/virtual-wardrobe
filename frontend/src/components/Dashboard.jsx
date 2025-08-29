@@ -100,8 +100,12 @@ const Dashboard = () => {
     const url = new URL(API_BASE);
     const socketURL = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}`;
     
-    const socket = io(socketURL, {
-        withCredentials: true // Important for sending session cookie
+    const socket = io('https://api.wewear.app', {
+    withCredentials: true,
+    transports: ['polling', 'websocket'], // Try polling first, then upgrade
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
     });
 
     socket.on('connect', () => {
