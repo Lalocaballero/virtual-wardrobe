@@ -168,7 +168,6 @@ def create_app():
             print(f"⚠️ Failed to configure Cloudinary from URL: {e}")
     else:
         print("⚠️ CLOUDINARY_URL environment variable not found. Image uploads will fail.")    
-    print("--- [12] APP CREATION COMPLETE ---")
 
     @socketio.on('connect')
     def handle_connect():
@@ -228,6 +227,7 @@ def create_app():
         with app.app_context():
             init_scheduler(app)
     print("--- [11] SCHEDULER INITIALIZED ---")
+    print("--- [12] APP CREATION COMPLETE ---")
 
     try:
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
