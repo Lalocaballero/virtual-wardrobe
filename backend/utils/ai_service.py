@@ -63,12 +63,15 @@ class AIOutfitService:
         if not self.client_available:
             return self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
         
+        # --- NEW: Shuffle wardrobe to increase prompt randomness ---
+        random.shuffle(available_items)
+
         # Create enhanced prompt with randomization
         prompt = self._create_enhanced_outfit_prompt(available_items, weather, mood, season, outfit_history)
         
         try:
-            # Set a more deterministic temperature for consistent, reliable suggestions.
-            temperature = 0.5
+            # Increase temperature for more creative, less deterministic suggestions.
+            temperature = 0.7
             
             response = self.client.chat.completions.create(
                 model="gpt-4o",

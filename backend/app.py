@@ -158,6 +158,21 @@ def create_app():
             print(f"⚠️ Failed to configure Cloudinary from URL: {e}")
     else:
         print("⚠️ CLOUDINARY_URL environment variable not found. Image uploads will fail.")    
+    print("--- [12] APP CREATION COMPLETE ---")
+
+    @socketio.on('connect')
+    def handle_connect():
+        if current_user.is_authenticated:
+            from flask_socketio import join_room
+            join_room(str(current_user.id))
+            current_app.logger.info(f"SocketIO: Client connected and joined room: {current_user.id}")
+
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        if current_user.is_authenticated:
+            from flask_socketio import leave_room
+            leave_room(str(current_user.id))
+            current_app.logger.info(f"SocketIO: Client disconnected and left room: {current_user.id}")
 
     # --- Initialize services ---
     print("--- [8] REGISTERING BLUEPRINTS ---")
@@ -1361,21 +1376,4 @@ def create_app():
                 print(f"Cloudinary Upload error: {e}")
             return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
-    print("--- [12] APP CREATION COMPLETE ---")
     return app, socketio
-
-app = create_app()
-
-@socketio.on('connect')
-def handle_connect():
-    if current_user.is_authenticated:
-        from flask_socketio import join_room
-        join_room(str(current_user.id))
-        current_app.logger.info(f"SocketIO: Client connected and joined room: {current_user.id}")
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    if current_user.is_authenticated:
-        from flask_socketio import leave_room
-        leave_room(str(current_user.id))
-        current_app.logger.info(f"SocketIO: Client disconnected and left room: {current_user.id}")

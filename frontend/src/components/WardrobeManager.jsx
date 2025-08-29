@@ -30,7 +30,7 @@ const WardrobeManager = () => {
   const [editingItem, setEditingItem] = useState(null);
 
   const [newItem, setNewItem] = useState({
-    name: '', type: '', color: '', style: '', season: 'all',
+    name: '', type: '', color: '', style: '', fit: '', pattern: '', season: 'all',
     brand: '', fabric: '', mood_tags: [], image_url: '',
     purchase_date: '',
     purchase_cost: '',
@@ -164,15 +164,23 @@ const WardrobeManager = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Color</label>
-                <input type="text" value={newItem.color} onChange={(e) => setNewItem({...newItem, color: e.target.value})} className="w-full" placeholder="e.g., Navy Blue" />
+                <label className="block text-sm font-medium mb-2">Color *</label>
+                <input type="text" required value={newItem.color} onChange={(e) => setNewItem({...newItem, color: e.target.value})} className="w-full" placeholder="e.g., Navy Blue" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Style</label>
-                <select value={newItem.style} onChange={(e) => setNewItem({...newItem, style: e.target.value})} className="w-full">
+                <label className="block text-sm font-medium mb-2">Style *</label>
+                <select required value={newItem.style} onChange={(e) => setNewItem({...newItem, style: e.target.value})} className="w-full">
                   <option value="">Select style</option>
                   <option value="casual">Casual</option><option value="formal">Formal</option><option value="business">Business</option><option value="sporty">Sporty</option><option value="elegant">Elegant</option><option value="bohemian">Bohemian</option><option value="vintage">Vintage</option><option value="trendy">Trendy</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Fit</label>
+                <input type="text" value={newItem.fit} onChange={(e) => setNewItem({...newItem, fit: e.target.value})} className="w-full" placeholder="e.g., slim, relaxed, oversized" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Pattern</label>
+                <input type="text" value={newItem.pattern} onChange={(e) => setNewItem({...newItem, pattern: e.target.value})} className="w-full" placeholder="e.g., solid, striped, floral" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Season</label>
