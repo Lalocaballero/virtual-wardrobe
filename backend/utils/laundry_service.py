@@ -3,7 +3,6 @@ from typing import List, Dict, Any
 from sqlalchemy.orm import selectinload
 from models import ClothingItem, User, db, Notification
 import json
-from app import socketio
 
 class LaundryIntelligenceService:
     
@@ -43,8 +42,6 @@ class LaundryIntelligenceService:
                         link="/dashboard/laundry"
                     )
                     db.session.add(notification)
-                    db.session.flush()
-                    socketio.emit('new_notification', {'message': notification.message, 'link': notification.link}, room=str(item.user_id))
 
             # If very dirty, mark as dirty
             if wash_rec == 'urgent':
@@ -112,8 +109,6 @@ class LaundryIntelligenceService:
                         link="/dashboard/laundry"
                     )
                     db.session.add(notification)
-                    db.session.flush()
-                    socketio.emit('new_notification', {'message': notification.message, 'link': notification.link}, room=str(user_id))
 
             db.session.commit()
             return True
