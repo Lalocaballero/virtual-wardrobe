@@ -129,7 +129,7 @@ def get_packing_list(trip_id):
         end_date=trip.end_date
     )
 
-    if not weather_forecast:
+    if not weather_forecast or 'error' in weather_forecast:
         return jsonify({'error': 'Could not retrieve weather forecast for the destination.'}), 500
 
     # 2. Get user's available wardrobe

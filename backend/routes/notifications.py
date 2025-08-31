@@ -1,6 +1,6 @@
 import time
 import json
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, request, Response, current_app
 from flask_login import login_required
 from models import db, Notification
 from utils.auth import get_actual_user
@@ -61,10 +61,13 @@ def mark_as_read(notification_id):
 @login_required
 def stream_notifications():
     user = get_actual_user()
-    def event_stream():
+    # We need to get a real reference to the app to pass to the generator
+    app = current_app._get_current_object()
+
+    def event_stream(app_context):
         last_sent_id = 0
         while True:
-            with db.app.app_context():
+            with app_context.app_context():
                 # Fetch notifications created after the last one we sent
                 new_notifications = Notification.query.filter(
                     Notification.user_id == user.id,
@@ -78,4 +81,4 @@ def stream_notifications():
             
             time.sleep(5) # Poll every 5 seconds
     
-    return Response(event_stream(), mimetype='text/event-stream')
+    return Response(event_stream(app), mimetype='text/event-stream')

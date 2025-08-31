@@ -89,14 +89,15 @@ class WeatherService:
             return self._get_mock_forecast_for_trip(destination, start_date, end_date)
     
     def _get_mock_forecast_for_trip(self, destination: str, start_date: date, end_date: date) -> Dict:
-        """Provide a mock forecast for a trip."""
+        """Provide a mock forecast for a trip, now with an error flag."""
         trip_duration = (end_date - start_date).days + 1
         return {
+            "error": "Failed to retrieve real weather data due to an API error.",
             "destination": destination,
             "trip_duration": trip_duration,
             "average_temp": 22,
             "most_common_condition": "Partly Cloudy",
-            "forecast_summary_text": "Expect pleasant weather around 22°C with partly cloudy skies.",
+            "forecast_summary_text": "Could not retrieve forecast. Using placeholder data.",
             "daily_detail": [{
                 "date": (start_date + timedelta(days=i)).isoformat(),
                 "temp_max": 25,
