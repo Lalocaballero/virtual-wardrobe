@@ -4,7 +4,6 @@ from flask import Flask, request, jsonify, send_from_directory, session, current
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_migrate import Migrate
-from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse
@@ -25,7 +24,6 @@ from utils.limiter import limiter, get_user_specific_limit
 
 # Initialize extensions globally
 login_manager = LoginManager()
-socketio = SocketIO()
 migrate = Migrate()
 
 def create_app():
@@ -132,20 +130,6 @@ def create_app():
          supports_credentials=True,
          methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
 
-    print("--- [6] CONFIGURING SOCKET.IO ---")
-    socketio.init_app(
-        app, 
-        cors_allowed_origins=origins,
-        async_mode='eventlet',
-        ping_timeout=60,
-        ping_interval=25,
-        logger=True if app.debug else False,
-        engineio_logger=True if app.debug else False,
-        # Allow both polling and websocket, let the client upgrade
-        transports=['polling', 'websocket']
-    )
-    print("--- [7] SOCKET.IO CONFIGURED ---")
-
     if app.debug:
         print(f"CORS configured with origins: {origins}")
 
@@ -170,20 +154,6 @@ def create_app():
         print("⚠️ CLOUDINARY_URL environment variable not found. Image uploads will fail.")    
     print("--- [12] APP CREATION COMPLETE ---")
 
-    @socketio.on('connect')
-    def handle_connect():
-        if current_user.is_authenticated:
-            from flask_socketio import join_room
-            join_room(str(current_user.id))
-            current_app.logger.info(f"SocketIO: Client connected and joined room: {current_user.id}")
-
-    @socketio.on('disconnect')
-    def handle_disconnect():
-        if current_user.is_authenticated:
-            from flask_socketio import leave_room
-            leave_room(str(current_user.id))
-            current_app.logger.info(f"SocketIO: Client disconnected and left room: {current_user.id}")
-
     # --- Initialize services ---
     print("--- [8] REGISTERING BLUEPRINTS ---")
     from routes.admin import admin_bp
@@ -206,9 +176,6 @@ def create_app():
 
     from routes.webhooks import webhooks_bp
     app.register_blueprint(webhooks_bp)
-
-    from routes.cron import cron_bp
-    app.register_blueprint(cron_bp)
     print("--- [9] BLUEPRINTS REGISTERED ---")
 
     from utils.ai_service import AIOutfitService
@@ -629,10 +596,6 @@ def create_app():
                 link="/dashboard/profile"
             )
             db.session.add(notification)
-            db.session.flush() # Flush to get the notification ID before committing
-
-            socketio.emit('new_notification', {'message': notification.message, 'link': notification.link}, room=str(user.id))
-
             db.session.commit()
             return jsonify({'message': 'Profile updated successfully!'})
 
@@ -1381,4 +1344,4 @@ def create_app():
                 print(f"Cloudinary Upload error: {e}")
             return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
-    return app, socketio
+    return app

@@ -19,7 +19,6 @@ import PackingAssistant from './PackingAssistant';
 import NotificationBell from './NotificationBell';
 import AppTour from './AppTour';
 import { tourSteps } from '../tourSteps';
-import { io } from 'socket.io-client';
 import { API_BASE } from '../store/wardrobeStore';
 
 const Dashboard = () => {
@@ -94,41 +93,29 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Establish WebSocket connection
+  // Establish Server-Sent Events (SSE) connection for notifications
   useEffect(() => {
-    // Properly derive the root URL for the WebSocket connection from the API base URL.
-    const url = new URL(API_BASE);
-    const socketURL = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}`;
-    
-    const socket = io('https://api.wewear.app', {
-    withCredentials: true,
-    transports: ['polling', 'websocket'], // Try polling first, then upgrade
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    });
+    const eventSource = new EventSource('/api/notifications/stream', { withCredentials: true });
 
-    socket.on('connect', () => {
-        console.log('Socket.IO connected');
-    });
+    eventSource.onmessage = (event) => {
+      const newNotification = JSON.parse(event.data);
+      console.log('New notification received via SSE:', newNotification);
+      toast.info(newNotification.message || 'You have a new notification!');
+      // Refetch all notifications to update the list and count
+      useWardrobeStore.getState().fetchNotifications();
+    };
 
-    socket.on('disconnect', () => {
-        console.log('Socket.IO disconnected');
-    });
-
-    // Listen for new notifications
-    socket.on('new_notification', (data) => {
-        console.log('New notification received:', data);
-        toast.info(data.message || 'You have a new notification!');
-        // Refetch notifications to update the list and count
-        useWardrobeStore.getState().fetchNotifications();
-    });
+    eventSource.onerror = (err) => {
+      console.error('EventSource failed:', err);
+      // The browser will automatically try to reconnect, but we can close it
+      // if we want to stop. For now, we'll let it keep trying.
+    };
 
     // Clean up the connection when the component unmounts
     return () => {
-        socket.disconnect();
+      eventSource.close();
     };
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once.
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);

@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request
+import time
+import json
+from flask import Blueprint, jsonify, request, Response
 from flask_login import login_required
 from models import db, Notification
 from utils.auth import get_actual_user
@@ -54,3 +56,26 @@ def mark_as_read(notification_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to mark notification as read.'}), 500
+
+@notifications_bp.route('/api/notifications/stream')
+@login_required
+def stream_notifications():
+    user = get_actual_user()
+    def event_stream():
+        last_sent_id = 0
+        while True:
+            with db.app.app_context():
+                # Fetch notifications created after the last one we sent
+                new_notifications = Notification.query.filter(
+                    Notification.user_id == user.id,
+                    Notification.id > last_sent_id
+                ).order_by(Notification.id.asc()).all()
+
+                for notification in new_notifications:
+                    data = json.dumps(notification.to_dict())
+                    yield f"data: {data}\\n\\n"
+                    last_sent_id = notification.id
+            
+            time.sleep(5) # Poll every 5 seconds
+    
+    return Response(event_stream(), mimetype='text/event-stream')
