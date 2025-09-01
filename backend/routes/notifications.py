@@ -78,19 +78,14 @@ def stream_notifications():
     app = current_app._get_current_object()
 
     def event_stream(app_instance):
-        last_sent_id = 0
-        while True:
-            with app_instance.app_context():
-                new_notifications = Notification.query.filter(
-                    Notification.user_id == user.id, # This line will now work
-                    Notification.id > last_sent_id
-                ).order_by(Notification.id.asc()).all()
-
-                for notification in new_notifications:
-                    data = json.dumps(notification.to_dict())
-                    yield f"data: {data}\\n\\n"
-                    last_sent_id = notification.id
-            
-            time.sleep(5)
+        with app_instance.app_context():
+            # Instead of a long-polling loop, we'll send all unread notifications
+            # and then close the stream. The EventSource on the client will
+            # automatically reconnect after a few seconds.
+            # This is more robust for stateless/serverless hosting like Render.
+            notifications = Notification.query.filter_by(user_id=user.id, is_read=False).order_by(Notification.created_at.asc()).all()
+            for notification in notifications:
+                data = json.dumps(notification.to_dict())
+                yield f"data: {data}\\n\\n"
     
     return Response(event_stream(app), mimetype='text/event-stream')

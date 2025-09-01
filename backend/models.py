@@ -341,6 +341,7 @@ class PackingList(db.Model):
     trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     status = db.Column(db.String(20), default='active', nullable=False) # active, completed
+    reasoning = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     trip = db.relationship('Trip', backref=db.backref('packing_list', uselist=False, cascade="all, delete-orphan"))
@@ -352,6 +353,7 @@ class PackingList(db.Model):
             'id': self.id,
             'trip_id': self.trip_id,
             'status': self.status,
+            'reasoning': self.reasoning,
             'created_at': self.created_at.isoformat(),
             'items': [item.to_dict() for item in self.items]
         }

@@ -148,7 +148,11 @@ def get_packing_list(trip_id):
 
     # 4. Create and save the new packing list to the database
     try:
-        new_packing_list = PackingList(trip_id=trip.id, user_id=user.id)
+        new_packing_list = PackingList(
+            trip_id=trip.id, 
+            user_id=user.id,
+            reasoning=packing_list_data.get('reasoning')
+        )
         db.session.add(new_packing_list)
         
         # 4a. Process AI-generated items and handle essentials to prevent duplicates
