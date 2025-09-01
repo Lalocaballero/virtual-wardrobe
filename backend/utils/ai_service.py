@@ -5,7 +5,7 @@ import re
 import random
 import time
 from collections import Counter
-
+from datetime import datetime
 class AIOutfitService:
 
     # A simplified color wheel for fashion.
@@ -352,7 +352,8 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
                 wardrobe_by_category['Accessories'].append(item_info)
 
         # Determine trip season from dates
-        start_month = trip_details.get('start_date').month
+        start_date_str = trip_details.get('start_date')
+        start_month = datetime.strptime(start_date_str, '%Y-%m-%d').month
         trip_season = 'winter' if start_month in [12, 1, 2] else 'spring' if start_month in [3, 4, 5] else 'summer' if start_month in [6, 7, 8] else 'fall'
 
         prompt = f"""
