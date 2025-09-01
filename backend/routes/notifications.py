@@ -61,14 +61,18 @@ def mark_as_read(notification_id):
 @login_required
 def stream_notifications():
     user = get_actual_user()
-    # We need to get a real reference to the app to pass to the generator
-    app = current_app._get_current_object()
 
-    def event_stream(app_context):
+    def event_stream():
+        # Get a direct reference to the current Flask app instance.
+        # This is needed to create a fresh context inside the loop.
+        app = current_app._get_current_object()
         last_sent_id = 0
+        
         while True:
-            with app_context.app_context():
-                # Fetch notifications created after the last one we sent
+            # Create a new application context for each iteration.
+            # This is the standard and safest way to perform database
+            # operations in a long-running background task.
+            with app.app_context():
                 new_notifications = Notification.query.filter(
                     Notification.user_id == user.id,
                     Notification.id > last_sent_id
@@ -79,6 +83,7 @@ def stream_notifications():
                     yield f"data: {data}\\n\\n"
                     last_sent_id = notification.id
             
-            time.sleep(5) # Poll every 5 seconds
+            # Sleep outside the application context
+            time.sleep(5)
     
-    return Response(event_stream(app), mimetype='text/event-stream')
+    return Response(event_stream(), mimetype='text/event-stream')

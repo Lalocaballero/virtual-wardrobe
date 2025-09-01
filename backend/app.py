@@ -690,8 +690,12 @@ def create_app():
         """Deletes all outfit history for the currently logged-in user."""
         try:
             user = get_actual_user()
-            # Use bulk delete for efficiency
-            Outfit.query.filter_by(user_id=user.id).delete()
+            # Fetch all outfits for the user and delete them one by one
+            # to ensure SQLAlchemy handles the cascade deletion of related
+            # items in the outfit_items association table.
+            outfits_to_delete = Outfit.query.filter_by(user_id=user.id).all()
+            for outfit in outfits_to_delete:
+                db.session.delete(outfit)
             db.session.commit()
             return jsonify({'message': 'Your outfit history and AI personalization have been successfully reset.'})
         except Exception as e:
