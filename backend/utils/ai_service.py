@@ -195,7 +195,7 @@ class AIOutfitService:
             print(f"AI service error: {e}")
             return self._enhanced_fallback_outfit_suggestion(available_items, weather, mood)
 
-    def generate_packing_list(self, wardrobe: List[Dict], trip_details: Dict, weather_forecast: Dict) -> Dict[str, Any]:
+    def generate_packing_list(self, wardrobe: List[Dict], trip_details: Dict, weather_forecast: Dict, personalization_profile: str = None) -> Dict[str, Any]:
         """Generate a packing list for a trip using OpenAI."""
         if not self.client_available:
             return {"error": "AI service not available"}
@@ -207,7 +207,7 @@ class AIOutfitService:
                 "reasoning": "Your wardrobe is empty or all items are dirty. Can't create a packing list."
             }
 
-        prompt = self._create_packing_list_prompt(clean_items, trip_details, weather_forecast)
+        prompt = self._create_packing_list_prompt(clean_items, trip_details, weather_forecast, personalization_profile)
 
         try:
             response = self.client.chat.completions.create(
@@ -253,6 +253,9 @@ If the user provides a structured itinerary in the 'Notes' section (e.g., "Day 1
 3.  **Build Remainder of List:** After securing the items for special activities, build the rest of the packing list with versatile, mix-and-match items suitable for the trip's general purpose and weather.
 4.  **Generate Special Outfits:** Finally, create a specific outfit suggestion for each special activity you identified. These suggestions should be included in the `special_outfits` object.
 
+**NEW: Personalization**
+You will be provided with a `personalization_profile`. This is a summary of the user's past feedback. Use this as a strong guide to tailor the packing list to their specific preferences. For example, if the profile says the user often finds lists to be missing casual wear, be sure to include more casual options. If it says they rarely use formal wear, pack it only if an activity explicitly requires it. Let the user's feedback guide your choices.
+
 **Output Requirements:**
 You MUST respond ONLY with a valid JSON object. Do not include any text before or after the JSON. The JSON object must have the exact following structure:
 {
@@ -280,9 +283,14 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
 }
 """
 
-    def _create_packing_list_prompt(self, wardrobe: List[Dict], trip_details: Dict, weather_forecast: Dict) -> str:
+    def _create_packing_list_prompt(self, wardrobe: List[Dict], trip_details: Dict, weather_forecast: Dict, personalization_profile: str) -> str:
         """Creates the user prompt for the packing list feature."""
         
+        personalization_section = f"""
+**User Personalization Profile (from past trip feedback):**
+{personalization_profile}
+""" if personalization_profile else ""
+
         wardrobe_by_category = {
             'Tops': [], 'Bottoms': [], 'Outerwear': [],
             'Shoes': [], 'Accessories': [], 'Dresses': []
@@ -327,7 +335,7 @@ Generate a packing list based on the following information:
 **Weather Forecast:**
 {weather_forecast.get('forecast_summary_text')}
 Daily details: {json.dumps(weather_forecast.get('daily_detail', []), indent=2)}
-
+{personalization_section}
 **Available Wardrobe (with seasons):**
 Tops: {json.dumps(wardrobe_by_category['Tops'], indent=2)}
 Bottoms: {json.dumps(wardrobe_by_category['Bottoms'], indent=2)}

@@ -3,6 +3,7 @@ from flask_login import login_required
 from utils.limiter import limiter, get_user_specific_limit
 from models import db, Trip, ClothingItem, PackingList, PackingListItem, UserEssentialPreference, PackingListFeedback
 from utils.auth import get_actual_user
+from utils.personalization_service import summarize_feedback_for_ai
 from datetime import datetime
 
 trips_bp = Blueprint('trips', __name__)
@@ -136,11 +137,16 @@ def get_packing_list(trip_id):
     available_items = ClothingItem.query.filter_by(user_id=user.id, is_clean=True).all()
     wardrobe_data = [item.to_dict() for item in available_items]
 
-    # 3. Call AI service to generate packing list
+    # 3. Get user's feedback history for personalization
+    feedback_history = PackingListFeedback.query.filter_by(user_id=user.id).order_by(PackingListFeedback.created_at.desc()).limit(10).all()
+    personalization_profile = summarize_feedback_for_ai(feedback_history)
+
+    # 4. Call AI service to generate packing list
     packing_list_data = current_app.ai_service.generate_packing_list(
         wardrobe=wardrobe_data,
         trip_details=trip.to_dict(),
-        weather_forecast=weather_forecast
+        weather_forecast=weather_forecast,
+        personalization_profile=personalization_profile
     )
 
     if 'error' in packing_list_data:
