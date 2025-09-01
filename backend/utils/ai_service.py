@@ -224,27 +224,6 @@ class AIOutfitService:
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
             if json_match:
                 result = json.loads(json_match.group())
-                
-                # --- NEW: Step 2 - Generate outfits for special activities ---
-                activities = result.get('special_activities', [])
-                if activities:
-                    # Get the full item details for the packed items
-                    packed_item_ids = set()
-                    for category in result.get('packing_list', {}).values():
-                        if isinstance(category, list) and category and isinstance(category[0], dict):
-                           packed_item_ids.update(item['id'] for item in category)
-                    
-                    packed_items = [item for item in clean_items if item['id'] in packed_item_ids]
-                    
-                    # Use average weather for activity outfit suggestions
-                    weather_str = weather_forecast.get('forecast_summary_text', 'mild weather')
-                    # Determine season from trip dates
-                    start_month = trip_details.get('start_date').month
-                    season = 'winter' if start_month in [12,1,2] else 'spring' if start_month in [3,4,5] else 'summer' if start_month in [6,7,8] else 'fall'
-
-                    activity_outfits = self._generate_outfits_for_activities(packed_items, activities, weather_str, season)
-                    result['special_outfits'] = activity_outfits
-
                 return result
             else:
                 return {"error": "Failed to parse AI response."}
@@ -252,44 +231,6 @@ class AIOutfitService:
         except Exception as e:
             print(f"AI packing list service error: {e}")
             return {"error": "Failed to generate packing list from AI."}
-
-    def _generate_outfits_for_activities(self, packing_list: List[Dict], activities: List[str], weather: str, season: str) -> Dict[str, Any]:
-        """Generates specific outfits for a list of special activities."""
-        
-        activity_outfits = {}
-        
-        # A simple mapping from keywords to moods
-        activity_mood_map = {
-            'dinner': 'elegant', 'party': 'party', 'wedding': 'formal',
-            'formal': 'formal', 'business': 'professional', 'meeting': 'professional',
-            'gym': 'sporty', 'running': 'sporty', 'workout': 'sporty', 'hike': 'sporty',
-            'beach': 'casual', 'pool': 'casual', 'tourist': 'casual', 'explore': 'casual',
-        }
-
-        for activity in activities:
-            activity_lower = activity.lower()
-            mood = 'casual' # Default mood
-            
-            # Find the most appropriate mood for the activity
-            for keyword, mapped_mood in activity_mood_map.items():
-                if keyword in activity_lower:
-                    mood = mapped_mood
-                    break
-            
-            # Generate an outfit for this specific activity using only the clothes from the packing list
-            # We pass a blank outfit history to avoid conflicts with general history
-            outfit_suggestion = self.generate_outfit_suggestion(
-                wardrobe=packing_list,
-                weather=weather,
-                mood=mood,
-                season=season,
-                outfit_history=[]
-            )
-            
-            # Add the suggested outfit to our results
-            activity_outfits[activity] = outfit_suggestion
-            
-        return activity_outfits
 
     def _get_packing_system_prompt(self) -> str:
         """Generates the system prompt for the packing list feature."""
@@ -305,10 +246,17 @@ You MUST pay close attention to the `trip_season` and `trip_type` provided in th
 - DO NOT pack 'summer' items (like shorts) for a 'winter' trip unless the notes specifically ask for it.
 - Use common sense. A trip to "Aspen" in "Winter" needs warm clothes. A trip to "Cancun" for a "Beach" vacation needs swimwear and light clothing. This is your most important instruction.
 
+**NEW CRITICAL RULE: Itinerary-Aware Packing**
+If the user provides a structured itinerary in the 'Notes' section (e.g., "Day 1: Hiking, Day 2: Fancy Dinner"), your process MUST be as follows:
+1.  **Identify Special Activities:** First, parse the notes to identify all distinct activities (e.g., "Hiking", "Fancy Dinner"). Populate the `special_activities` array with these.
+2.  **Select Core Items for Activities:** Before doing anything else, select the essential clothing items required for these activities. For "Hiking," you must select hiking boots and sporty clothes. For "Fancy Dinner," you must select a formal outfit. These items are non-negotiable and MUST be included in the final `packing_list`.
+3.  **Build Remainder of List:** After securing the items for special activities, build the rest of the packing list with versatile, mix-and-match items suitable for the trip's general purpose and weather.
+4.  **Generate Special Outfits:** Finally, create a specific outfit suggestion for each special activity you identified. These suggestions should be included in the `special_outfits` object.
+
 **Output Requirements:**
 You MUST respond ONLY with a valid JSON object. Do not include any text before or after the JSON. The JSON object must have the exact following structure:
 {
-  "reasoning": "A brief justification for your choices, explaining how the list is optimized for the trip's weather, duration, and purpose, with specific mention of seasonal considerations.",
+  "reasoning": "A brief justification for your choices, explaining how the list is optimized for the trip's weather, duration, purpose, and any special activities.",
   "packing_list": {
     "Tops": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
     "Bottoms": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
@@ -318,7 +266,17 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
     "Accessories": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
     "Essentials": [ "Socks", "Underwear", "Pajamas" ]
   },
-  "special_activities": ["activity one", "activity two", ...]
+  "special_activities": ["Hiking", "Fancy Dinner", ...],
+  "special_outfits": {
+    "Hiking": {
+      "selected_items": [<item_id>, <item_id>, ...],
+      "reasoning": "A practical and comfortable outfit for your hike."
+    },
+    "Fancy Dinner": {
+      "selected_items": [<item_id>, <item_id>, ...],
+      "reasoning": "An elegant and appropriate outfit for your dinner."
+    }
+  }
 }
 """
 
@@ -379,13 +337,14 @@ Shoes: {json.dumps(wardrobe_by_category['Shoes'], indent=2)}
 Accessories: {json.dumps(wardrobe_by_category['Accessories'], indent=2)}
 
 **Requirements:**
-1. **Adhere to the CRITICAL RULE about seasonal appropriateness above all else.**
-2. Create a minimal and versatile packing list. The number of items should be appropriate for the trip duration.
-3. Prioritize items that can be mixed and matched.
-4. Ensure the list is appropriate for the weather AND the trip's purpose and season.
-5. **Analyze the 'Notes' section of the Trip Details. Identify any special activities or events mentioned (e.g., "fancy dinner", "wedding", "gym", "beach day"). Populate the `special_activities` array in the JSON output with these activities. If no activities are mentioned, return an empty array `[]`.**
+1. **Follow the CRITICAL RULEs in the system prompt above all else.**
+2. First, identify special activities from the notes and select core items for them.
+3. Then, build the rest of a minimal and versatile packing list, ensuring the number of items is appropriate for the trip duration.
+4. Prioritize items that can be mixed and matched.
+5. Ensure the entire list is appropriate for the weather AND the trip's purpose and season.
 6. Include a list of essentials like socks, underwear, and pajamas.
-7. Respond ONLY with a valid JSON object in the specified format. Your reasoning should mention why the list is seasonally appropriate.
+7. Finally, define the `special_outfits` for the activities you identified.
+8. Respond ONLY with a valid JSON object in the specified format. Your reasoning should mention why the list is seasonally appropriate and suitable for the itinerary.
 """
         return prompt
 
