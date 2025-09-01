@@ -299,10 +299,16 @@ You are a smart packing assistant. Your goal is to create a versatile and minima
 **Your Task:**
 Analyze the user's request and available clothing to generate a packing list organized by category. The list should be efficient, avoiding over-packing, and should suggest versatile items that can be worn multiple times.
 
+**CRITICAL RULE: Seasonal Appropriateness**
+You MUST pay close attention to the `trip_season` and `trip_type` provided in the prompt. Cross-reference this with each clothing item's `season` attribute.
+- DO NOT pack 'winter' items for a 'summer' or 'beach' trip.
+- DO NOT pack 'summer' items (like shorts) for a 'winter' trip unless the notes specifically ask for it.
+- Use common sense. A trip to "Aspen" in "Winter" needs warm clothes. A trip to "Cancun" for a "Beach" vacation needs swimwear and light clothing. This is your most important instruction.
+
 **Output Requirements:**
 You MUST respond ONLY with a valid JSON object. Do not include any text before or after the JSON. The JSON object must have the exact following structure:
 {
-  "reasoning": "A brief justification for your choices, explaining how the list is optimized for the trip's weather, duration, and purpose.",
+  "reasoning": "A brief justification for your choices, explaining how the list is optimized for the trip's weather, duration, and purpose, with specific mention of seasonal considerations.",
   "packing_list": {
     "Tops": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
     "Bottoms": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
@@ -325,7 +331,13 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
         }
         for item in wardrobe:
             item_type = item['type'].lower()
-            item_info = {"id": item['id'], "name": item['name'], "style": item.get('style'), "fabric": item.get('fabric')}
+            item_info = {
+                "id": item['id'], 
+                "name": item['name'], 
+                "style": item.get('style'), 
+                "fabric": item.get('fabric'),
+                "season": item.get('season', 'all') # Add season to the item info
+            }
             if item_type in ['shirt', 't-shirt', 'blouse', 'sweater', 'tank-top']:
                 wardrobe_by_category['Tops'].append(item_info)
             elif item_type in ['pants', 'jeans', 'shorts', 'skirt']:
@@ -339,20 +351,25 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
             else:
                 wardrobe_by_category['Accessories'].append(item_info)
 
+        # Determine trip season from dates
+        start_month = trip_details.get('start_date').month
+        trip_season = 'winter' if start_month in [12, 1, 2] else 'spring' if start_month in [3, 4, 5] else 'summer' if start_month in [6, 7, 8] else 'fall'
+
         prompt = f"""
 Generate a packing list based on the following information:
 
 **Trip Details:**
 - Destination: {trip_details.get('destination')}
 - Duration: {trip_details.get('duration_days')} days
-- Purpose: {trip_details.get('trip_type', 'not specified')}
+- Purpose/Type: {trip_details.get('trip_type', 'not specified')}
+- Trip Season: {trip_season}
 - Notes: {trip_details.get('notes', 'none')}
 
 **Weather Forecast:**
 {weather_forecast.get('forecast_summary_text')}
 Daily details: {json.dumps(weather_forecast.get('daily_detail', []), indent=2)}
 
-**Available Wardrobe:**
+**Available Wardrobe (with seasons):**
 Tops: {json.dumps(wardrobe_by_category['Tops'], indent=2)}
 Bottoms: {json.dumps(wardrobe_by_category['Bottoms'], indent=2)}
 Outerwear: {json.dumps(wardrobe_by_category['Outerwear'], indent=2)}
@@ -361,13 +378,13 @@ Shoes: {json.dumps(wardrobe_by_category['Shoes'], indent=2)}
 Accessories: {json.dumps(wardrobe_by_category['Accessories'], indent=2)}
 
 **Requirements:**
-1. Create a minimal and versatile packing list.
-2. The number of items should be appropriate for the trip duration. For example, for a 7-day trip, suggest maybe 4-5 tops, 2-3 bottoms, etc.
+1. **Adhere to the CRITICAL RULE about seasonal appropriateness above all else.**
+2. Create a minimal and versatile packing list. The number of items should be appropriate for the trip duration.
 3. Prioritize items that can be mixed and matched.
-4. Ensure the list is appropriate for the weather and the trip's purpose.
+4. Ensure the list is appropriate for the weather AND the trip's purpose and season.
 5. **Analyze the 'Notes' section of the Trip Details. Identify any special activities or events mentioned (e.g., "fancy dinner", "wedding", "gym", "beach day"). Populate the `special_activities` array in the JSON output with these activities. If no activities are mentioned, return an empty array `[]`.**
 6. Include a list of essentials like socks, underwear, and pajamas.
-7. Respond ONLY with a valid JSON object in the specified format.
+7. Respond ONLY with a valid JSON object in the specified format. Your reasoning should mention why the list is seasonally appropriate.
 """
         return prompt
 

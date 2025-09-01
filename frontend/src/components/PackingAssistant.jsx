@@ -209,6 +209,18 @@ const PackingAssistant = () => {
                     <p>This trip is finished and the packed items have been added to your laundry list.</p>
                 </div>
             )}
+
+            {currentTripPackingList.reasoning && !isCompleted && (
+              <div className="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-200 px-4 py-3 rounded-lg" role="alert">
+                <div className="flex">
+                  <div className="py-1"><SparklesIcon className="h-5 w-5 text-blue-400 mr-3"/></div>
+                  <div>
+                    <p className="font-bold">AI Packing Rationale</p>
+                    <p className="text-sm">{currentTripPackingList.reasoning}</p>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Object.entries(organizedList).map(([category, items]) => (
