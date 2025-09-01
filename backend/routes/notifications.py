@@ -2,7 +2,7 @@ import time
 import json
 from flask import Blueprint, jsonify, request, Response, current_app, session
 from flask_login import login_required, current_user
-from models import db, Notification
+from models import db, Notification, User
 from utils.auth import get_actual_user
 
 notifications_bp = Blueprint('notifications', __name__)
