@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
 import { PlusIcon, TrashIcon, PencilIcon, ArrowLeftIcon, SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import FeedbackModal from './FeedbackModal'; // Import the new modal
 
 // A new component for the progress bar
 const PackingProgressBar = ({ items }) => {
@@ -103,12 +104,14 @@ const PackingAssistant = () => {
     fetchPackingList,
     togglePackedItem,
     completeTrip,
+    submitPackingListFeedback,
     currentTripPackingList 
   } = useWardrobeStore();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const initialTripState = {
     destination: '',
@@ -164,15 +167,38 @@ const PackingAssistant = () => {
   
   const handleCompleteTrip = async () => {
     if (!selectedTrip) return;
-    if (window.confirm('Are you sure you want to complete this trip? This will add all packed items to your laundry list.')) {
-        await completeTrip(selectedTrip.id);
-        setSelectedTrip(null);
-    }
+    // Instead of confirming, open the feedback modal
+    setIsFeedbackModalOpen(true);
+  };
+  
+  const handleFeedbackSubmit = async (feedbackData) => {
+    if (!currentTripPackingList) return;
+    await submitPackingListFeedback(currentTripPackingList.id, feedbackData);
+    // After submitting feedback, complete the trip
+    await completeTrip(selectedTrip.id);
+    setIsFeedbackModalOpen(false);
+    setSelectedTrip(null);
+  };
+
+  const handleFeedbackSkip = async () => {
+    // If skipping, just complete the trip
+    await completeTrip(selectedTrip.id);
+    setIsFeedbackModalOpen(false);
+    setSelectedTrip(null);
   };
 
   if (selectedTrip) {
     const isCompleted = currentTripPackingList?.status === 'completed';
     return (
+      <>
+      {isFeedbackModalOpen && (
+        <FeedbackModal
+          packingList={currentTripPackingList}
+          onClose={() => setIsFeedbackModalOpen(false)}
+          onSubmit={handleFeedbackSubmit}
+          onSkip={handleFeedbackSkip}
+        />
+      )}
       <div className="animate-fadeIn p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6">
             <div className="mb-4 sm:mb-0">
@@ -282,6 +308,7 @@ const PackingAssistant = () => {
           </div>
         )}
       </div>
+      </>
     );
   }
 

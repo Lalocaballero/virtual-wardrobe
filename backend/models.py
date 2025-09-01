@@ -378,6 +378,28 @@ class PackingListItem(db.Model):
             'clothing_item': self.clothing_item.to_dict() if self.clothing_item else None
         }
 
+class PackingListFeedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    packing_list_id = db.Column(db.Integer, db.ForeignKey('packing_list.id'), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=True) # e.g., 1-5
+    comments = db.Column(db.Text, nullable=True)
+    unused_items = db.Column(JSON, nullable=True) # Store as a JSON array of item IDs
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    packing_list = db.relationship('PackingList', backref=db.backref('feedback', uselist=False, cascade="all, delete-orphan"))
+    user = db.relationship('User', backref=db.backref('packing_list_feedback', cascade="all, delete-orphan"))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'packing_list_id': self.packing_list_id,
+            'rating': self.rating,
+            'comments': self.comments,
+            'unused_items': self.unused_items or [],
+            'created_at': self.created_at.isoformat()
+        }
+
 class UserEssentialPreference(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

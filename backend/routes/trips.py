@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required
 from utils.limiter import limiter, get_user_specific_limit
-from models import db, Trip, ClothingItem, PackingList, PackingListItem, UserEssentialPreference
+from models import db, Trip, ClothingItem, PackingList, PackingListItem, UserEssentialPreference, PackingListFeedback
 from utils.auth import get_actual_user
 from datetime import datetime
 
@@ -256,3 +256,36 @@ def complete_trip(trip_id):
     db.session.commit()
     
     return jsonify({'message': 'Trip marked as completed and packed items added to laundry.'})
+
+@trips_bp.route('/api/packing-list/<int:packing_list_id>/feedback', methods=['POST'])
+@login_required
+def submit_packing_list_feedback(packing_list_id):
+    user = get_actual_user()
+    packing_list = PackingList.query.get_or_404(packing_list_id)
+
+    if packing_list.user_id != user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    if packing_list.feedback:
+        return jsonify({'error': 'Feedback has already been submitted for this packing list.'}), 400
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Missing data'}), 400
+
+    rating = data.get('rating')
+    comments = data.get('comments')
+    unused_items = data.get('unused_items')
+
+    new_feedback = PackingListFeedback(
+        packing_list_id=packing_list_id,
+        user_id=user.id,
+        rating=rating,
+        comments=comments,
+        unused_items=unused_items
+    )
+
+    db.session.add(new_feedback)
+    db.session.commit()
+
+    return jsonify(new_feedback.to_dict()), 201

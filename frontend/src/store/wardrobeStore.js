@@ -661,6 +661,21 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
+  submitPackingListFeedback: async (packingListId, feedbackData) => {
+    try {
+      await get().fetchApi(`${API_BASE}/packing-list/${packingListId}/feedback`, {
+        method: 'POST',
+        body: JSON.stringify(feedbackData),
+      });
+      toast.success('Thank you for your feedback!');
+      return true;
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to submit feedback.';
+      toast.error(errorMessage);
+      return false;
+    }
+  },
+
   // Notification actions
   fetchNotifications: async () => {
     set({ notificationsLoading: true });
