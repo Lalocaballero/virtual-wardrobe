@@ -61,22 +61,18 @@ def mark_as_read(notification_id):
 @login_required
 def stream_notifications():
     user = get_actual_user()
+    if user is None:
+        return Response(status=401)
 
     # --- THE FIX ---
-    # Add this check to ensure we have a valid user.
-    if user is None:
-        # If no user is found, we can't proceed.
-        # Return an empty response to cleanly close the connection.
-        return Response(status=401)
-    # --- END OF FIX ---
+    # Get a REAL reference to the app now, while the request context is active.
+    app = current_app._get_current_object()
 
-    def event_stream():
-        # Get a direct reference to the current Flask app instance.
-        app = current_app._get_current_object()
+    def event_stream(app_instance): # Pass the real app in as an argument
         last_sent_id = 0
-        
         while True:
-            with app.app_context():
+            # Use the passed-in app instance to create a fresh context.
+            with app_instance.app_context():
                 new_notifications = Notification.query.filter(
                     Notification.user_id == user.id,
                     Notification.id > last_sent_id
@@ -87,6 +83,8 @@ def stream_notifications():
                     yield f"data: {data}\\n\\n"
                     last_sent_id = notification.id
             
+            # Sleep outside the context
             time.sleep(5)
     
-    return Response(event_stream(), mimetype='text/event-stream')
+    # Pass the real app object to the generator when starting the response.
+    return Response(event_stream(app), mimetype='text/event-stream')
