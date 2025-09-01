@@ -78,14 +78,20 @@ def stream_notifications():
     app = current_app._get_current_object()
 
     def event_stream(app_instance):
+        # The EventSource protocol includes a Last-Event-ID header on reconnects.
+        # We can use this to send only new notifications since the last connection.
+        last_id = request.headers.get('Last-Event-ID', 0, type=int)
+
         with app_instance.app_context():
-            # Instead of a long-polling loop, we'll send all unread notifications
-            # and then close the stream. The EventSource on the client will
-            # automatically reconnect after a few seconds.
-            # This is more robust for stateless/serverless hosting like Render.
-            notifications = Notification.query.filter_by(user_id=user.id, is_read=False).order_by(Notification.created_at.asc()).all()
+            # Fetch notifications newer than the last one the client received.
+            notifications = Notification.query.filter(
+                Notification.user_id == user.id,
+                Notification.id > last_id
+            ).order_by(Notification.id.asc()).all()
+
             for notification in notifications:
                 data = json.dumps(notification.to_dict())
-                yield f"data: {data}\\n\\n"
+                # Include the notification ID in the event stream.
+                yield f"id:{notification.id}\\ndata:{data}\\n\\n"
     
     return Response(event_stream(app), mimetype='text/event-stream')
