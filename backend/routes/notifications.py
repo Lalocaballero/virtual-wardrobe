@@ -1,6 +1,6 @@
 import time
 import json
-from flask import Blueprint, jsonify, request, Response, current_app
+from flask import Blueprint, jsonify, request, Response, current_app, session
 from flask_login import login_required, current_user
 from models import db, Notification
 from utils.auth import get_actual_user
@@ -58,15 +58,23 @@ def mark_as_read(notification_id):
         return jsonify({'error': 'Failed to mark notification as read.'}), 500
 
 @notifications_bp.route('/api/notifications/stream')
-@login_required
+@login_required # Keep this as a first-line defense
 def stream_notifications():
-    # Use current_user directly, which @login_required guarantees is loaded.
-    user = current_user
-    
-    # Add a stronger check to ensure the user is not anonymous
-    if not user or not user.is_authenticated:
+    # --- THE FIX ---
+    # Manually load the user from the session ID for reliability in a streaming context.
+    user_id = session.get('user_id')
+    if not user_id:
+        # If there's no user_id in the session, the user is not properly logged in.
         return Response(status=401)
+    
+    # Fetch the user directly from the database using the ID from the session.
+    user = User.query.get(user_id)
+    if not user:
+        # If the user_id from the session doesn't match a real user in the database.
+        return Response(status=401)
+    # --- END OF FIX ---
 
+    # The rest of the function can now proceed, confident that 'user' is a valid object.
     app = current_app._get_current_object()
 
     def event_stream(app_instance):
@@ -74,7 +82,7 @@ def stream_notifications():
         while True:
             with app_instance.app_context():
                 new_notifications = Notification.query.filter(
-                    Notification.user_id == user.id,
+                    Notification.user_id == user.id, # This line will now work
                     Notification.id > last_sent_id
                 ).order_by(Notification.id.asc()).all()
 
