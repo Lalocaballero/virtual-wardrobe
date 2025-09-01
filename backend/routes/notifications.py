@@ -1,7 +1,7 @@
 import time
 import json
 from flask import Blueprint, jsonify, request, Response, current_app
-from flask_login import login_required
+from flask_login import login_required, current_user
 from models import db, Notification
 from utils.auth import get_actual_user
 
@@ -60,18 +60,18 @@ def mark_as_read(notification_id):
 @notifications_bp.route('/api/notifications/stream')
 @login_required
 def stream_notifications():
-    user = get_actual_user()
-    if user is None:
+    # Use current_user directly, which @login_required guarantees is loaded.
+    user = current_user
+    
+    # Add a stronger check to ensure the user is not anonymous
+    if not user or not user.is_authenticated:
         return Response(status=401)
 
-    # --- THE FIX ---
-    # Get a REAL reference to the app now, while the request context is active.
     app = current_app._get_current_object()
 
-    def event_stream(app_instance): # Pass the real app in as an argument
+    def event_stream(app_instance):
         last_sent_id = 0
         while True:
-            # Use the passed-in app instance to create a fresh context.
             with app_instance.app_context():
                 new_notifications = Notification.query.filter(
                     Notification.user_id == user.id,
@@ -83,8 +83,6 @@ def stream_notifications():
                     yield f"data: {data}\\n\\n"
                     last_sent_id = notification.id
             
-            # Sleep outside the context
             time.sleep(5)
     
-    # Pass the real app object to the generator when starting the response.
     return Response(event_stream(app), mimetype='text/event-stream')

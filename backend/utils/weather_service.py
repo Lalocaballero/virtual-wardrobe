@@ -6,7 +6,7 @@ from datetime import date, timedelta
 class WeatherService:
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.base_url = "http://api.openweathermap.org/data/2.5"
+        self.base_url = "https://api.openweathermap.org/data/3.0"
         self.client_available = api_key
         
         if not self.client_available:
@@ -18,7 +18,7 @@ class WeatherService:
             return None
         
         try:
-            url = f"http://api.openweathermap.org/geo/1.0/direct"
+            url = f"https://api.openweathermap.org/geo/1.0/direct"
             params = {
                 'q': location,
                 'limit': 1,
@@ -45,6 +45,9 @@ class WeatherService:
             return self._get_mock_forecast_for_trip(destination, start_date, end_date)
 
         try:
+            # --- ADD THIS LOGGING LINE ---
+            print(f"DEBUG: Calling One Call API with key ending in ...{self.api_key[-4:]}")
+            # --- END OF ADDITION ---
             url = f"{self.base_url}/onecall"
             params = {
                 'lat': coords['lat'],
