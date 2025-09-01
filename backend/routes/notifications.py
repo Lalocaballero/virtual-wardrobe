@@ -62,16 +62,20 @@ def mark_as_read(notification_id):
 def stream_notifications():
     user = get_actual_user()
 
+    # --- THE FIX ---
+    # Add this check to ensure we have a valid user.
+    if user is None:
+        # If no user is found, we can't proceed.
+        # Return an empty response to cleanly close the connection.
+        return Response(status=401)
+    # --- END OF FIX ---
+
     def event_stream():
         # Get a direct reference to the current Flask app instance.
-        # This is needed to create a fresh context inside the loop.
         app = current_app._get_current_object()
         last_sent_id = 0
         
         while True:
-            # Create a new application context for each iteration.
-            # This is the standard and safest way to perform database
-            # operations in a long-running background task.
             with app.app_context():
                 new_notifications = Notification.query.filter(
                     Notification.user_id == user.id,
@@ -83,7 +87,6 @@ def stream_notifications():
                     yield f"data: {data}\\n\\n"
                     last_sent_id = notification.id
             
-            # Sleep outside the application context
             time.sleep(5)
     
     return Response(event_stream(), mimetype='text/event-stream')

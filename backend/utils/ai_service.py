@@ -522,7 +522,11 @@ CONTEXT:
 - Special instruction: {variety_instruction}
 
 OUTFIT RULES (You MUST follow these):
-- **Completeness:** An outfit MUST be complete. This means it needs a base (a top + a bottom, OR a dress) AND it MUST include shoes.
+- **Composition:** An outfit MUST have a logical structure.
+    - Choose **exactly one** item from the 'dresses' category, OR choose **exactly one** item from 'tops' AND **exactly one** item from 'bottoms'. You cannot select a dress and a top/bottom in the same outfit.
+    - Choose **exactly one** item from 'shoes'.
+    - You MAY choose **zero or one** item from 'outerwear', depending on the weather.
+    - You MAY choose **one or more** items from 'accessories' to complete the look.
 - **Weather-Appropriate Layers:** You MUST add weather-appropriate layers. If the weather is 'cold', 'cool', or 'rainy', you MUST include an 'outerwear' item. If the weather is 'sunny', you should consider adding an 'accessory' like sunglasses.
 - **Seasonal Accuracy:** DO NOT suggest items that are clearly for the wrong season (e.g., a winter coat in summer). This is a hard rule.
 - **The 3-Color Rule (60/30/10 Principle):** Create a harmonious look by using a maximum of three colors.
