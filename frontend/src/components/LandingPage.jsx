@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckIcon } from '@heroicons/react/24/outline';
+import { Disclosure } from '@headlessui/react';
+import { ChevronUpIcon } from '@heroicons/react/24/solid';
 
 const Header = () => (
   <header className="fixed top-0 left-0 right-0 z-50 bg-cloud-white/80 backdrop-blur-sm">
@@ -53,17 +55,14 @@ const features = [
   {
     name: 'Digital Wardrobe',
     description: 'Easily catalog your entire wardrobe. Snap a picture, and we’ll handle the rest.',
-    icon: '📸',
   },
   {
     name: 'AI Outfit Generation',
     description: 'Get daily outfit suggestions based on your items, local weather, and personal style.',
-    icon: '💡',
   },
   {
     name: 'Smart Packing Assistant',
     description: 'Tell us where you’re going, and we’ll create the perfect packing list from your wardrobe.',
-    icon: '✈️',
   },
 ];
 
@@ -86,8 +85,8 @@ const Features = () => (
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <div className="flex items-center justify-center h-16 w-16 rounded-full bg-electric-indigo/10 mx-auto mb-6">
-              <span className="text-3xl">{feature.icon}</span>
+            <div className="bg-muted dark:bg-inkwell h-48 rounded-lg flex items-center justify-center mb-6">
+              <p className="text-slate text-sm">[App Screenshot: {feature.name}]</p>
             </div>
             <h3 className="font-poppins font-bold text-2xl mb-3">{feature.name}</h3>
             <p className="text-midnight-ink/80">{feature.description}</p>
@@ -213,6 +212,160 @@ const Footer = () => {
   );
 };
 
+const testimonials = [
+  {
+    quote: "I've rediscovered half my wardrobe! I never thought I had this many good outfits. My mornings are so much less stressful now.",
+    author: "Alex R."
+  },
+  {
+    quote: "The packing assistant is an absolute game-changer. I packed for a 10-day trip to Italy in 15 minutes, and it was perfect. I'll never go back to my old spreadsheets.",
+    author: "Jordan S."
+  },
+  {
+    quote: "As someone who isn't a 'fashion person,' WeWear gives me the confidence that I look put-together every day without any of the effort.",
+    author: "Casey L."
+  }
+];
+
+const Testimonials = () => (
+  <section className="py-20 bg-card dark:bg-dark-subtle">
+    <div className="container mx-auto px-6">
+      <div className="text-center mb-16">
+        <h2 className="font-poppins font-bold text-4xl md:text-5xl">Loved by users worldwide</h2>
+        <p className="text-lg text-midnight-ink/80 mt-4 max-w-2xl mx-auto">
+          Don't just take our word for it. Here's what our community is saying.
+        </p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-8">
+        {testimonials.map((testimonial, index) => (
+          <motion.div
+            key={index}
+            className="p-8 border border-fog rounded-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <p className="text-lg font-medium mb-4">"{testimonial.quote}"</p>
+            <p className="font-bold text-electric-indigo">— {testimonial.author}</p>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+const howItWorksSteps = [
+  {
+    step: 1,
+    title: "Snap Your Closet",
+    description: "Quickly add your clothes.",
+    visual: "[App Screenshot: Adding an item]"
+  },
+  {
+    step: 2,
+    title: "Get AI Suggestions",
+    description: "Receive daily outfits and packing lists.",
+    visual: "[App Screenshot: Outfit Suggestion]"
+  },
+  {
+    step: 3,
+    title: "Dress with Confidence",
+    description: "Rediscover your style, effortlessly.",
+    visual: "[App Screenshot: User Profile]"
+  }
+];
+
+const HowItWorks = () => (
+  <motion.section
+    className="py-20"
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.2 }}
+    transition={{ duration: 0.5 }}
+  >
+    <div className="container mx-auto px-6">
+      <div className="text-center mb-16">
+        <h2 className="font-poppins font-bold text-4xl md:text-5xl">How It Works</h2>
+        <p className="text-lg text-midnight-ink/80 mt-4 max-w-2xl mx-auto">
+          Getting started is easier than you think.
+        </p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-10">
+        {howItWorksSteps.map((step, index) => (
+          <motion.div
+            key={step.step}
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <div className="bg-muted dark:bg-inkwell h-48 rounded-lg flex items-center justify-center mb-6">
+              <p className="text-slate text-sm">{step.visual}</p>
+            </div>
+            <h3 className="font-poppins font-bold text-2xl mb-3">Step {step.step}: {step.title}</h3>
+            <p className="text-midnight-ink/80">{step.description}</p>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </motion.section>
+);
+
+const faqData = [
+  {
+    question: "Is my data and wardrobe information private?",
+    answer: "Yes. Your privacy is our top priority. Your data is encrypted, stored securely, and is never sold or shared. You have full control over your information."
+  },
+  {
+    question: "What happens if I cancel my premium subscription?",
+    answer: "You can cancel your subscription at any time. You will retain access to all premium features until the end of your billing cycle. Afterwards, your account will revert to the Free plan, but all your wardrobe data will remain safe and accessible."
+  },
+  {
+    question: "How long does it take to add my clothes?",
+    answer: "You can add an item in under a minute. Our premium plan will soon include AI-powered image recognition to make this process nearly instant—just snap a picture, and we'll do the rest!"
+  }
+];
+
+const FAQ = () => (
+  <motion.section
+    className="py-20"
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.2 }}
+    transition={{ duration: 0.5 }}
+  >
+    <div className="container mx-auto px-6 max-w-3xl">
+      <div className="text-center mb-16">
+        <h2 className="font-poppins font-bold text-4xl md:text-5xl">Frequently Asked Questions</h2>
+      </div>
+      <div className="w-full space-y-4">
+        {faqData.map((faq, index) => (
+          <Disclosure key={index}>
+            {({ open }) => (
+              <>
+                <Disclosure.Button className="flex justify-between w-full px-4 py-3 text-lg font-medium text-left text-midnight-ink bg-muted dark:bg-inkwell rounded-lg hover:bg-muted/90 dark:hover:bg-slate focus:outline-none focus-visible:ring focus-visible:ring-secondary focus-visible:ring-opacity-75">
+                  <span>{faq.question}</span>
+                  <ChevronUpIcon
+                    className={`${
+                      open ? 'transform rotate-180' : ''
+                    } w-5 h-5 text-secondary`}
+                  />
+                </Disclosure.Button>
+                <Disclosure.Panel className="px-4 pt-4 pb-2 text-slate dark:text-dark-text-secondary">
+                  {faq.answer}
+                </Disclosure.Panel>
+              </>
+            )}
+          </Disclosure>
+        ))}
+      </div>
+    </div>
+  </motion.section>
+);
+
+
 const LandingPage = () => {
   return (
     <div className="bg-cloud-white font-sans text-midnight-ink antialiased">
@@ -220,7 +373,10 @@ const LandingPage = () => {
       <main>
         <Hero />
         <Features />
+        <HowItWorks />
         <Pricing />
+        <Testimonials />
+        <FAQ />
       </main>
       <Footer />
     </div>
