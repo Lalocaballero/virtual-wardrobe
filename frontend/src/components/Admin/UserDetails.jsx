@@ -121,7 +121,7 @@ const UserDetails = () => {
     );
 
     if (error) return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div className="bg-destructive/10 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <strong className="font-bold">Error:</strong>
             <span className="block sm:inline"> {error}</span>
         </div>
@@ -131,36 +131,36 @@ const UserDetails = () => {
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+            <div className="lg:col-span-2 bg-card dark:bg-dark-subtle p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-semibold mb-4 border-b pb-2">User Information</h3>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
                     <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">Display Name</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{user.display_name || 'N/A'}</dd>
+                        <dt className="text-sm font-medium text-slate">Display Name</dt>
+                        <dd className="mt-1 text-sm text-foreground">{user.display_name || 'N/A'}</dd>
                     </div>
                     <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">Email Address</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
+                        <dt className="text-sm font-medium text-slate">Email Address</dt>
+                        <dd className="mt-1 text-sm text-foreground">{user.email}</dd>
                     </div>
                     <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">User ID</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{user.id}</dd>
+                        <dt className="text-sm font-medium text-slate">User ID</dt>
+                        <dd className="mt-1 text-sm text-foreground">{user.id}</dd>
                     </div>
                     <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">Location</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{user.location || 'N/A'}</dd>
+                        <dt className="text-sm font-medium text-slate">Location</dt>
+                        <dd className="mt-1 text-sm text-foreground">{user.location || 'N/A'}</dd>
                     </div>
                     <div className="sm:col-span-1">
-                        <dt className="text-sm font-medium text-gray-500">Member Since</dt>
-                        <dd className="mt-1 text-sm text-gray-900">{new Date(user.created_at).toLocaleDateString()}</dd>
+                        <dt className="text-sm font-medium text-slate">Member Since</dt>
+                        <dd className="mt-1 text-sm text-foreground">{new Date(user.created_at).toLocaleDateString()}</dd>
                     </div>
                     <div className="sm:col-span-2">
-                        <dt className="text-sm font-medium text-gray-500">Status</dt>
-                        <dd className="mt-1 text-sm text-gray-900 space-x-2">
+                        <dt className="text-sm font-medium text-slate">Status</dt>
+                        <dd className="mt-1 text-sm text-foreground space-x-2">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                 {user.is_verified ? 'Verified' : 'Not Verified'}
                             </span>
-                            {user.is_banned && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Banned</span>}
+                            {user.is_banned && <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-destructive/10 text-red-800">Banned</span>}
                             {user.is_suspended && (
                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                     Suspended {user.suspension_end_date ? `until ${new Date(user.suspension_end_date).toLocaleDateString()}` : ''}
@@ -170,7 +170,7 @@ const UserDetails = () => {
                     </div>
                 </dl>
             </div>
-            <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+            <div className="lg:col-span-1 bg-card dark:bg-dark-subtle p-6 rounded-lg shadow-md">
                 <h3 className="text-xl font-semibold mb-4 border-b pb-2">Actions</h3>
                 <div className="space-y-3">
                     <button onClick={handleImpersonateUser} className="w-full text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">

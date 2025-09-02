@@ -58,7 +58,7 @@ const LaundryDashboard = () => {
 
       {/* Wardrobe Health Score */}
       {wardrobeHealth && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-800 mb-4">
               <span className={`text-2xl font-bold ${getHealthScoreColor(wardrobeHealth.score)}`}>
@@ -102,9 +102,9 @@ const LaundryDashboard = () => {
 
       {/* Urgent Items Alert */}
       {laundryAlerts?.urgent_items && laundryAlerts.urgent_items.length > 0 && (
-        <div className="bg-red-50 dark:bg-gray-800 border border-red-200 dark:border-red-500/50 rounded-lg p-6">
+        <div className="bg-red-50 dark:bg-dark-subtle border border-red-200 dark:border-red-500/50 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <ExclamationTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-500" />
+            <ExclamationTriangleIcon className="h-6 w-6 text-destructive dark:text-destructive" />
             <h3 className="text-lg font-semibold text-red-900 dark:text-red-400">
               Urgent: Items Need Washing Now!
             </h3>
@@ -112,10 +112,10 @@ const LaundryDashboard = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {laundryAlerts.urgent_items.map(item => (
-              <div key={item.id} className="bg-white dark:bg-gray-700/50 rounded-lg p-4 shadow-sm">
+              <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-inkwell/50 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium">{item.name}</h4>
-                  <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 rounded-full">
+                  <span className="text-xs px-2 py-1 bg-destructive/10 dark:bg-red-900/50 text-red-800 dark:text-red-300 rounded-full">
                     {item.wear_count_since_wash} wears
                   </span>
                 </div>
@@ -134,20 +134,20 @@ const LaundryDashboard = () => {
 
       {/* Laundry Load Suggestions */}
       {laundryAlerts?.laundry_suggestions && laundryAlerts.laundry_suggestions.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <SparklesIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            <SparklesIcon className="h-6 w-6 text-secondary dark:text-secondary" />
             <h3 className="text-lg font-semibold">Smart Laundry Loads</h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {laundryAlerts.laundry_suggestions.map((load, index) => (
-              <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div key={index} className="border border-fog dark:border-inkwell rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="font-medium">{load.load_type}</h4>
                   <div className="flex items-center space-x-2">
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      load.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
+                      load.priority === 'high' ? 'bg-destructive/10 text-red-800 dark:bg-red-900/50 dark:text-red-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
                     }`}>
                       {load.priority} priority
                     </span>
@@ -162,11 +162,11 @@ const LaundryDashboard = () => {
                 
                 <div className="flex flex-wrap gap-1 mb-3">
                   {load.items.slice(0, 3).map(item => (
-                    <span key={item.id} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs rounded">
+                    <span key={item.id} className="px-2 py-1 bg-muted dark:bg-inkwell text-xs rounded">
                       {item.name}
                     </span>
                   ))}
-                  {load.items.length > 3 && <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs rounded">+{load.items.length - 3} more</span>}
+                  {load.items.length > 3 && <span className="px-2 py-1 bg-muted dark:bg-inkwell text-xs rounded">+{load.items.length - 3} more</span>}
                 </div>
                 
                 <button onClick={() => handleMarkWashed(load.items.map(item => item.id))} className="w-full text-sm btn btn-primary">
@@ -180,7 +180,7 @@ const LaundryDashboard = () => {
 
       {/* High Priority Items */}
       {laundryAlerts?.high_priority && laundryAlerts.high_priority.length > 0 && (
-        <div className="bg-orange-50 dark:bg-gray-800 border border-orange-200 dark:border-orange-500/50 rounded-lg p-6">
+        <div className="bg-orange-50 dark:bg-dark-subtle border border-orange-200 dark:border-orange-500/50 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <ClockIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-300">
@@ -189,7 +189,7 @@ const LaundryDashboard = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {laundryAlerts.high_priority.map(item => (
-              <div key={item.id} className="bg-white dark:bg-gray-700/50 rounded-lg p-3 text-center">
+              <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-inkwell/50 rounded-lg p-3 text-center">
                 <div className="text-sm font-medium mb-1">{item.name}</div>
                 <div className="text-xs">{item.type}</div>
                 <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">{item.wear_count_since_wash} wears</div>
@@ -201,7 +201,7 @@ const LaundryDashboard = () => {
 
       {/* Overdue Items (Forgotten) */}
       {laundryAlerts?.overdue_items && laundryAlerts.overdue_items.length > 0 && (
-        <div className="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-blue-500/50 rounded-lg p-6">
+        <div className="bg-blue-50 dark:bg-dark-subtle border border-blue-200 dark:border-blue-500/50 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
             <BoltIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300">
@@ -213,7 +213,7 @@ const LaundryDashboard = () => {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {laundryAlerts.overdue_items.slice(0, 8).map(item => (
-              <div key={item.id} className="bg-white dark:bg-gray-700/50 rounded-lg p-3 text-center">
+              <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-inkwell/50 rounded-lg p-3 text-center">
                 <div className="text-sm font-medium mb-1">{item.name}</div>
                 <div className="text-xs">{item.type} • {item.color}</div>
                 {item.last_worn && <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">{Math.floor((new Date() - new Date(item.last_worn)) / (1000 * 60 * 60 * 24))} days ago</div>}
@@ -226,7 +226,7 @@ const LaundryDashboard = () => {
 
       {/* All Good State */}
       {laundryAlerts && !laundryAlerts.urgent_items?.length && !laundryAlerts.high_priority?.length && wardrobeHealth?.score >= 90 && (
-        <div className="bg-green-50 dark:bg-gray-800 border border-green-200 dark:border-green-500/50 rounded-lg p-6 text-center">
+        <div className="bg-green-50 dark:bg-dark-subtle border border-green-200 dark:border-green-500/50 rounded-lg p-6 text-center">
           <FaceSmileIcon className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-green-900 dark:text-green-300 mb-2">
             Excellent Wardrobe Management! 🎉

@@ -14,44 +14,54 @@ module.exports = {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
         'midnight-ink': '#1A1A2E',
+        'inkwell': '#4A4A6A',
+        'slate': '#7E7E9A',
+        'fog': '#D1D1DB',
         'cloud-white': '#F7F7F7',
         'sunrise-coral': '#FF6B6B',
         'electric-indigo': '#6F00FF',
         'cyber-yellow': '#FFD300',
+        'danger': '#E54848',
+        'warning': '#F5A623',
+        'dark-subtle': '#2A2A4A',
+        'dark-text-secondary': '#A0A0B8',
+
+        // Semantic mapping
+        background: '#F7F7F7', // cloud-white
+        foreground: '#1A1A2E', // midnight-ink
+        
+        primary: {
+          DEFAULT: '#FF6B6B', // sunrise-coral
+          foreground: '#FFFFFF',
+        },
+        secondary: {
+          DEFAULT: '#6F00FF', // electric-indigo
+          foreground: '#FFFFFF',
+        },
+        destructive: {
+          DEFAULT: '#E54848', // danger
+          foreground: '#FFFFFF',
+        },
+        muted: {
+          DEFAULT: '#D1D1DB', // fog
+          foreground: '#7E7E9A', // slate
+        },
+        accent: {
+          DEFAULT: '#FFD300', // cyber-yellow
+          foreground: '#1A1A2E', // midnight-ink
+        },
+        card: {
+          DEFAULT: '#FFFFFF',
+          foreground: '#1A1A2E',
+        },
+        popover: {
+          DEFAULT: '#FFFFFF',
+          foreground: '#1A1A2E',
+        },
+        border: '#D1D1DB', // fog
+        input: '#D1D1DB', // fog
+        ring: '#6F00FF', // electric-indigo
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

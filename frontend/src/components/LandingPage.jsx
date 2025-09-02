@@ -68,7 +68,7 @@ const features = [
 ];
 
 const Features = () => (
-  <section className="py-20 bg-white">
+  <section className="py-20 bg-card dark:bg-dark-subtle">
     <div className="container mx-auto px-6">
       <div className="text-center mb-16">
         <h2 className="font-poppins font-bold text-4xl md:text-5xl">Why you'll love WeWear</h2>
@@ -80,7 +80,7 @@ const Features = () => (
         {features.map((feature, index) => (
           <motion.div
             key={feature.name}
-            className="text-center p-8 border border-gray-200 rounded-2xl"
+            className="text-center p-8 border border-fog rounded-2xl"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
@@ -140,7 +140,7 @@ const Pricing = () => (
       <div className="flex flex-col lg:flex-row justify-center items-stretch gap-8">
         {/* Free Plan */}
         <motion.div
-          className="w-full lg:w-1/3 border border-gray-200 rounded-2xl p-8 flex flex-col"
+          className="w-full lg:w-1/3 border border-fog rounded-2xl p-8 flex flex-col"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
@@ -158,14 +158,14 @@ const Pricing = () => (
             ))}
           </ul>
           <div className="mt-auto">
-            <Link to="/login" className="block w-full text-center bg-white border border-electric-indigo text-electric-indigo px-6 py-3 rounded-full font-medium hover:bg-electric-indigo/5 transition-colors">
+            <Link to="/login" className="block w-full text-center bg-card dark:bg-dark-subtle border border-electric-indigo text-electric-indigo px-6 py-3 rounded-full font-medium hover:bg-electric-indigo/5 transition-colors">
               Get Started
             </Link>
           </div>
         </motion.div>
         {/* Premium Plan */}
         <motion.div
-          className="w-full lg:w-1/3 border-2 border-electric-indigo rounded-2xl p-8 flex flex-col relative bg-white"
+          className="w-full lg:w-1/3 border-2 border-electric-indigo rounded-2xl p-8 flex flex-col relative bg-card dark:bg-dark-subtle"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
@@ -199,7 +199,7 @@ const Pricing = () => (
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-white border-t border-gray-200">
+    <footer className="bg-card dark:bg-dark-subtle border-t border-fog">
       <div className="container mx-auto px-6 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
           <p className="text-midnight-ink/80 mb-4 md:mb-0">&copy; {currentYear} WeWear. All rights reserved.</p>

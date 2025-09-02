@@ -147,7 +147,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
           <img
             src={preview}
             alt="Preview"
-            className="w-full h-48 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700"
+            className="w-full h-48 object-cover rounded-lg border-2 border-fog dark:border-inkwell"
           />
           <button
             onClick={removeImage}
@@ -158,7 +158,7 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
           </button>
           {uploading && (
             <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-              <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2">
+              <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle px-4 py-2 rounded-lg flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
                 <span className="text-sm">Uploading...</span>
               </div>
@@ -172,20 +172,20 @@ const ImageUpload = ({ onImageUploaded, currentImage = null, className = '' }) =
             className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors flex-grow flex flex-col items-center justify-center
               ${isDragActive 
                 ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/50 dark:border-indigo-400' 
-                : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
+                : 'border-fog hover:border-gray-400 dark:border-inkwell dark:hover:border-gray-500'
               }
               ${uploading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
           >
             <input {...getInputProps()} />
-            <PhotoIcon className="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500" />
+            <PhotoIcon className="mx-auto h-10 w-10 text-gray-400 dark:text-slate" />
             <p className="mt-2 text-sm">Drag & drop or click to upload</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Max 10MB</p>
+            <p className="text-xs text-slate dark:text-dark-text-secondary mt-1">Max 10MB</p>
           </div>
           <div className="flex items-center">
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-            <span className="flex-shrink mx-2 text-xs text-gray-400 dark:text-gray-500">OR</span>
-            <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+            <div className="flex-grow border-t border-fog dark:border-inkwell"></div>
+            <span className="flex-shrink mx-2 text-xs text-gray-400 dark:text-slate">OR</span>
+            <div className="flex-grow border-t border-fog dark:border-inkwell"></div>
           </div>
           <button
             type="button"

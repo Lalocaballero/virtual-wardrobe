@@ -70,13 +70,13 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 p-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+    <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 p-10 bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-xl shadow-lg">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground dark:text-white">
             Welcome to WeWear!
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-sm text-slate dark:text-dark-text-secondary">
             Let's set up your profile to get the best experience.
           </p>
         </div>
@@ -95,7 +95,7 @@ const Onboarding = () => {
                   name="display_name"
                   type="text"
                   required
-                  className="input-field appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  className="input-field appearance-none rounded-md relative block w-full px-3 py-2 border border-fog placeholder-gray-500 text-foreground focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm dark:bg-inkwell dark:border-inkwell dark:placeholder-gray-400 dark:text-white"
                   placeholder="Display Name"
                   value={formData.display_name}
                   onChange={handleChange}
@@ -110,7 +110,7 @@ const Onboarding = () => {
                         name="age"
                         type="number"
                         required
-                        className="input-field appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                        className="input-field appearance-none rounded-md relative block w-full px-3 py-2 border border-fog placeholder-gray-500 text-foreground focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm dark:bg-inkwell dark:border-inkwell dark:placeholder-gray-400 dark:text-white"
                         placeholder="Age"
                         value={formData.age}
                         onChange={handleChange}
@@ -122,7 +122,7 @@ const Onboarding = () => {
                         id="gender"
                         name="gender"
                         required
-                        className="input-field appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                        className="input-field appearance-none rounded-md relative block w-full px-3 py-2 border border-fog placeholder-gray-500 text-foreground focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm dark:bg-inkwell dark:border-inkwell dark:placeholder-gray-400 dark:text-white"
                         value={formData.gender}
                         onChange={handleChange}
                     >
@@ -138,7 +138,7 @@ const Onboarding = () => {
           </div>
 
           <div>
-            <button type="submit" className="btn btn-primary w-full group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button type="submit" className="btn btn-primary w-full group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
               Complete Profile
             </button>
           </div>

@@ -4,14 +4,14 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, A
 
 // Apple-inspired StatCard with better styling
 const StatCard = ({ title, value, icon, prefix = '', suffix = '' }) => (
-    <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div className="bg-card dark:bg-dark-subtle/60 backdrop-blur-xl border border-fog/50 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex items-center">
-            <div className="bg-gray-100 p-3 rounded-lg mr-4">
+            <div className="bg-muted p-3 rounded-lg mr-4">
                 <span className="text-2xl">{icon}</span>
             </div>
             <div>
-                <p className="text-md text-gray-600">{title}</p>
-                <p className="text-3xl font-semibold text-gray-900">{prefix}{value}{suffix}</p>
+                <p className="text-md text-slate">{title}</p>
+                <p className="text-3xl font-semibold text-foreground">{prefix}{value}{suffix}</p>
             </div>
         </div>
     </div>
@@ -21,8 +21,8 @@ const StatCard = ({ title, value, icon, prefix = '', suffix = '' }) => (
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-gray-200/50">
-                <p className="text-sm text-gray-600">{`Date: ${label}`}</p>
+            <div className="bg-card dark:bg-dark-subtle/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-fog/50">
+                <p className="text-sm text-slate">{`Date: ${label}`}</p>
                 <p className="text-md font-bold text-blue-600">{`Active Users: ${payload[0].value}`}</p>
             </div>
         );
@@ -74,7 +74,7 @@ const AnalyticsDashboard = () => {
     );
 
     if (error) return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative" role="alert">
+        <div className="bg-destructive/10 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative" role="alert">
             <strong className="font-bold">Error:</strong>
             <span className="block sm:inline"> {error}</span>
         </div>
@@ -87,7 +87,7 @@ const AnalyticsDashboard = () => {
                 {conversionData && <StatCard title="Premium Conversion Rate" value={conversionData.rate} suffix="%" icon="🚀" />}
                 {mrrData && <StatCard title="Premium Subscribers" value={mrrData.premium_users} icon="⭐" />}
             </div>
-            <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-6 rounded-2xl shadow-sm">
+            <div className="bg-card dark:bg-dark-subtle/60 backdrop-blur-xl border border-fog/50 p-6 rounded-2xl shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-gray-800">Daily Active Users (Last {filterDays} Days)</h3>
                     <div className="flex space-x-2">
@@ -98,7 +98,7 @@ const AnalyticsDashboard = () => {
                                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                                     filterDays === days
                                         ? 'bg-blue-600 text-white shadow-sm'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        : 'bg-muted text-inkwell hover:bg-gray-300'
                                 }`}
                             >
                                 {days} Days
@@ -134,7 +134,7 @@ const AnalyticsDashboard = () => {
 
             {demographicsData && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-6 rounded-2xl shadow-sm">
+                    <div className="bg-card dark:bg-dark-subtle/60 backdrop-blur-xl border border-fog/50 p-6 rounded-2xl shadow-sm">
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">Gender Distribution</h3>
                         <div style={{ width: '100%', height: 300 }}>
                             <ResponsiveContainer>
@@ -150,7 +150,7 @@ const AnalyticsDashboard = () => {
                             </ResponsiveContainer>
                         </div>
                     </div>
-                    <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-6 rounded-2xl shadow-sm">
+                    <div className="bg-card dark:bg-dark-subtle/60 backdrop-blur-xl border border-fog/50 p-6 rounded-2xl shadow-sm">
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">Age Distribution</h3>
                          <div style={{ width: '100%', height: 300 }}>
                             <ResponsiveContainer>

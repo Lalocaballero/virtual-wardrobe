@@ -39,7 +39,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
       <div className="text-center py-8 md:py-12 px-4">
         <div className="mb-6">
           <div className="mx-auto h-20 w-20 md:h-24 md:w-24 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900 rounded-full flex items-center justify-center mb-4">
-            <svg className="h-10 w-10 md:h-12 md:w-12 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-10 w-10 md:h-12 md:w-12 text-secondary dark:text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v6a2 2 0 002 2h4a2 2 0 002-2V5z" />
             </svg>
           </div>
@@ -50,9 +50,9 @@ const OutfitGenerator = ({ outfit, mood }) => {
             Select your mood and generate AI-powered style suggestions!
           </p>
         </div>
-        <div className="bg-blue-50 dark:bg-gray-800 border border-blue-100 dark:border-gray-700 rounded-lg p-4 md:p-6 max-w-md mx-auto">
-          <p className="text-sm text-indigo-700 dark:text-indigo-400 font-medium mb-2">💡 Pro Tips:</p>
-          <ul className="text-sm text-indigo-600 dark:text-gray-300 space-y-1 text-left">
+        <div className="bg-blue-50 dark:bg-dark-subtle border border-blue-100 dark:border-inkwell rounded-lg p-4 md:p-6 max-w-md mx-auto">
+          <p className="text-sm text-indigo-700 dark:text-secondary font-medium mb-2">💡 Pro Tips:</p>
+          <ul className="text-sm text-secondary dark:text-cloud-white space-y-1 text-left">
             <li>• Add photos to your wardrobe items</li>
             <li>• Set your location for weather-based suggestions</li>
             <li>• Try different moods for variety</li>
@@ -66,7 +66,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Weather & Mood Info */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+      <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-3 sm:space-y-0">
           <div className="flex-1">
             <h2 className="text-lg md:text-xl font-semibold mb-2">Today's Outfit</h2>
@@ -105,19 +105,19 @@ const OutfitGenerator = ({ outfit, mood }) => {
       {/* Outfit Items Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
         {outfit.items?.map(item => (
-          <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
-            <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
+          <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell overflow-hidden hover:shadow-md transition-shadow">
+            <div className="aspect-square bg-muted dark:bg-inkwell relative">
               {item.image_url ? (
                 <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-slate">
                   <svg className="h-8 w-8 md:h-16 md-w-16" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
                 </div>
               )}
-              <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm rounded text-xs font-medium">
+              <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-card dark:bg-dark-subtle/80 dark:bg-gray-900/70 backdrop-blur-sm rounded text-xs font-medium">
                 {item.type}
               </div>
-              <div className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-xs font-medium ${item.is_clean ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              <div className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-xs font-medium ${item.is_clean ? 'bg-green-100 text-green-800' : 'bg-destructive/10 text-red-800'}`}>
                 {item.is_clean ? '✓' : '!'}
               </div>
             </div>
@@ -132,12 +132,12 @@ const OutfitGenerator = ({ outfit, mood }) => {
               {item.mood_tags && item.mood_tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {item.mood_tags.slice(0, 2).map(tag => (
-                    <span key={tag} className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs rounded">
+                    <span key={tag} className="px-1.5 py-0.5 bg-secondary/10 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs rounded">
                       {tag}
                     </span>
                   ))}
                   {item.mood_tags.length > 2 && (
-                    <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-xs rounded">
+                    <span className="px-1.5 py-0.5 bg-muted dark:bg-inkwell text-xs rounded">
                       +{item.mood_tags.length - 2}
                     </span>
                   )}
@@ -152,28 +152,28 @@ const OutfitGenerator = ({ outfit, mood }) => {
       {outfit.suggestion && (
         <div className="space-y-3 md:space-y-4">
           {outfit.suggestion.reasoning && (
-            <div className="bg-blue-50 dark:bg-gray-800 border border-blue-100 dark:border-gray-700 rounded-lg p-4 md:p-6">
+            <div className="bg-blue-50 dark:bg-dark-subtle border border-blue-100 dark:border-inkwell rounded-lg p-4 md:p-6">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 md:h-6 md:w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                  <svg className="h-5 w-5 md:h-6 md:w-6 text-secondary dark:text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-indigo-900 dark:text-indigo-300 mb-2 text-sm md:text-base">Why this outfit works:</h3>
-                  <p className="text-indigo-800 dark:text-gray-300 leading-relaxed text-sm md:text-base">{outfit.suggestion.reasoning}</p>
+                  <p className="text-indigo-800 dark:text-cloud-white leading-relaxed text-sm md:text-base">{outfit.suggestion.reasoning}</p>
                 </div>
               </div>
             </div>
           )}
           
           {outfit.suggestion.style_notes && (
-            <div className="bg-purple-50 dark:bg-gray-800 border border-purple-100 dark:border-gray-700 rounded-lg p-4 md:p-6">
+            <div className="bg-purple-50 dark:bg-dark-subtle border border-purple-100 dark:border-inkwell rounded-lg p-4 md:p-6">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 md:h-6 md:w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-purple-900 dark:text-purple-300 mb-2 text-sm md:text-base">Style tips:</h3>
-                  <p className="text-purple-800 dark:text-gray-300 leading-relaxed text-sm md:text-base">{outfit.suggestion.style_notes}</p>
+                  <p className="text-purple-800 dark:text-cloud-white leading-relaxed text-sm md:text-base">{outfit.suggestion.style_notes}</p>
                 </div>
               </div>
             </div>
@@ -186,7 +186,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
-                    className={`h-3 w-3 md:h-4 md:w-4 ${ i < Math.round((outfit.suggestion?.confidence || 0.5) * 5) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }`}
+                    className={`h-3 w-3 md:h-4 md:w-4 ${ i < Math.round((outfit.suggestion?.confidence || 0.5) * 5) ? 'text-yellow-400' : 'text-gray-300 dark:text-slate' }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   ><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>

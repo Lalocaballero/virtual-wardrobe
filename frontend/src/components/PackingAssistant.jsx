@@ -11,7 +11,7 @@ const PackingProgressBar = ({ items }) => {
     const progress = totalItems > 0 ? (packedItems / totalItems) * 100 : 0;
 
     return (
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 my-4">
+        <div className="w-full bg-muted dark:bg-inkwell rounded-full h-2.5 my-4">
             <div 
                 className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" 
                 style={{ width: `${progress}%` }}
@@ -48,8 +48,8 @@ const TripForm = ({ trip, onSave, onCancel, isLoading }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800/50 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700/50 animate-fadeIn">
-            <h3 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle/50 rounded-xl shadow-lg p-6 border border-fog dark:border-inkwell/50 animate-fadeIn">
+            <h3 className="text-xl font-semibold mb-6 text-foreground dark:text-white">
                 {trip.id ? 'Edit Trip' : 'Plan your next adventure'}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -202,12 +202,12 @@ const PackingAssistant = () => {
       <div className="animate-fadeIn p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6">
             <div className="mb-4 sm:mb-0">
-                <button onClick={() => { setSelectedTrip(null); useWardrobeStore.setState({ currentTripPackingList: null }); }} className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-2">
+                <button onClick={() => { setSelectedTrip(null); useWardrobeStore.setState({ currentTripPackingList: null }); }} className="flex items-center text-sm font-medium text-slate hover:text-foreground dark:text-dark-text-secondary dark:hover:text-white mb-2">
                     <ArrowLeftIcon className="h-5 w-5 mr-2" />
                     Back to My Trips
                 </button>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Packing for {selectedTrip.destination}</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{new Date(selectedTrip.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })} - {new Date(selectedTrip.end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <h1 className="text-3xl font-bold text-foreground dark:text-white">Packing for {selectedTrip.destination}</h1>
+                <p className="text-sm text-slate dark:text-dark-text-secondary mt-1">{new Date(selectedTrip.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })} - {new Date(selectedTrip.end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             {!isCompleted && (
                  <button onClick={handleCompleteTrip} className="btn btn-success bg-green-500 hover:bg-green-600 text-white">
@@ -223,7 +223,7 @@ const PackingAssistant = () => {
           <div className="text-center py-12">
             <SparklesIcon className="mx-auto h-12 w-12 animate-pulse text-blue-500" />
             <h3 className="text-lg font-medium mt-4">Fetching your packing list...</h3>
-            <p className="text-gray-500">Our AI is checking the weather and your wardrobe.</p>
+            <p className="text-slate">Our AI is checking the weather and your wardrobe.</p>
           </div>
         )}
 
@@ -237,7 +237,7 @@ const PackingAssistant = () => {
             )}
 
             {currentTripPackingList.reasoning && !isCompleted && (
-              <div className="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-200 px-4 py-3 rounded-lg" role="alert">
+              <div className="bg-blue-50 dark:bg-dark-subtle border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-200 px-4 py-3 rounded-lg" role="alert">
                 <div className="flex">
                   <div className="py-1"><SparklesIcon className="h-5 w-5 text-blue-400 mr-3"/></div>
                   <div>
@@ -251,7 +251,7 @@ const PackingAssistant = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Object.entries(organizedList).map(([category, items]) => (
                 items.length > 0 && (
-                  <div key={category} className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50 p-5 transition-all hover:shadow-md">
+                  <div key={category} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle/50 rounded-xl shadow-sm border border-fog dark:border-inkwell/50 p-5 transition-all hover:shadow-md">
                     <h4 className="font-semibold text-lg mb-4 capitalize text-gray-800 dark:text-white">{category.replace(/_/g, ' ')}</h4>
                     <ul className="space-y-3">
                       {items.map((item) => (
@@ -262,10 +262,10 @@ const PackingAssistant = () => {
                               checked={item.is_packed}
                               onChange={() => togglePackedItem(item.id)}
                               disabled={isCompleted}
-                              className="h-5 w-5 rounded-md border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 disabled:opacity-50"
+                              className="h-5 w-5 rounded-md border-fog text-blue-600 focus:ring-blue-500 focus:ring-2 disabled:opacity-50"
                             />
-                            <label htmlFor={`item-${item.id}`} className={`ml-3 block text-sm font-medium ${item.is_packed ? 'text-gray-500 line-through' : 'text-gray-700 dark:text-gray-300'}`}>
-                              {item.item_name} {item.quantity > 1 && <span className="text-gray-500 dark:text-gray-400 font-normal">(x${item.quantity})</span>}
+                            <label htmlFor={`item-${item.id}`} className={`ml-3 block text-sm font-medium ${item.is_packed ? 'text-slate line-through' : 'text-inkwell dark:text-cloud-white'}`}>
+                              {item.item_name} {item.quantity > 1 && <span className="text-slate dark:text-dark-text-secondary font-normal">(x${item.quantity})</span>}
                             </label>
                           </li>
                         ))}
@@ -277,13 +277,13 @@ const PackingAssistant = () => {
 
             {/* NEW: Special Outfits Section */}
             {currentTripPackingList.special_outfits && Object.keys(currentTripPackingList.special_outfits).length > 0 && (
-              <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gray-700">
-                <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Outfits for Special Activities</h3>
+              <div className="mt-10 pt-8 border-t border-fog dark:border-inkwell">
+                <h3 className="text-2xl font-bold mb-6 text-foreground dark:text-white">Outfits for Special Activities</h3>
                 <div className="space-y-8">
                   {Object.entries(currentTripPackingList.special_outfits).map(([activity, outfit]) => (
-                    <div key={activity} className="bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50 p-5">
-                      <h4 className="font-semibold text-lg capitalize text-indigo-600 dark:text-indigo-400 mb-2">{activity}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 italic">"{outfit.reasoning}"</p>
+                    <div key={activity} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle/50 rounded-xl shadow-sm border border-fog dark:border-inkwell/50 p-5">
+                      <h4 className="font-semibold text-lg capitalize text-secondary dark:text-secondary mb-2">{activity}</h4>
+                      <p className="text-sm text-slate dark:text-dark-text-secondary mb-4 italic">"{outfit.reasoning}"</p>
                       <ul className="space-y-2">
                         {outfit.selected_items.map(itemId => {
                           // Find the full item details from the main packing list
@@ -293,8 +293,8 @@ const PackingAssistant = () => {
                             <li key={itemId} className="flex items-center">
                               <img src={fullItem.image_url} alt={fullItem.name} className="h-10 w-10 rounded-md object-cover mr-3" />
                               <div>
-                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{fullItem.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{fullItem.type} - {fullItem.color}</p>
+                                <p className="text-sm font-medium text-gray-800 dark:text-cloud-white">{fullItem.name}</p>
+                                <p className="text-xs text-slate dark:text-dark-text-secondary">{fullItem.type} - {fullItem.color}</p>
                               </div>
                             </li>
                           ) : null;
@@ -315,7 +315,7 @@ const PackingAssistant = () => {
   return (
     <div className="p-4 sm:p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Trips</h1>
+        <h1 className="text-3xl font-bold text-foreground dark:text-white">My Trips</h1>
         <button onClick={() => { setEditingTrip(null); setIsFormOpen(true); }} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white">
           <PlusIcon className="h-5 w-5 mr-2" />
           Create New Trip
@@ -335,10 +335,10 @@ const PackingAssistant = () => {
         {trips.map((trip) => {
             const isCompleted = trip.packing_list?.status === 'completed';
             return (
-          <div key={trip.id} className={`bg-white dark:bg-gray-800/50 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/50 flex flex-col justify-between transition-all hover:shadow-lg hover:scale-[1.02] ${isCompleted ? 'opacity-60' : ''}`}>
+          <div key={trip.id} className={`bg-card dark:bg-dark-subtle dark:bg-dark-subtle/50 rounded-xl shadow-sm border border-fog dark:border-inkwell/50 flex flex-col justify-between transition-all hover:shadow-lg hover:scale-[1.02] ${isCompleted ? 'opacity-60' : ''}`}>
             <div className="p-5">
               <div className="flex justify-between items-start">
-                <h3 className="flex items-center text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                <h3 className="flex items-center text-lg font-semibold mb-2 text-foreground dark:text-white">
                     {isCompleted && <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />}
                     {trip.destination}
                 </h3>
@@ -348,17 +348,17 @@ const PackingAssistant = () => {
                     <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full dark:bg-blue-900/30 dark:text-blue-300 capitalize">{trip.trip_type}</span>
                 )}
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-slate dark:text-dark-text-secondary">
                 {new Date(trip.start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(trip.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800/30 px-5 py-3 flex justify-between items-center border-t border-gray-200 dark:border-gray-700/50 rounded-b-xl">
+            <div className="bg-background dark:bg-dark-subtle/30 px-5 py-3 flex justify-between items-center border-t border-fog dark:border-inkwell/50 rounded-b-xl">
                 <button onClick={() => setSelectedTrip(trip)} className="btn btn-secondary text-sm font-medium">View Packing List</button>
                 <div className="flex space-x-1">
-                    <button onClick={() => handleEditClick(trip)} disabled={isCompleted} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button onClick={() => handleEditClick(trip)} disabled={isCompleted} className="p-2 text-gray-400 hover:text-slate hover:bg-muted dark:hover:bg-inkwell rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
                         <PencilIcon className="h-5 w-5" />
                     </button>
-                    <button onClick={() => deleteTrip(trip.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full">
+                    <button onClick={() => deleteTrip(trip.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-destructive/10 dark:hover:bg-red-900/50 rounded-full">
                         <TrashIcon className="h-5 w-5" />
                     </button>
                 </div>
@@ -367,9 +367,9 @@ const PackingAssistant = () => {
         )})}
       </div>
        {trips.length === 0 && !tripsLoading && !isFormOpen && (
-        <div className="text-center py-16 bg-white dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No trips planned yet!</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Click "Create New Trip" to start your first packing list.</p>
+        <div className="text-center py-16 bg-card dark:bg-dark-subtle dark:bg-dark-subtle/50 rounded-xl border-2 border-dashed border-fog dark:border-inkwell">
+          <h3 className="text-xl font-semibold text-foreground dark:text-white mb-2">No trips planned yet!</h3>
+          <p className="text-slate dark:text-dark-text-secondary mb-4">Click "Create New Trip" to start your first packing list.</p>
           <button onClick={() => { setEditingTrip(null); setIsFormOpen(true); }} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white">
             Create Your First Trip
           </button>

@@ -6,27 +6,27 @@ const HealthCheckItem = ({ name, status }) => {
     const details = typeof status === 'string' && !isOk ? status.replace('error: ', '') : null;
 
     return (
-        <div className="bg-gray-50/80 border border-gray-200/80 p-4 rounded-xl flex justify-between items-center transition-all hover:border-gray-300">
+        <div className="bg-background/80 border border-fog/80 p-4 rounded-xl flex justify-between items-center transition-all hover:border-fog">
             <p className="text-lg font-medium text-gray-800">{name}</p>
             <div className="flex items-center">
                 <div className={`h-3 w-3 rounded-full mr-3 ${isOk ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                 <p className={`text-md font-semibold ${isOk ? 'text-green-700' : 'text-red-700'}`}>
                     {isOk ? 'Operational' : 'Error'}
                 </p>
-                {details && <p className="text-sm text-gray-500 ml-2 truncate" title={details}>({details})</p>}
+                {details && <p className="text-sm text-slate ml-2 truncate" title={details}>({details})</p>}
             </div>
         </div>
     );
 };
 
 const StatCard = ({ title, value, icon }) => (
-    <div className="bg-gray-50/80 border border-gray-200/80 p-4 rounded-xl flex items-center">
-        <div className="p-3 rounded-lg mr-4 bg-gray-200">
+    <div className="bg-background/80 border border-fog/80 p-4 rounded-xl flex items-center">
+        <div className="p-3 rounded-lg mr-4 bg-muted">
             <span className="text-xl">{icon}</span>
         </div>
         <div>
-            <p className="text-md text-gray-600">{title}</p>
-            <p className="text-2xl font-semibold text-gray-900">{value}</p>
+            <p className="text-md text-slate">{title}</p>
+            <p className="text-2xl font-semibold text-foreground">{value}</p>
         </div>
     </div>
 );
@@ -59,7 +59,7 @@ const SystemHealth = () => {
     );
 
     if (error) return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative" role="alert">
+        <div className="bg-destructive/10 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative" role="alert">
             <strong className="font-bold">Error:</strong>
             <span className="block sm:inline"> {error}</span>
         </div>
@@ -67,15 +67,15 @@ const SystemHealth = () => {
     
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            <div className="bg-white/60 backdrop-blur-xl border border-gray-200/50 p-8 rounded-2xl shadow-sm">
+            <div className="bg-card dark:bg-dark-subtle/60 backdrop-blur-xl border border-fog/50 p-8 rounded-2xl shadow-sm">
                 <h3 className="text-2xl font-semibold mb-2 text-gray-800">System Health</h3>
-                <p className="text-sm text-gray-500 mb-6">
+                <p className="text-sm text-slate mb-6">
                     Last checked: {healthData && new Date(healthData.timestamp).toLocaleString()}
                 </p>
                 
                 {healthData && healthData.database_stats && !healthData.database_stats.error && (
                     <>
-                        <h4 className="text-xl font-semibold mb-4 text-gray-700">Database Stats</h4>
+                        <h4 className="text-xl font-semibold mb-4 text-inkwell">Database Stats</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                             <StatCard title="Total Users" value={healthData.database_stats.users} icon="👥" />
                             <StatCard title="Total Items" value={healthData.database_stats.items} icon="👕" />
@@ -84,7 +84,7 @@ const SystemHealth = () => {
                     </>
                 )}
 
-                <h4 className="text-xl font-semibold mb-4 text-gray-700">Service Status</h4>
+                <h4 className="text-xl font-semibold mb-4 text-inkwell">Service Status</h4>
                 <div className="space-y-4">
                     {healthData && healthData.services && Object.entries(healthData.services).map(([service, status]) => (
                         <HealthCheckItem 

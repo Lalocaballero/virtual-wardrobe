@@ -52,11 +52,11 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col">
+      <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-6 border-b border-fog dark:border-inkwell">
           <h2 className="text-xl font-semibold">Edit Item</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-muted dark:hover:bg-inkwell">
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
@@ -213,7 +213,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
             </div>
           </div>
           
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+            <div className="border-t border-fog dark:border-inkwell pt-6 mt-6">
                 <h4 className="text-md font-medium mb-4">Purchase & Care Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -243,7 +243,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                 </div>
             </div>
 
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+            <div className="border-t border-fog dark:border-inkwell pt-6 mt-6">
                 <h4 className="text-md font-medium mb-4">Maintenance</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex items-center">
@@ -282,8 +282,8 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
                   onClick={() => handleMoodTagsChange(tag)}
                   className={`px-3 py-1 rounded-full text-sm border transition-colors ${
                     formData.mood_tags.includes(tag)
-                      ? 'bg-indigo-100 border-indigo-300 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-700'
-                      : 'bg-gray-100 border-gray-300 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                      ? 'bg-secondary/10 border-indigo-300 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-700'
+                      : 'bg-muted border-fog hover:bg-muted dark:bg-inkwell dark:border-inkwell dark:hover:bg-gray-600'
                   }`}
                 >
                   {tag}
@@ -294,7 +294,7 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
         </form>
 
         {/* Buttons */}
-        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end space-x-3 p-6 border-t border-fog dark:border-inkwell">
           <button type="button" onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>

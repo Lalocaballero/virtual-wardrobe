@@ -10,7 +10,7 @@ const Billing = () => {
 
     return (
         <div className="space-y-8 max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
                 <h2 className="text-xl font-bold">Subscription</h2>
                 {profile.is_premium ? (
                     <PremiumUserView />

@@ -69,7 +69,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cloud-white dark:bg-midnight-ink">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold">{isLogin ? 'Sign in to your account' : 'Create your account'}</h2>
@@ -97,7 +97,7 @@ const Login = () => {
           </div>
 
           {error && (
-            <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-500/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-center">
+            <div className="bg-destructive/10 dark:bg-destructive/20 border border-destructive/50 text-destructive dark:text-destructive px-4 py-3 rounded-lg text-center">
               <p>{error}</p>
               {showResend && (
                 <button type="button" onClick={handleResend} className="mt-2 text-sm font-bold underline">

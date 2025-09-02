@@ -98,10 +98,10 @@ const UserList = () => {
                     value={emailFilter}
                     onChange={e => setEmailFilter(e.target.value)}
                     placeholder={"Search by email..."}
-                    className="p-2 border border-gray-300 rounded"
+                    className="p-2 border border-fog rounded"
                 />
             </div>
-            <table {...getTableProps()} className="min-w-full bg-white">
+            <table {...getTableProps()} className="min-w-full bg-card dark:bg-dark-subtle">
                 <thead>
                     {headerGroups.map(headerGroup => (
                         <tr {...headerGroup.getHeaderGroupProps()}>
@@ -120,7 +120,7 @@ const UserList = () => {
                     {page.map(row => {
                         prepareRow(row);
                         return (
-                            <tr {...row.getRowProps()} onClick={() => navigate(`/admin/users/${row.original.id}`)} className="cursor-pointer hover:bg-gray-100">
+                            <tr {...row.getRowProps()} onClick={() => navigate(`/admin/users/${row.original.id}`)} className="cursor-pointer hover:bg-muted">
                                 {row.cells.map(cell => (
                                     <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
                                 ))}

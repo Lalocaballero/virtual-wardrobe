@@ -3,12 +3,12 @@ import useWardrobeStore, { API_BASE } from '../../store/wardrobeStore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const StatCard = ({ title, value, icon }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
+    <div className="bg-card dark:bg-dark-subtle p-6 rounded-lg shadow-md flex items-center">
         <div className="bg-blue-500 text-white p-3 rounded-full mr-4">
             {icon}
         </div>
         <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
+            <p className="text-sm font-medium text-slate">{title}</p>
             <p className="text-2xl font-bold text-gray-800">{value}</p>
         </div>
     </div>
@@ -42,7 +42,7 @@ const AdminStats = () => {
     );
 
     if (error) return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div className="bg-destructive/10 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <strong className="font-bold">Error:</strong>
             <span className="block sm:inline"> {error}</span>
         </div>
@@ -64,7 +64,7 @@ const AdminStats = () => {
                     </>
                 )}
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-card dark:bg-dark-subtle p-6 rounded-lg shadow-md">
                 <h3 className="text-lg font-semibold mb-4">User & Item Overview</h3>
                 <div style={{ width: '100%', height: 300 }}>
                     <ResponsiveContainer>

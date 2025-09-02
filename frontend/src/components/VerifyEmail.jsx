@@ -24,10 +24,10 @@ const VerifyEmail = () => {
     }, [location, navigate]);
 
     return (
-        <div className="flex items-center justify-center h-screen bg-gray-100">
-            <div className="p-8 bg-white shadow-md rounded-lg">
+        <div className="flex items-center justify-center h-screen bg-muted">
+            <div className="p-8 bg-card dark:bg-dark-subtle shadow-md rounded-lg">
                 <h2 className="text-2xl font-bold text-center mb-4">Email Verification</h2>
-                <p className="text-center text-gray-600">{message}</p>
+                <p className="text-center text-slate">{message}</p>
             </div>
         </div>
     );

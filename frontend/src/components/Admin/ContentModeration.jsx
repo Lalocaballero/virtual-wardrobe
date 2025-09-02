@@ -45,42 +45,42 @@ const ContentModeration = () => {
     );
 
     if (error) return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div className="bg-destructive/10 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <strong className="font-bold">Error:</strong>
             <span className="block sm:inline"> {error}</span>
         </div>
     );
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-card dark:bg-dark-subtle p-6 rounded-lg shadow-md">
             {reportedItems.length === 0 ? (
                 <p>No reported items to review.</p>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-background">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reports</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate uppercase tracking-wider">Item</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate uppercase tracking-wider">Owner</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate uppercase tracking-wider">Reports</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate uppercase tracking-wider">Status</th>
                                 <th scope="col" className="relative px-6 py-3">
                                     <span className="sr-only">Actions</span>
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card dark:bg-dark-subtle divide-y divide-gray-200">
                             {reportedItems.map(item => (
-                                <tr key={item.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <tr key={item.id} className="hover:bg-background">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                                         <div className="flex items-center">
                                             <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded-md object-cover mr-4" />
                                             {item.name}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.owner?.email || 'N/A'}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.reported_count}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate">{item.owner?.email || 'N/A'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate">{item.reported_count}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                             {item.status}
                                         </span>
@@ -88,7 +88,7 @@ const ContentModeration = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                         <button onClick={() => handleModerate(item.id, 'approve')} className="text-green-600 hover:text-green-900">Approve</button>
                                         <button onClick={() => handleModerate(item.id, 'reject')} className="text-yellow-600 hover:text-yellow-900">Reject</button>
-                                        <button onClick={() => handleModerate(item.id, 'delete')} className="text-red-600 hover:text-red-900">Delete</button>
+                                        <button onClick={() => handleModerate(item.id, 'delete')} className="text-destructive hover:text-red-900">Delete</button>
                                     </td>
                                 </tr>
                             ))}

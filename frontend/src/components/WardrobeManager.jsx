@@ -117,7 +117,7 @@ const WardrobeManager = () => {
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-slate" />
             <input
               type="text"
               placeholder="Search items..."
@@ -127,7 +127,7 @@ const WardrobeManager = () => {
             />
           </div>
           <div className="relative">
-            <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+            <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-slate" />
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
@@ -144,7 +144,7 @@ const WardrobeManager = () => {
       </div>
 
       {showAddForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-lg p-6 border border-fog dark:border-inkwell">
           <h3 className="text-lg font-medium mb-6">Add New Item</h3>
           <form onSubmit={handleAddItem} className="space-y-6">
             <div>
@@ -198,7 +198,7 @@ const WardrobeManager = () => {
               </div>
             </div>
 
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+            <div className="border-t border-fog dark:border-inkwell pt-6 mt-6">
                 <h4 className="text-md font-medium mb-4">Purchase & Care Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -228,7 +228,7 @@ const WardrobeManager = () => {
                 </div>
             </div>
 
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+            <div className="border-t border-fog dark:border-inkwell pt-6 mt-6">
                 <h4 className="text-md font-medium mb-4">Maintenance</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex items-center">
@@ -253,8 +253,8 @@ const WardrobeManager = () => {
                   <button key={tag} type="button" onClick={() => handleMoodTagsChange(tag)}
                     className={`px-3 py-1 rounded-full text-sm border transition-colors ${
                       newItem.mood_tags.includes(tag)
-                        ? 'bg-indigo-100 border-indigo-300 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-700'
-                        : 'bg-gray-100 border-gray-300 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                        ? 'bg-secondary/10 border-indigo-300 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-700'
+                        : 'bg-muted border-fog hover:bg-muted dark:bg-inkwell dark:border-inkwell dark:hover:bg-gray-600'
                     }`}>
                     {tag}
                   </button>
@@ -274,10 +274,10 @@ const WardrobeManager = () => {
       {loading && wardrobe.length === 0 ? <LoadingSkeleton /> : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredWardrobe.map(item => (
-            <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group border border-gray-200 dark:border-gray-700">
-              <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
+            <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group border border-fog dark:border-inkwell">
+              <div className="aspect-square bg-muted dark:bg-inkwell relative">
                 {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-slate">
                     <PhotoIcon className="h-16 w-16" />
                   </div>
                 )}
@@ -285,17 +285,17 @@ const WardrobeManager = () => {
                   className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium transition-all hover:scale-105 ${
                     item.is_clean 
                       ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' 
-                      : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
+                      : 'bg-destructive/10 text-red-800 dark:bg-red-900/50 dark:text-red-300'
                   }`}
                   title={`Click to mark as ${item.is_clean ? 'dirty' : 'clean'}`}>
                   {item.is_clean ? <><CheckCircleIcon className="h-3 w-3 inline mr-1" />Clean</> : <><XCircleIcon className="h-3 w-3 inline mr-1" />Dirty</>}
                 </button>
                 <div className="absolute bottom-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => setEditingItem(item)} className="p-2 bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm rounded-full shadow-md transition-all hover:scale-105" title="Edit item">
-                    <PencilIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  <button onClick={() => setEditingItem(item)} className="p-2 bg-card dark:bg-dark-subtle/80 dark:bg-gray-900/70 backdrop-blur-sm rounded-full shadow-md transition-all hover:scale-105" title="Edit item">
+                    <PencilIcon className="h-4 w-4 text-secondary dark:text-secondary" />
                   </button>
-                  <button onClick={() => handleDeleteItem(item.id)} className="p-2 bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm rounded-full shadow-md transition-all hover:scale-105" title="Delete item">
-                    <TrashIcon className="h-4 w-4 text-red-600 dark:text-red-500" />
+                  <button onClick={() => handleDeleteItem(item.id)} className="p-2 bg-card dark:bg-dark-subtle/80 dark:bg-gray-900/70 backdrop-blur-sm rounded-full shadow-md transition-all hover:scale-105" title="Delete item">
+                    <TrashIcon className="h-4 w-4 text-destructive dark:text-destructive" />
                   </button>
                 </div>
               </div>
@@ -309,11 +309,11 @@ const WardrobeManager = () => {
                 {item.mood_tags && item.mood_tags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {item.mood_tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs rounded-full">
+                      <span key={tag} className="px-2 py-1 bg-muted dark:bg-inkwell text-xs rounded-full">
                         {tag}
                       </span>
                     ))}
-                    {item.mood_tags.length > 3 && <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs rounded-full">+{item.mood_tags.length - 3}</span>}
+                    {item.mood_tags.length > 3 && <span className="px-2 py-1 bg-muted dark:bg-inkwell text-xs rounded-full">+{item.mood_tags.length - 3}</span>}
                   </div>
                 )}
               </div>
@@ -323,7 +323,7 @@ const WardrobeManager = () => {
       )}
 
       {!loading && filteredWardrobe.length === 0 && (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="text-center py-12 bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg border border-fog dark:border-inkwell">
           <PhotoIcon className="mx-auto h-12 w-12 mb-4" />
           <h3 className="text-lg font-medium mb-2">
             {searchTerm || filterType !== 'all' ? 'No items match your filters' : 'Your wardrobe is empty'}

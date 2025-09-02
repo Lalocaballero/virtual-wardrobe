@@ -10,14 +10,14 @@ import useGooglePlacesAutocomplete from '../hooks/useGooglePlacesAutocomplete';
 import Billing from './Billing';
 
 const StatCard = ({ title, value, icon: Icon, isLoading }) => (
-    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg flex items-center space-x-4">
-        <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-full">
-            <Icon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+    <div className="bg-background dark:bg-dark-subtle/50 p-4 rounded-lg flex items-center space-x-4">
+        <div className="bg-secondary/10 dark:bg-indigo-900/50 p-3 rounded-full">
+            <Icon className="h-6 w-6 text-secondary dark:text-secondary" />
         </div>
         <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+            <p className="text-sm text-slate dark:text-dark-text-secondary">{title}</p>
             {isLoading ? (
-                <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-12 mt-1 animate-pulse"></div>
+                <div className="h-7 bg-muted dark:bg-inkwell rounded w-12 mt-1 animate-pulse"></div>
             ) : (
                 <p className="text-2xl font-bold">{value}</p>
             )}
@@ -261,10 +261,10 @@ const UserProfile = () => {
               />
           </div>
 
-          <div className="flex border-b border-gray-200 dark:border-gray-700">
+          <div className="flex border-b border-fog dark:border-inkwell">
               <button
                   onClick={() => setActiveSubTab('profile')}
-                  className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'profile' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'}`}
+                  className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'profile' ? 'border-b-2 border-indigo-500 text-secondary' : 'border-b-2 border-transparent text-slate hover:text-inkwell'}`}
               >
                   <UserCircleIcon className="h-5 w-5" />
                   <span>Profile</span>
@@ -272,7 +272,7 @@ const UserProfile = () => {
               {true && (
                   <button
                       onClick={() => setActiveSubTab('billing')}
-                      className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'billing' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'}`}
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${activeSubTab === 'billing' ? 'border-b-2 border-indigo-500 text-secondary' : 'border-b-2 border-transparent text-slate hover:text-inkwell'}`}
                       disabled={isSyncing || profileLoading || isSmartSyncing}
                   >
                       <CreditCardIcon className="h-5 w-5" />
@@ -285,9 +285,9 @@ const UserProfile = () => {
           {activeSubTab === 'profile' && (
               <div className="space-y-8">
                   {/* --- 1. General Information Section --- */}
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
           <div className="flex items-center space-x-4 mb-6">
-            <UserCircleIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
+            <UserCircleIcon className="h-10 w-10 text-indigo-500 dark:text-secondary" />
             <div>
               <h2 className="text-xl font-bold">General Information</h2>
               <p className="text-sm">Update your public profile and location details.</p>
@@ -336,9 +336,9 @@ const UserProfile = () => {
         </div>
 
         {/* --- NEW: Style Rules Section --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
             <div className="flex items-center space-x-4 mb-6">
-                <ShieldExclamationIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
+                <ShieldExclamationIcon className="h-10 w-10 text-indigo-500 dark:text-secondary" />
                 <div>
                     <h2 className="text-xl font-bold">Style Rules</h2>
                     <p className="text-sm">Teach the AI your personal style boundaries and what combinations to avoid.</p>
@@ -358,7 +358,7 @@ const UserProfile = () => {
                 <div className="space-y-2">
                     {negativePrompts.length > 0 ? (
                         negativePrompts.map(prompt => (
-                            <div key={prompt.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md">
+                            <div key={prompt.id} className="flex items-center justify-between bg-background dark:bg-inkwell/50 p-3 rounded-md">
                                 <p className="text-sm">{prompt.prompt_text}</p>
                                 <button onClick={() => handleDeleteNegativePrompt(prompt.id)} className="text-gray-400 hover:text-red-500">
                                     <TrashIcon className="h-5 w-5" />
@@ -366,14 +366,14 @@ const UserProfile = () => {
                             </div>
                         ))
                     ) : (
-                        <p className="text-sm text-gray-500 text-center py-4">You haven't added any style rules yet.</p>
+                        <p className="text-sm text-slate text-center py-4">You haven't added any style rules yet.</p>
                     )}
                 </div>
             </div>
         </div>
 
         {/* --- 2. Laundry Thresholds Section --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
           <h2 className="text-xl font-bold mb-4">Laundry Preferences</h2>
           <p className="text-sm mb-6">Set how many times you wear an item before it needs washing.</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -397,7 +397,7 @@ const UserProfile = () => {
         </div>
 
         {/* --- Notification Settings Section --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
           <h2 className="text-xl font-bold mb-4">Notification Settings</h2>
           <p className="text-sm mb-6">Choose which notifications you want to receive.</p>
           <div className="space-y-4">
@@ -408,13 +408,13 @@ const UserProfile = () => {
                   type="button"
                   onClick={() => handleNotificationSettingChange(setting)}
                   className={`${
-                    value ? 'bg-blue-600' : 'bg-gray-200'
+                    value ? 'bg-blue-600' : 'bg-muted'
                   } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
                 >
                   <span
                     className={`${
                       value ? 'translate-x-5' : 'translate-x-0'
-                    } inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                    } inline-block h-5 w-5 transform rounded-full bg-card dark:bg-dark-subtle shadow ring-0 transition duration-200 ease-in-out`}
                   />
                 </button>
               </div>
@@ -428,9 +428,9 @@ const UserProfile = () => {
         </div>
 
         {/* --- 3. Security Section --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
           <div className="flex items-center space-x-4 mb-6">
-            <LockClosedIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
+            <LockClosedIcon className="h-10 w-10 text-indigo-500 dark:text-secondary" />
             <div>
               <h2 className="text-xl font-bold">Security</h2>
               <p className="text-sm">Change your password.</p>
@@ -452,7 +452,7 @@ const UserProfile = () => {
         </div>
         
         {/* --- 4. Data & Account Actions Section --- */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
            <div className="space-y-4">
              <div>
                 <h3 className="font-semibold">Export Your Data</h3>
@@ -462,7 +462,7 @@ const UserProfile = () => {
                   Export Data
                 </button>
              </div>
-             <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+             <div className="border-t border-fog dark:border-inkwell pt-4">
               <h3 className="font-semibold text-orange-600 dark:text-orange-500">Reset AI Personalization</h3>
               <p className="text-sm mb-2">Reset the AI's memory of your style by deleting all your past outfit history. Your wardrobe items will not be affected.</p>
               <button onClick={handleResetHistory} className="btn btn-warning sm:min-w-[200px]">
@@ -470,8 +470,8 @@ const UserProfile = () => {
                   Reset AI Memory
               </button>
              </div>
-             <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-               <h3 className="font-semibold text-red-600 dark:text-red-500">Delete Account</h3>
+             <div className="border-t border-fog dark:border-inkwell pt-4">
+               <h3 className="font-semibold text-destructive dark:text-destructive">Delete Account</h3>
                <p className="text-sm mb-2">Permanently delete your account and all of your data. This action is irreversible.</p>
                <button onClick={handleDeleteAccount} className="btn btn-danger sm:min-w-[200px]">
                   <TrashIcon className="h-4 w-4 mr-2" />

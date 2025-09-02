@@ -37,7 +37,7 @@ const ForgotPassword = () => {
           </div>
 
           {error && (
-            <div className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-500/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-center">
+            <div className="bg-destructive/10 dark:bg-red-900/50 border border-red-400 dark:border-red-500/50 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-center">
               <p>{error}</p>
             </div>
           )}

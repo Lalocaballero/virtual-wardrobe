@@ -31,13 +31,13 @@ const AdminDashboard = () => {
         }
     };
 
-    const navLinkClasses = "flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md";
+    const navLinkClasses = "flex items-center px-4 py-2 text-inkwell hover:bg-muted rounded-md";
     const activeNavLinkClasses = "bg-blue-500 text-white";
 
     return (
-        <div className="flex h-screen bg-gray-50">
+        <div className="flex h-screen bg-background">
             {/* Sidebar */}
-            <aside className="w-64 flex-shrink-0 bg-white shadow-lg">
+            <aside className="w-64 flex-shrink-0 bg-card dark:bg-dark-subtle shadow-lg">
                 <div className="p-4 border-b">
                     <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
                 </div>
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
                     </NavLink>
                 </nav>
                 <div className="mt-auto p-4 border-t">
-                    <Link to="/dashboard" className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md">
+                    <Link to="/dashboard" className="flex items-center px-4 py-2 text-inkwell hover:bg-muted rounded-md">
                         <span>⬅️</span>
                         <span className="ml-3">Back to App</span>
                     </Link>
@@ -77,10 +77,10 @@ const AdminDashboard = () => {
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col">
-                <header className="bg-white shadow-md p-4">
-                    <h2 className="text-2xl font-semibold text-gray-700">{getTitle()}</h2>
+                <header className="bg-card dark:bg-dark-subtle shadow-md p-4">
+                    <h2 className="text-2xl font-semibold text-inkwell">{getTitle()}</h2>
                 </header>
-                <div className="p-6 overflow-auto bg-gray-50">
+                <div className="p-6 overflow-auto bg-background">
                     <Routes>
                         <Route path="/" element={<Navigate to="analytics" replace />} />
                         <Route path="analytics" element={<AnalyticsDashboard />} />

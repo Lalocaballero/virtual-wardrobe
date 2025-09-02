@@ -25,7 +25,7 @@ const localizer = dateFnsLocalizer({
 const CustomDayEvent = ({ event }) => (
   <div className="h-full w-full grid grid-cols-2 gap-0.5 p-0.5">
     {event.outfits.slice(0, 4).map(outfit => (
-       <div key={outfit.id} className="h-full w-full bg-gray-200 dark:bg-gray-700 rounded-sm overflow-hidden">
+       <div key={outfit.id} className="h-full w-full bg-muted dark:bg-inkwell rounded-sm overflow-hidden">
         {outfit.clothing_items && outfit.clothing_items.length > 0 && outfit.clothing_items[0].image_url ? (
           <img 
             src={outfit.clothing_items[0].image_url} 
@@ -52,25 +52,25 @@ const ListView = ({ outfits }) => {
   return (
     <div className="space-y-4">
       {outfits.map(outfit => (
-        <div key={outfit.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 md:p-6 border border-gray-200 dark:border-gray-700">
+        <div key={outfit.id} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm p-4 md:p-6 border border-fog dark:border-inkwell">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-lg font-medium">{format(new Date(outfit.date), 'MMMM d, yyyy')}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{outfit.weather} • {outfit.mood} mood</p>
+              <p className="text-sm text-slate dark:text-dark-text-secondary">{outfit.weather} • {outfit.mood} mood</p>
             </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(outfit.date), 'h:mm a')}</span>
+            <span className="text-sm text-slate dark:text-dark-text-secondary">{format(new Date(outfit.date), 'h:mm a')}</span>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-4">
             {outfit.clothing_items?.map(item => (
               <div key={item.id} className="text-center group relative">
-                <div className="aspect-square w-full bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="aspect-square w-full bg-muted dark:bg-inkwell rounded-lg flex items-center justify-center overflow-hidden">
                   {item.image_url ? <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" /> : <PhotoIcon className="h-8 w-8 text-gray-400" />}
                 </div>
                 <p className="text-xs mt-2 truncate">{item.name}</p>
               </div>
             ))}
           </div>
-          {outfit.reason_text && <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg"><p className="text-sm italic text-gray-600 dark:text-gray-300">"{outfit.reason_text}"</p></div>}
+          {outfit.reason_text && <div className="mt-4 p-3 bg-background dark:bg-gray-900/50 rounded-lg"><p className="text-sm italic text-slate dark:text-cloud-white">"{outfit.reason_text}"</p></div>}
         </div>
       ))}
     </div>
@@ -151,23 +151,23 @@ const OutfitHistory = () => {
       <OutfitDetailModal outfits={selectedOutfits} onClose={() => setSelectedOutfits(null)} />
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h2 className="text-2xl font-bold">Outfit History</h2>
-        <div className="flex items-center space-x-2 p-1 bg-gray-200 dark:bg-gray-700 rounded-lg">
-          <button onClick={() => setView('list')} className={`px-3 py-1 text-sm font-medium rounded-md ${view === 'list' ? 'bg-white dark:bg-gray-900 shadow' : 'text-gray-600 dark:text-gray-300'}`}><Bars3Icon className="h-5 w-5 inline-block mr-1" />List</button>
-          <button onClick={() => setView('calendar')} className={`px-3 py-1 text-sm font-medium rounded-md ${view === 'calendar' ? 'bg-white dark:bg-gray-900 shadow' : 'text-gray-600 dark:text-gray-300'}`}><CalendarIcon className="h-5 w-5 inline-block mr-1" />Calendar</button>
+        <div className="flex items-center space-x-2 p-1 bg-muted dark:bg-inkwell rounded-lg">
+          <button onClick={() => setView('list')} className={`px-3 py-1 text-sm font-medium rounded-md ${view === 'list' ? 'bg-card dark:bg-dark-subtle dark:bg-gray-900 shadow' : 'text-slate dark:text-cloud-white'}`}><Bars3Icon className="h-5 w-5 inline-block mr-1" />List</button>
+          <button onClick={() => setView('calendar')} className={`px-3 py-1 text-sm font-medium rounded-md ${view === 'calendar' ? 'bg-card dark:bg-dark-subtle dark:bg-gray-900 shadow' : 'text-slate dark:text-cloud-white'}`}><CalendarIcon className="h-5 w-5 inline-block mr-1" />Calendar</button>
         </div>
       </div>
 
       {view === 'list' && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="p-4 bg-background dark:bg-gray-900/50 rounded-lg border border-fog dark:border-inkwell">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div className="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
-                <DatePicker id="startDate" selected={startDate} onChange={date => setStartDate(date)} selectsStart startDate={startDate} endDate={endDate} placeholderText="Select start date" className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" wrapperClassName="w-full" />
+                <label htmlFor="startDate" className="block text-sm font-medium text-inkwell dark:text-cloud-white mb-1">Start Date</label>
+                <DatePicker id="startDate" selected={startDate} onChange={date => setStartDate(date)} selectsStart startDate={startDate} endDate={endDate} placeholderText="Select start date" className="w-full p-2 border rounded-md dark:bg-inkwell dark:border-inkwell focus:ring-secondary focus:border-secondary" wrapperClassName="w-full" />
               </div>
               <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
-                <DatePicker id="endDate" selected={endDate} onChange={date => setEndDate(date)} selectsEnd startDate={startDate} endDate={endDate} minDate={startDate} placeholderText="Select end date" className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500" wrapperClassName="w-full" />
+                <label htmlFor="endDate" className="block text-sm font-medium text-inkwell dark:text-cloud-white mb-1">End Date</label>
+                <DatePicker id="endDate" selected={endDate} onChange={date => setEndDate(date)} selectsEnd startDate={startDate} endDate={endDate} minDate={startDate} placeholderText="Select end date" className="w-full p-2 border rounded-md dark:bg-inkwell dark:border-inkwell focus:ring-secondary focus:border-secondary" wrapperClassName="w-full" />
               </div>
             </div>
             <div className="flex space-x-2">
@@ -181,15 +181,15 @@ const OutfitHistory = () => {
       {loading ? (
         <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>
       ) : outfitHistory.length === 0 && view === 'list' ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="text-center py-12 bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg border border-fog dark:border-inkwell">
           <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-lg font-medium">No saved outfits found</h3>
-          <p className="mt-1 text-sm text-gray-500">Try adjusting your filters or save some new outfits!</p>
+          <p className="mt-1 text-sm text-slate">Try adjusting your filters or save some new outfits!</p>
         </div>
       ) : view === 'list' ? (
         <ListView outfits={outfitHistory} />
       ) : (
-        <div className="bg-white dark:bg-gray-800 p-2 md:p-4 rounded-lg border border-gray-200 dark:border-gray-700 h-[80vh]">
+        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-2 md:p-4 rounded-lg border border-fog dark:border-inkwell h-[80vh]">
           <Calendar
             localizer={localizer}
             events={events}
@@ -202,7 +202,7 @@ const OutfitHistory = () => {
               event: CustomDayEvent,
             }}
             eventPropGetter={() => ({
-              className: '!p-0 !bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer',
+              className: '!p-0 !bg-transparent hover:bg-muted dark:hover:bg-inkwell/50 transition-colors cursor-pointer',
             })}
           />
         </div>
