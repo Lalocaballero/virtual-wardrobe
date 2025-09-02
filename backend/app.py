@@ -17,7 +17,7 @@ import cloudinary.uploader
 import cloudinary.api
 
 # Import db, User, ClothingItem, Outfit from models.
-from models import db, User, ClothingItem, Outfit, UserActivity, Notification
+from models import db, User, ClothingItem, Outfit, UserActivity, Notification, NegativePrompt
 from utils.auth import get_actual_user
 from sqlalchemy.orm import selectinload
 from utils.limiter import limiter, get_user_specific_limit
@@ -1025,6 +1025,9 @@ def create_app():
                                        .limit(20).all()
             outfit_history_data = [outfit.to_dict() for outfit in outfit_history]
 
+            # Fetch user's negative prompts
+            negative_prompts = [p.prompt_text for p in user.negative_prompts]
+
             # --- AI Suggestion Call ---
             suggestion = current_app.ai_service.generate_outfit_suggestion(
                 wardrobe=wardrobe,
@@ -1032,7 +1035,8 @@ def create_app():
                 mood=mood,
                 season=season,
                 outfit_history=outfit_history_data,
-                exclude_ids=exclude_ids
+                exclude_ids=exclude_ids,
+                negative_prompts=negative_prompts
             )
 
             # --- Post-AI Validation and Correction ---

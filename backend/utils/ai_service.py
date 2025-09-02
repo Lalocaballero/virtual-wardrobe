@@ -99,7 +99,7 @@ class AIOutfitService:
             self.client_available = False
             print("⚠️  OpenAI API key not provided - using fallback outfit suggestions")
     
-    def generate_outfit_suggestion(self, wardrobe: List[Dict], weather: str, mood: str, season: str = "any", outfit_history: List[Dict] = None, exclude_ids: List[int] = None) -> Dict[str, Any]:
+    def generate_outfit_suggestion(self, wardrobe: List[Dict], weather: str, mood: str, season: str = "any", outfit_history: List[Dict] = None, exclude_ids: List[int] = None, negative_prompts: List[str] = None) -> Dict[str, Any]:
         """Generate outfit suggestion using OpenAI with enhanced prompting"""
         
         # Exclude items from the previous suggestion if provided
@@ -150,7 +150,7 @@ class AIOutfitService:
         random.shuffle(available_items)
 
         # Create enhanced prompt with randomization
-        prompt = self._create_enhanced_outfit_prompt(available_items, weather, mood, season, outfit_history)
+        prompt = self._create_enhanced_outfit_prompt(available_items, weather, mood, season, outfit_history, negative_prompts)
         
         try:
             # Increase temperature for more creative, less deterministic suggestions.
@@ -386,11 +386,12 @@ You will be given a prompt with the following structure:
 
 **Your Decision-Making Process (Hierarchy of Importance):**
 
-1.  **PRIORITY 1: Season & Weather (Non-negotiable):** The outfit MUST be appropriate for the specified `Season` and `Weather`. A winter coat is not for summer. Sandals are not for snow.
-2.  **PRIORITY 2: User's Personal Style (Crucial):** The outfit MUST align with the user's `STYLE DNA` and `OUTFIT HISTORY`. This is the most important creative constraint. Your main goal is to reflect the user's taste, not to be overly experimental. The suggestion should feel like it was made specifically for them.
-3.  **PRIORITY 3: Mood & Occasion:** The `Mood` should refine the selection. A 'professional' outfit should be more formal than a 'casual' one, but still within the user's personal style.
-4.  **PRIORITY 4: Color Harmony:** You must use your knowledge of color theory to create a visually pleasing outfit. See the 'Color Theory' section below for your rules.
-5.  **PRIORITY 5: Variety & Creativity:** While respecting the user's style, introduce some variety. Don't suggest the exact same outfit repeatedly. Use the `Special instruction` to guide your creativity.
+1.  **PRIORITY 1: User's Negative Prompts (Absolute Rules):** You will receive a list of `negative_prompts`. These are HARD constraints that you MUST follow without exception. If a negative prompt makes it impossible to generate an outfit, you MUST explain this in the `reasoning` field of your response and return an empty `selected_items` array. For example: "I could not generate an outfit because your rule 'never wear sandals' conflicts with the available shoes in your wardrobe."
+2.  **PRIORITY 2: Season & Weather (Non-negotiable):** The outfit MUST be appropriate for the specified `Season` and `Weather`. A winter coat is not for summer. Sandals are not for snow.
+3.  **PRIORITY 3: User's Personal Style (Crucial):** The outfit MUST align with the user's `STYLE DNA` and `OUTFIT HISTORY`. This is the most important creative constraint. Your main goal is to reflect the user's taste, not to be overly experimental. The suggestion should feel like it was made specifically for them.
+4.  **PRIORITY 4: Mood & Occasion:** The `Mood` should refine the selection. A 'professional' outfit should be more formal than a 'casual' one, but still within the user's personal style.
+5.  **PRIORITY 5: Color Harmony:** You must use your knowledge of color theory to create a visually pleasing outfit. See the 'Color Theory' section below for your rules.
+6.  **PRIORITY 6: Variety & Creativity:** While respecting the user's style, introduce some variety. Don't suggest the exact same outfit repeatedly. Use the `Special instruction` to guide your creativity.
 
 **Expert Knowledge: Color Theory**
 You will use one of the following color theories to build the outfit's color palette. The user's prompt will indicate a `preferred_color_scheme` based on their history. If the preference is 'random', you should choose a scheme that works well with the available clothes.
@@ -414,7 +415,7 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
 }
 """
     
-    def _create_enhanced_outfit_prompt(self, wardrobe: List[Dict], weather: str, mood: str, season: str, outfit_history: List[Dict] = None) -> str:
+    def _create_enhanced_outfit_prompt(self, wardrobe: List[Dict], weather: str, mood: str, season: str, outfit_history: List[Dict] = None, negative_prompts: List[str] = None) -> str:
         # Get recently worn items to avoid repetition
         recent_item_ids = []
         if outfit_history:
@@ -493,6 +494,13 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
         timestamp = int(time.time())
         item_fields_to_include = ['id', 'name', 'color', 'style', 'fabric', 'season', 'brand', 'mood_tags']
         
+        negative_prompts_section = ""
+        if negative_prompts:
+            prompts_list = "\n".join([f"- {p}" for p in negative_prompts])
+            negative_prompts_section = f"""NEGATIVE PROMPTS (Hard Constraints - Never Break These Rules):
+{prompts_list}
+"""
+
         prompt = f"""
 OUTFIT REQUEST #{timestamp}:
 Weather: {weather}
@@ -501,6 +509,7 @@ Season: {season}
 
 {style_dna_prompt_section}
 {history_prompt_section}
+{negative_prompts_section}
 CONTEXT:
 - User's preferred color scheme: {style_dna.get('preferred_color_scheme', 'random')}
 - Recently worn items to avoid (IDs): {recent_item_ids}

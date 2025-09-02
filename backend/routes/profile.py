@@ -1,8 +1,8 @@
 import os
 import requests
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, jsonify, current_app, request
 from flask_login import login_required, current_user
-from models import db, User
+from models import db, User, NegativePrompt
 
 profile_bp = Blueprint('profile_bp', __name__, url_prefix='/api/profile')
 
@@ -56,3 +56,43 @@ def sync_subscription():
         current_app.logger.error(f"Subscription sync error: {e}")
         db.session.rollback()
         return jsonify(error={'message': str(e)}), 500
+
+@profile_bp.route('/negative-prompts', methods=['GET'])
+@login_required
+def get_negative_prompts():
+    """Fetches all negative prompts for the current user."""
+    prompts = NegativePrompt.query.filter_by(user_id=current_user.id).order_by(NegativePrompt.created_at.desc()).all()
+    return jsonify([prompt.to_dict() for prompt in prompts])
+
+@profile_bp.route('/negative-prompts', methods=['POST'])
+@login_required
+def add_negative_prompt():
+    """Adds a new negative prompt for the current user."""
+    data = request.get_json()
+    prompt_text = data.get('prompt_text')
+
+    if not prompt_text or not prompt_text.strip():
+        return jsonify({'error': 'Prompt text cannot be empty.'}), 400
+
+    new_prompt = NegativePrompt(
+        user_id=current_user.id,
+        prompt_text=prompt_text
+    )
+    db.session.add(new_prompt)
+    db.session.commit()
+
+    return jsonify(new_prompt.to_dict()), 201
+
+@profile_bp.route('/negative-prompts/<int:prompt_id>', methods=['DELETE'])
+@login_required
+def delete_negative_prompt(prompt_id):
+    """Deletes a specific negative prompt for the current user."""
+    prompt = NegativePrompt.query.get_or_404(prompt_id)
+
+    if prompt.user_id != current_user.id:
+        return jsonify({'error': 'You do not have permission to delete this prompt.'}), 403
+
+    db.session.delete(prompt)
+    db.session.commit()
+
+    return jsonify({'message': 'Prompt deleted successfully.'}), 200

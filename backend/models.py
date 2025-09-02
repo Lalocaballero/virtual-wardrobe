@@ -44,6 +44,7 @@ class User(UserMixin, db.Model):
     clothing_items = db.relationship('ClothingItem', backref='owner', lazy=True, cascade="all, delete-orphan")
     outfits = db.relationship('Outfit', backref='user', lazy=True, cascade="all, delete-orphan")
     trips = db.relationship('Trip', backref='traveler', lazy=True, cascade="all, delete-orphan")
+    negative_prompts = db.relationship('NegativePrompt', backref='user', lazy=True, cascade="all, delete-orphan")
 
     def get_token(self, salt, expires_sec=3600):
         s = Serializer(current_app.config['SECRET_KEY'], salt=salt)
@@ -456,5 +457,19 @@ class AdminAction(db.Model):
             'target_user_email': self.target_user.email if self.target_user else None,
             'action_type': self.action_type,
             'details': self.details,
+            'created_at': self.created_at.isoformat()
+        }
+
+class NegativePrompt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    prompt_text = db.Column(db.String(512), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'prompt_text': self.prompt_text,
             'created_at': self.created_at.isoformat()
         }

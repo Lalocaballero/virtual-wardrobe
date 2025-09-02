@@ -1,7 +1,7 @@
 // src/components/UserProfile.jsx
 
 import React, { useEffect, useState, useRef } from 'react';
-import { ChartPieIcon, CubeIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
+import { ChartPieIcon, CubeIcon, ArchiveBoxIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline';
 import { useLocation } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import ImageUpload from './ImageUpload';
@@ -60,6 +60,9 @@ const UserProfile = () => {
     new_password: '',
   });
 
+  const [negativePrompts, setNegativePrompts] = useState([]);
+  const [newPrompt, setNewPrompt] = useState('');
+
   const locationInputRef = useRef(null);
   useGooglePlacesAutocomplete(locationInputRef, (e) => handleFormChange(e), formData.location);
 
@@ -107,8 +110,54 @@ const UserProfile = () => {
       }
     };
 
+    const fetchNegativePrompts = async () => {
+      try {
+        const response = await fetch('/api/profile/negative-prompts');
+        if (response.ok) {
+          const data = await response.json();
+          setNegativePrompts(data);
+        }
+      } catch (error) {
+        console.error("Error fetching negative prompts:", error);
+      }
+    };
+
     fetchStats();
+    fetchNegativePrompts();
   }, []);
+
+  const handleAddNegativePrompt = async () => {
+    if (!newPrompt.trim()) return;
+    try {
+      const response = await fetch('/api/profile/negative-prompts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt_text: newPrompt }),
+      });
+      if (response.ok) {
+        const addedPrompt = await response.json();
+        setNegativePrompts(prev => [addedPrompt, ...prev]);
+        setNewPrompt('');
+      }
+    } catch (error) {
+      console.error("Error adding negative prompt:", error);
+    }
+  };
+
+  const handleDeleteNegativePrompt = async (promptId) => {
+    if (window.confirm("Are you sure you want to delete this style rule?")) {
+      try {
+        const response = await fetch(`/api/profile/negative-prompts/${promptId}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          setNegativePrompts(prev => prev.filter(p => p.id !== promptId));
+        }
+      } catch (error) {
+        console.error("Error deleting negative prompt:", error);
+      }
+    }
+  };
 
   const handleNotificationSettingChange = (setting) => {
     setFormData(prev => ({
@@ -284,6 +333,43 @@ const UserProfile = () => {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* --- NEW: Style Rules Section --- */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-4 mb-6">
+                <ShieldExclamationIcon className="h-10 w-10 text-indigo-500 dark:text-indigo-400" />
+                <div>
+                    <h2 className="text-xl font-bold">Style Rules</h2>
+                    <p className="text-sm">Teach the AI your personal style boundaries and what combinations to avoid.</p>
+                </div>
+            </div>
+            <div className="space-y-4">
+                <div className="flex space-x-2">
+                    <input
+                        type="text"
+                        value={newPrompt}
+                        onChange={(e) => setNewPrompt(e.target.value)}
+                        placeholder="e.g., 'Never pair black and brown'"
+                        className="flex-grow"
+                    />
+                    <button onClick={handleAddNegativePrompt} className="btn btn-secondary">Add Rule</button>
+                </div>
+                <div className="space-y-2">
+                    {negativePrompts.length > 0 ? (
+                        negativePrompts.map(prompt => (
+                            <div key={prompt.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md">
+                                <p className="text-sm">{prompt.prompt_text}</p>
+                                <button onClick={() => handleDeleteNegativePrompt(prompt.id)} className="text-gray-400 hover:text-red-500">
+                                    <TrashIcon className="h-5 w-5" />
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">You haven't added any style rules yet.</p>
+                    )}
+                </div>
+            </div>
         </div>
 
         {/* --- 2. Laundry Thresholds Section --- */}
