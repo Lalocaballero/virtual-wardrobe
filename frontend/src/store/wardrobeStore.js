@@ -130,7 +130,7 @@ const useWardrobeStore = create((set, get) => ({
       const userData = { email, id: data.user_id, is_admin: data.is_admin };
       set({ user: userData, loading: false });
       localStorage.setItem('wardrobeUser', JSON.stringify(userData));
-      toast.success("Welcome back!")
+      toast.success("Welcome back! Let's get you styled.");
       return { success: true };
     } catch (error) {
       const errorMessage = error.data?.error || error.message || 'Login failed.';
@@ -151,7 +151,7 @@ const useWardrobeStore = create((set, get) => ({
       set({ loading: false });
       return { success: true, message: data.message };
     } catch (error) {
-      const errorMessage = error.message || 'Failed to send password reset email.';
+      const errorMessage = error.message || "Hmm, that email didn't want to send. Mind trying again?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
       return { success: false };
@@ -168,7 +168,7 @@ const useWardrobeStore = create((set, get) => ({
       set({ loading: false });
       return { success: true, message: data.message };
     } catch (error) {
-      const errorMessage = error.message || 'Failed to reset password.';
+      const errorMessage = error.message || "That password reset didn't stick. Let's give it another shot.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
       return { success: false };
@@ -186,7 +186,7 @@ const useWardrobeStore = create((set, get) => ({
       set({ loading: false });
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to resend verification email.';
+      const errorMessage = error.message || "We couldn't resend the verification email. Maybe a typo?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
       return false;
@@ -202,10 +202,10 @@ const useWardrobeStore = create((set, get) => ({
       });
       // DO NOT log the user in. They must verify their email first.
       set({ loading: false });
-      toast.success(data.message || "Registration successful! Please check your email.");
+      toast.success(data.message || "You're in! Check your email to verify your account.");
       return { success: true };
     } catch (error) {
-      const errorMessage = error.message || 'Opsi... There has been a problem, please try again.';
+      const errorMessage = error.message || "Whoops! Something went wrong. Let's try that again.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
       return { success: false };
@@ -339,7 +339,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ profile: data, profileLoading: false });
     } catch (error) {
-      const errorMessage = error.message || "Oops! We couldn't fetch your profile.";
+      const errorMessage = error.message || "We couldn't seem to find your profile. It might be playing hide and seek.";
       set({ error: errorMessage, profileLoading: false });
       toast.error(errorMessage);
     }
@@ -356,7 +356,7 @@ const useWardrobeStore = create((set, get) => ({
       await get().fetchProfile();
       // The backend will now create a notification for this, so the toast is no longer needed.
     } catch (error) {
-      const errorMessage = error.message || 'There was a problem saving your profile.';
+      const errorMessage = error.message || "Your profile changes didn't save. Want to try again?";
       set({ error: errorMessage, profileLoading: false });
       toast.error(errorMessage);
     }
@@ -378,7 +378,7 @@ const useWardrobeStore = create((set, get) => ({
         toast.success('Subscription status updated! Welcome to Premium! ✨');
       }
     } catch (error) {
-      const errorMessage = error.message || 'Failed to sync subscription status.';
+      const errorMessage = error.message || "We couldn't sync your subscription. Let's try that again.";
       toast.error(errorMessage);
     } finally {
       set({ isSyncing: false });
@@ -407,7 +407,7 @@ const useWardrobeStore = create((set, get) => ({
     }
 
     // If it's still not premium after all retries
-    toast.error("We're still confirming your subscription status. Please check back in a moment.");
+    toast.error("Your subscription is still being confirmed. We'll have you sorted in a jiffy.");
     set({ isSmartSyncing: false });
   },
 
@@ -417,10 +417,10 @@ const useWardrobeStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify(passwordData),
       });
-      toast.success(data.message || 'Password changed successfully!');
+      toast.success(data.message || 'Password updated. Your account is now extra secure.');
       return true; // Indicate success
     } catch (error) {
-      const errorMessage = error.message || 'Failed to change password.';
+      const errorMessage = error.message || "That password change didn't take. Let's try another.";
       toast.error(errorMessage);
       return false; // Indicate failure
     }
@@ -456,9 +456,9 @@ const useWardrobeStore = create((set, get) => ({
       document.body.appendChild(a);
       a.click();
       a.remove();
-      toast.success('Your data is downloading!');
+      toast.success('Your data is on its way! Check your downloads.');
     } catch (error) {
-      const errorMessage = error.message || 'Could not export your data.';
+      const errorMessage = error.message || "We couldn't export your data. It seems to be a bit shy.";
       toast.error(errorMessage);
     }
   },
@@ -469,12 +469,12 @@ const useWardrobeStore = create((set, get) => ({
           method: 'POST',
           body: JSON.stringify({ password: password }),
       });
-      toast.success(data.message || 'Account deleted. We are sorry to see you go!');
+      toast.success(data.message || "Account deleted. We'll miss your style.");
       // After deleting, force a logout to clear all state
       get().logout(); 
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to delete account.';
+      const errorMessage = error.message || "We couldn't delete your account. It seems to be holding on tight.";
       toast.error(errorMessage);
       return false;
     }
@@ -489,10 +489,10 @@ const useWardrobeStore = create((set, get) => ({
       set({ outfitHistory: [] });
       get().fetchUsageAnalytics();
       get().fetchStyleDNA();
-      toast.success(data.message || 'AI Personalization has been reset.');
+      toast.success(data.message || 'Your style profile has been reset. A fresh start!');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to reset AI personalization.';
+      const errorMessage = error.message || "We couldn't reset your style profile. It's a bit stubborn.";
       toast.error(errorMessage);
       return false;
     }
@@ -507,7 +507,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ trips: data, tripsLoading: false });
     } catch (error) {
-      const errorMessage = error.message || 'Failed to fetch trips.';
+      const errorMessage = error.message || 'Oof, we hit a snag trying to load your trips. Want to give it another go?';
       set({ error: errorMessage, tripsLoading: false });
       toast.error(errorMessage);
     }
@@ -524,10 +524,10 @@ const useWardrobeStore = create((set, get) => ({
         trips: [...state.trips, newTrip],
         tripsLoading: false
       }));
-      toast.success('Trip created successfully!');
+      toast.success('Trip created! Time to start packing.');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to create trip.';
+      const errorMessage = error.message || "We couldn't create your trip. Let's try that again.";
       set({ error: errorMessage, tripsLoading: false });
       toast.error(errorMessage);
       return false;
@@ -544,10 +544,10 @@ const useWardrobeStore = create((set, get) => ({
         trips: state.trips.filter(trip => trip.id !== tripId),
         tripsLoading: false
       }));
-      toast.success('Trip deleted successfully!');
+      toast.success('Trip deleted. Less packing for you!');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to delete trip.';
+      const errorMessage = error.message || "We couldn't delete your trip. It must be a good one!";
       set({ error: errorMessage, tripsLoading: false });
       toast.error(errorMessage);
       return false;
@@ -567,10 +567,10 @@ const useWardrobeStore = create((set, get) => ({
         ),
         tripsLoading: false,
       }));
-      toast.success('Trip updated successfully!');
+      toast.success('Trip updated. Your plans are looking sharp.');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to update trip.';
+      const errorMessage = error.message || "We couldn't update your trip. Let's try that again.";
       set({ error: errorMessage, tripsLoading: false });
       toast.error(errorMessage);
       return false;
@@ -585,7 +585,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ currentTripPackingList: data, tripsLoading: false });
       if (!data.was_cached) { // A hypothetical field to check if it was newly generated
-        toast.success('Your smart packing list is ready!');
+        toast.success('Your smart packing list is ready. Let\'s get packing!');
       }
       return data;
     } catch (error) {
@@ -608,7 +608,7 @@ const useWardrobeStore = create((set, get) => ({
                 { duration: 6000 }
             );
         } else {
-            const errorMessage = error.message || 'Failed to get packing list.';
+            const errorMessage = error.message || "We couldn't generate your packing list. The AI might be on a coffee break.";
             toast.error(errorMessage);
         }
         set({ error: error.message, tripsLoading: false, currentTripPackingList: null });
@@ -636,7 +636,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       return true;
     } catch (error) {
-      toast.error('Failed to update item status.');
+      toast.error("We couldn't update that item's status. Let's try again.");
       return false;
     }
   },
@@ -647,14 +647,14 @@ const useWardrobeStore = create((set, get) => ({
       await get().fetchApi(`${API_BASE}/trips/${tripId}/complete`, {
         method: 'POST',
       });
-      toast.success('Trip completed! Packed items are now in your laundry list.');
+      toast.success("Trip complete! We've added your packed items to the laundry list.");
       // Refetch trips to update status, or manually update state
       get().fetchTrips();
       // Optionally clear the packing list view
       set({ currentTripPackingList: null, tripsLoading: false });
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to complete trip.';
+      const errorMessage = error.message || "We couldn't mark your trip as complete. Let's try that again.";
       set({ error: errorMessage, tripsLoading: false });
       toast.error(errorMessage);
       return false;
@@ -667,10 +667,10 @@ const useWardrobeStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify(feedbackData),
       });
-      toast.success('Thank you for your feedback!');
+      toast.success('Got it! Thanks for the feedback.');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to submit feedback.';
+      const errorMessage = error.message || "We couldn't submit your feedback. It might be too good!";
       toast.error(errorMessage);
       return false;
     }
@@ -686,7 +686,7 @@ const useWardrobeStore = create((set, get) => ({
       set({ notifications: data, notificationsLoading: false });
     } catch (error) {
       set({ notificationsLoading: false });
-      toast.error('Failed to fetch notifications.');
+      toast.error("We couldn't fetch your notifications. They're playing hard to get.");
     }
   },
 
@@ -701,7 +701,7 @@ const useWardrobeStore = create((set, get) => ({
         ),
       }));
     } catch (error) {
-      toast.error('Failed to mark notification as read.');
+      toast.error("Couldn't mark that as read. Let's try again.");
     }
   },
 
@@ -714,7 +714,7 @@ const useWardrobeStore = create((set, get) => ({
         notifications: state.notifications.map(n => ({ ...n, is_read: true })),
       }));
     } catch (error) {
-      toast.error('Failed to mark all notifications as read.');
+      toast.error("We couldn't mark all notifications as read. A bit stubborn, aren't they?");
     }
   },
 
@@ -727,7 +727,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ wardrobe: data.items, loading: false });
     } catch (error) {
-      const errorMessage = error.message || 'Ups, we are having problems fetching your wardrobe.';
+      const errorMessage = error.message || "We're having trouble fetching your wardrobe. It might be hiding.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage); 
     }
@@ -745,13 +745,13 @@ const useWardrobeStore = create((set, get) => ({
         wardrobe: [...state.wardrobe, newItem],
         loading: false
       }));
-      toast.success('Lets go! That is ready to rock.');
+      toast.success('Looking sharp! That\'s been added to your wardrobe.');
       get().fetchSmartCollections();
       get().fetchWardrobeGaps();
       
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Give us a second, we are having problems to add that item.';
+      const errorMessage = error.message || "We're having a little trouble adding that item. One more try?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
       return false;
@@ -773,10 +773,10 @@ const useWardrobeStore = create((set, get) => ({
         ),
         loading: false
       }));
-      toast.success("Updated correctly, Let's go!");
+      toast.success("Item updated. All set!");
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'We are so sorry we run on squirrels.';
+      const errorMessage = error.message || "Looks like the squirrels in our server room are on a break. Try again?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -794,10 +794,10 @@ const useWardrobeStore = create((set, get) => ({
       
       get().fetchSmartCollections();
       get().fetchWardrobeGaps();
-      toast.success('Sad to see this one go :(');
+      toast.success('Item deleted. Hope it wasn\'t a favorite!');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Awww... apparetly we cannot delete this one :( try it again';
+      const errorMessage = error.message || "This item is a bit stubborn! Couldn't delete it. Try again?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -817,14 +817,14 @@ toggleCleanStatus: async (itemId) => {
       }));
 
       if (updatedItem.is_clean) {
-        toast.success(`'${updatedItem.name}' is now clean! ✨`);
+        toast.success(`'${updatedItem.name}' is sparkling clean! ✨`);
       } else {
-        toast(`'${updatedItem.name}' marked as dirty.`);
+        toast(`'${updatedItem.name}' is in the dirty pile.`);
       }
       
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Opsi dopsi... try that again please.';
+      const errorMessage = error.message || "Whoops! That didn't work. Let's try that again.";
       set({ error: errorMessage });
       toast.error(errorMessage);
       return false;
@@ -845,11 +845,11 @@ fetchLaundryAlerts: async () => {
       const totalUrgentCount = urgentItemCount + highPriorityCount;
 
       if (totalUrgentCount > 0) {
-        toast(`You have ${totalUrgentCount} items that need washing soon! 🧺`);
+        toast(`Heads up! You've got ${totalUrgentCount} items that need a wash soon. 🧺`);
       } 
 
     } catch (error) {
-      const errorMessage = error.message || 'Looks like our pigeons got lost on the way. Try that again please.';
+      const errorMessage = error.message || "Our carrier pigeons seem to be lost. Could you try that again?";
       set({ error: errorMessage, laundryLoading: false });
       toast.error(errorMessage);
     }
@@ -874,7 +874,7 @@ fetchWardrobeHealth: async () => {
       }
 
     } catch (error) {
-      const errorMessage = error.message || 'Sorry, we think your wardrobe is a bit sick.';
+      const errorMessage = error.message || "Your wardrobe's health score couldn't be calculated. It might be feeling under the weather.";
       set({ error: errorMessage, laundryLoading: false });
       toast.error(errorMessage);
     }
@@ -903,10 +903,10 @@ fetchWardrobeHealth: async () => {
       
       get().fetchLaundryAlerts();
       get().fetchWardrobeHealth();
-      toast.success('Washed! Too good to go.')
+      toast.success('All clean! Those items are ready for their next adventure.');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to mark items as washed.';
+      const errorMessage = error.message || "We couldn't mark those items as washed. Let's try that again.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -926,10 +926,10 @@ fetchWardrobeHealth: async () => {
       }));
       
       get().fetchLaundryAlerts();
-      toast.success('Laundry status toggled!');
+      toast.success('Laundry status updated!');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to toggle laundry status.';
+      const errorMessage = error.message || "Couldn't toggle the laundry status. Mind trying again?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -943,9 +943,9 @@ fetchWardrobeHealth: async () => {
         method: 'GET',
       });
       set({ smartCollections: data, intelligenceLoading: false });
-      toast.success('Smart collections are ready to rock!');
+      toast.success("Your smart collections are here. Check 'em out.");
     } catch (error) {
-      const errorMessage = error.message || 'Failed to fetch smart collections.';
+      const errorMessage = error.message || "We couldn't fetch your smart collections. The AI is thinking...";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -958,9 +958,9 @@ fetchWardrobeHealth: async () => {
         method: 'GET',
       });
       set({ wardrobeGaps: data, intelligenceLoading: false });
-      toast.success('Wardrobe gaps are ready to rock!');
+      toast.success("We've found some gaps in your wardrobe. Take a look.");
     } catch (error) {
-      const errorMessage = error.message || 'Failed to fetch wardrobe gaps.';
+      const errorMessage = error.message || "Couldn't find any wardrobe gaps. Maybe your collection is perfect?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -974,9 +974,9 @@ fetchWardrobeHealth: async () => {
         method: 'GET',
       });
       set({ usageAnalytics: data, analyticsLoading: false });
-      toast.success('Usage analytics are ready to go!');
+      toast.success("Your style stats are in. See how you've been dressing.");
     } catch (error) {
-      const errorMessage = error.message || 'Failed to fetch usage analytics.';
+      const errorMessage = error.message || "We couldn't get your style stats. They're a bit shy.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -989,9 +989,9 @@ fetchWardrobeHealth: async () => {
         method: 'GET',
       });
       set({ styleDNA: data, analyticsLoading: false });
-      toast.success('Style DNA is ready to rock!');
+      toast.success("We've analyzed your style DNA. See what makes you, you.");
     } catch (error) {
-      const errorMessage = error.message || 'Failed to fetch style DNA.';
+      const errorMessage = error.message || "We couldn't get your style DNA. It's a bit of a mystery.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }
@@ -1010,7 +1010,7 @@ fetchWardrobeHealth: async () => {
         body: JSON.stringify(payload),
       });
       set({ currentOutfit: data, loading: false });
-      toast.success('Your new outfit is ready!');
+      toast.success('Voilà! Your next great outfit is ready.');
     } catch (error) {
         if (error.code === 'UPGRADE_REQUIRED') {
             toast.error(
@@ -1032,7 +1032,7 @@ fetchWardrobeHealth: async () => {
                 { duration: 6000 }
             );
         } else {
-            const errorMessage = error.message || 'Opsi... we have a problem generating your outfit.';
+            const errorMessage = error.message || 'The outfit generator is stumped. Try a different mood?';
             toast.error(errorMessage);
         }
         set({ error: error.message, loading: false });
@@ -1055,10 +1055,10 @@ fetchWardrobeHealth: async () => {
       get().fetchWardrobeHealth();
       get().fetchUsageAnalytics();
       get().fetchStyleDNA();
-      toast.success('Outfit used, you look amazing!');
+      toast.success('Outfit saved! You rocked it.');
       return true;
     } catch (error) {
-      const errorMessage = error.message || 'Failed to save your outfit.';
+      const errorMessage = error.message || "We couldn't save your outfit. It must have been too good for our servers.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
       return false;
@@ -1094,11 +1094,11 @@ fetchWardrobeHealth: async () => {
       
       // Only show toast for manual date range filtering, not for calendar navigation
       if (startDate || endDate) {
-        toast.success(`Showing ${data.outfits.length} outfits for the selected range.`);
+        toast.success(`Found ${data.outfits.length} outfits. Lookin' good!`);
       }
 
     } catch (error) {
-      const errorMessage = error.message || 'Could not fetch outfit history.';
+      const errorMessage = error.message || "We couldn't find your outfit history. It must be lost in the laundry.";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
     }

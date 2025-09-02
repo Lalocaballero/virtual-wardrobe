@@ -235,14 +235,10 @@ const Dashboard = () => {
       <header className="bg-background/80 dark:bg-dark-subtle/80 backdrop-blur-sm shadow-sm border-b border-fog dark:border-inkwell sticky top-0 z-40">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 md:py-4">
-            <div className="flex items-center space-x-2 md:space-x-3">
-              <div className="bg-gradient-to-r from-secondary to-purple-600 p-1.5 md:p-2 rounded-lg">
-                <BeakerIcon className="h-5 w-5 md:h-6 md:w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg md:text-2xl font-bold">WeWear</h1>
-                <p className="text-xs text-slate dark:text-dark-text-secondary hidden sm:block">AI-Powered Style Intelligence</p>
-              </div>
+            <div className="flex items-center">
+              <h1 className="text-lg md:text-2xl font-bold font-poppins">
+                WeWear<span className="text-primary">.</span>
+              </h1>
             </div>
 
             <div className="flex items-center space-x-2">

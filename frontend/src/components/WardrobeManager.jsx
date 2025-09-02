@@ -75,7 +75,7 @@ const WardrobeManager = () => {
   };
 
   const handleDeleteItem = async (itemId) => {
-    if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+    if (window.confirm("Delete this item for good? It's a forever kind of thing.")) {
       await deleteClothingItem(itemId);
     }
   };
@@ -100,7 +100,7 @@ const WardrobeManager = () => {
   });
 
   const LoadingSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(8)].map((_, index) => <SkeletonCard key={index} />)}
     </div>
   );
@@ -272,7 +272,7 @@ const WardrobeManager = () => {
       )}
 
       {loading && wardrobe.length === 0 ? <LoadingSkeleton /> : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredWardrobe.map(item => (
             <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group border border-fog dark:border-inkwell">
               <div className="aspect-square bg-muted dark:bg-inkwell relative">
@@ -326,14 +326,14 @@ const WardrobeManager = () => {
         <div className="text-center py-12 bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg border border-fog dark:border-inkwell">
           <PhotoIcon className="mx-auto h-12 w-12 mb-4" />
           <h3 className="text-lg font-medium mb-2">
-            {searchTerm || filterType !== 'all' ? 'No items match your filters' : 'Your wardrobe is empty'}
+            {searchTerm || filterType !== 'all' ? 'No matches found.' : 'Your wardrobe is looking a bit sparse.'}
           </h3>
           <p className="mb-4">
-            {searchTerm || filterType !== 'all' ? 'Try adjusting your search or filter criteria' : 'Add some clothes to start getting outfit suggestions!'}
+            {searchTerm || filterType !== 'all' ? 'Try a different search?' : 'Ready to add your first piece and unlock your style?'}
           </p>
           {!searchTerm && filterType === 'all' && (
             <button onClick={() => setShowAddForm(true)} className="btn btn-primary">
-              Add Your First Item
+              Add Your First Piece
             </button>
           )}
         </div>
