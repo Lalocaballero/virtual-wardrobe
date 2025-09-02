@@ -47,6 +47,15 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        'midnight-ink': '#1A1A2E',
+        'cloud-white': '#F7F7F7',
+        'sunrise-coral': '#FF6B6B',
+        'electric-indigo': '#6F00FF',
+        'cyber-yellow': '#FFD300',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",

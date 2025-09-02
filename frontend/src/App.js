@@ -12,6 +12,9 @@ import ImpersonationBanner from './components/ImpersonationBanner';
 import Onboarding from './components/Onboarding';
 import ProtectedRoute from './components/ProtectedRoute';
 import CheckEmail from './components/CheckEmail';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import CookieBanner from './components/CookieBanner';
 
 function App() {
   const { user, initUser, isImpersonating } = useWardrobeStore();
@@ -25,6 +28,7 @@ function App() {
   return (
     <Router>
       <ImpersonationBanner />
+      <CookieBanner />
       <div className={isImpersonating ? 'pt-10' : ''}>
         <Routes>
           <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
@@ -33,6 +37,8 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/check-email" element={<CheckEmail />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           
           {/* Protected Routes */}
           <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
