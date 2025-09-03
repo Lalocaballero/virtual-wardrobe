@@ -6,7 +6,7 @@ from datetime import date, timedelta
 class WeatherService:
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.base_url = "https://api.openweathermap.org/data/3.0"
+        self.base_url = "https://api.openweathermap.org/data"
         self.client_available = api_key
         
         if not self.client_available:
@@ -48,7 +48,7 @@ class WeatherService:
             # --- ADD THIS LOGGING LINE ---
             print(f"DEBUG: Calling One Call API with key ending in ...{self.api_key[-4:]}")
             # --- END OF ADDITION ---
-            url = f"{self.base_url}/onecall"
+            url = f"{self.base_url}/3.0/onecall"
             params = {
                 'lat': coords['lat'],
                 'lon': coords['lon'],
@@ -116,7 +116,7 @@ class WeatherService:
         
         try:
             # Get current weather
-            current_url = f"{self.base_url}/weather"
+            current_url = f"{self.base_url}/2.5/weather"
             params = {
                 'q': location,
                 'appid': self.api_key,
@@ -158,7 +158,7 @@ class WeatherService:
     def _get_forecast(self, location: str) -> Dict:
         """Get weather forecast for additional context"""
         try:
-            forecast_url = f"{self.base_url}/forecast"
+            forecast_url = f"{self.base_url}/2.5/forecast"
             params = {
                 'q': location,
                 'appid': self.api_key,
