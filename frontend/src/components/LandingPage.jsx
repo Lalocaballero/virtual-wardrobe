@@ -92,13 +92,13 @@ const Features = () => (
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            {/* CHANGE #1: Added padding (p-4) to the container for better spacing */}
-            <div className="bg-muted dark:bg-inkwell h-48 rounded-lg flex items-center justify-center mb-6 overflow-hidden p-4">
+            {/* CHANGE #1: Made the container taller (h-48 -> h-72) */}
+            <div className="bg-muted dark:bg-inkwell h-72 rounded-lg flex items-center justify-center mb-6 overflow-hidden p-4">
               <img 
                 src={feature.image} 
                 alt={`${feature.name} feature screenshot`} 
-                // CHANGE #2: Swapped 'object-cover' for 'object-contain'
-                className="w-full h-full object-contain"
+                // CHANGE #2: Removed 'w-full' to allow proportional scaling
+                className="h-full object-contain"
               />
             </div>
             <h3 className="font-poppins font-bold text-2xl mb-3">{feature.name}</h3>
