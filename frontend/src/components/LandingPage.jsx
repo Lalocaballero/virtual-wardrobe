@@ -6,8 +6,8 @@ import { Disclosure } from '@headlessui/react';
 import { ChevronUpIcon } from '@heroicons/react/24/solid';
 
 import featureWardrobe from '../assets/digital-wardrobe.png';
-import featureAI from '../assets/images/outfit-suggestion.png';
-import featurePacking from '../assets/images/packing-assistant.png'; 
+import featureAI from '../assets/outfit-suggestion.png';
+import featurePacking from '../assets/packing-assistant.png'; 
 
 const Header = () => (
   <header className="fixed top-0 left-0 right-0 z-50 bg-cloud-white/80 backdrop-blur-sm">
