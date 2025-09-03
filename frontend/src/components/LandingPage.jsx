@@ -86,21 +86,20 @@ const Features = () => (
         {features.map((feature, index) => (
           <motion.div
             key={feature.name}
+            // Note: The card itself already has p-8 (padding), so the image will align with the text
             className="text-center p-8 border border-fog rounded-2xl"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            {/* CHANGE #1: Made the container taller (h-48 -> h-72) */}
-            <div className="bg-muted dark:bg-inkwell h-72 rounded-lg flex items-center justify-center mb-6 overflow-hidden p-4">
-              <img 
-                src={feature.image} 
-                alt={`${feature.name} feature screenshot`} 
-                // CHANGE #2: Removed 'w-full' to allow proportional scaling
-                className="h-full object-contain"
-              />
-            </div>
+            {/* The container <div> has been completely removed. */}
+            {/* The styles are now directly on the <img> tag. */}
+            <img 
+              src={feature.image} 
+              alt={`${feature.name} feature screenshot`} 
+              className="w-full rounded-lg mb-6" // These are the only classes you need
+            />
             <h3 className="font-poppins font-bold text-2xl mb-3">{feature.name}</h3>
             <p className="text-midnight-ink/80">{feature.description}</p>
           </motion.div>
