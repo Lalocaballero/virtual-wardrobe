@@ -63,7 +63,7 @@ const UsageAnalytics = () => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-4 text-white">
+        <div className="bg-primary rounded-lg p-4 text-primary-foreground">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Utilization Rate</p>
@@ -72,7 +72,7 @@ const UsageAnalytics = () => {
             <ChartBarIcon className="h-8 w-8 opacity-50" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg p-4 text-white">
+        <div className="bg-secondary rounded-lg p-4 text-secondary-foreground">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Avg Cost/Wear</p>
@@ -81,7 +81,7 @@ const UsageAnalytics = () => {
             <CurrencyDollarIcon className="h-8 w-8 opacity-50" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg p-4 text-white">
+        <div className="bg-accent rounded-lg p-4 text-accent-foreground">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Total Wears</p>
@@ -90,7 +90,7 @@ const UsageAnalytics = () => {
             <TrophyIcon className="h-8 w-8 opacity-50" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-lg p-4 text-white">
+        <div className="bg-destructive rounded-lg p-4 text-destructive-foreground">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Outfits/Week</p>
@@ -105,14 +105,14 @@ const UsageAnalytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
           <div className="flex items-center space-x-2 mb-4">
-            <TrophyIcon className="h-5 w-5 text-yellow-500" />
+            <TrophyIcon className="h-5 w-5 text-accent" />
             <h3 className="font-semibold">🏆 Most Worn Items</h3>
           </div>
           {most_worn_items && most_worn_items.length > 0 ? (
             <div className="space-y-3">
               {most_worn_items.map((item, index) => (
-                <div key={item.id} className="flex items-center space-x-3 p-3 bg-yellow-50 dark:bg-yellow-900/50 rounded-lg">
-                  <div className="text-yellow-600 dark:text-yellow-400 font-bold text-sm">#{index + 1}</div>
+                <div key={item.id} className="flex items-center space-x-3 p-3 bg-accent/10 dark:bg-accent/20 rounded-lg">
+                  <div className="text-accent-foreground font-bold text-sm">#{index + 1}</div>
                   <div className="w-12 h-12 bg-muted dark:bg-inkwell rounded-lg overflow-hidden flex-shrink-0">
                     {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs">{item.type}</div>}
                   </div>
@@ -128,19 +128,19 @@ const UsageAnalytics = () => {
 
         <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
           <div className="flex items-center space-x-2 mb-4">
-            <ExclamationTriangleIcon className="h-5 w-5 text-orange-500" />
+            <ExclamationTriangleIcon className="h-5 w-5 text-warning" />
             <h3 className="font-semibold">💤 Underused Items</h3>
           </div>
           {least_worn_items && least_worn_items.length > 0 ? (
             <div className="space-y-3">
               {least_worn_items.map(item => (
-                <div key={item.id} className="flex items-center space-x-3 p-3 bg-orange-50 dark:bg-orange-900/50 rounded-lg">
+                <div key={item.id} className="flex items-center space-x-3 p-3 bg-warning/10 dark:bg-warning/20 rounded-lg">
                   <div className="w-12 h-12 bg-muted dark:bg-inkwell rounded-lg overflow-hidden flex-shrink-0">
                     {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs">{item.type}</div>}
                   </div>
                   <div className="flex-1">
                     <div className="font-medium">{item.name}</div>
-                    <div className="text-sm text-orange-600 dark:text-orange-400">Never worn - try it next!</div>
+                    <div className="text-sm text-warning">Never worn - try it next!</div>
                   </div>
                 </div>
               ))}
@@ -159,7 +159,7 @@ const UsageAnalytics = () => {
             </div>
             <div className="space-y-3">
               {best_value_items.slice(0, 5).map(item => (
-                <div key={item.id} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/50 rounded-lg">
+                <div key={item.id} className="flex items-center justify-between p-3 bg-green-500/10 dark:bg-green-500/20 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-muted dark:bg-inkwell rounded-lg overflow-hidden flex-shrink-0">
                       {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs">{item.type}</div>}
@@ -169,7 +169,7 @@ const UsageAnalytics = () => {
                       <div className="text-xs">{item.wear_count} wears</div>
                     </div>
                   </div>
-                  <div className="text-green-600 dark:text-green-400 font-bold">${item.cost_per_wear}</div>
+                  <div className="text-green-500 font-bold">${item.cost_per_wear}</div>
                 </div>
               ))}
             </div>
@@ -178,12 +178,12 @@ const UsageAnalytics = () => {
           {worst_value_items && worst_value_items.length > 0 && (
             <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
               <div className="flex items-center space-x-2 mb-4">
-                <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
+                <ExclamationTriangleIcon className="h-5 w-5 text-destructive" />
                 <h3 className="font-semibold">💸 Needs More Love</h3>
               </div>
               <div className="space-y-3">
                 {worst_value_items.slice(0, 5).map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/50 rounded-lg">
+                  <div key={item.id} className="flex items-center justify-between p-3 bg-destructive/10 dark:bg-destructive/20 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-muted dark:bg-inkwell rounded-lg overflow-hidden flex-shrink-0">
                         {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs">{item.type}</div>}
@@ -193,7 +193,7 @@ const UsageAnalytics = () => {
                         <div className="text-xs">{item.wear_count} wears</div>
                       </div>
                     </div>
-                    <div className="text-destructive dark:text-red-400 font-bold">${item.cost_per_wear}</div>
+                    <div className="text-destructive font-bold">${item.cost_per_wear}</div>
                   </div>
                 ))}
               </div>
@@ -230,7 +230,7 @@ const UsageAnalytics = () => {
                   <span className="text-sm capitalize">{mood}</span>
                   <div className="flex items-center space-x-2">
                     <div className="w-20 bg-muted dark:bg-inkwell rounded-full h-2">
-                      <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${(count / Math.max(...Object.values(mood_preferences))) * 100}%` }}></div>
+                      <div className="bg-primary h-2 rounded-full" style={{ width: `${(count / Math.max(...Object.values(mood_preferences))) * 100}%` }}></div>
                     </div>
                     <span className="text-sm">{count}</span>
                   </div>
@@ -243,24 +243,24 @@ const UsageAnalytics = () => {
 
       {/* Wardrobe Value Summary */}
       {wardrobe_value && (
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-lg p-6 border border-fog dark:border-inkwell">
-          <h3 className="font-semibold text-indigo-900 dark:text-indigo-300 mb-4">💰 Investment Summary</h3>
+        <div className="bg-secondary/10 dark:bg-secondary/20 rounded-lg p-6 border border-secondary/20">
+          <h3 className="font-semibold text-secondary-foreground mb-4">💰 Investment Summary</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-indigo-700 dark:text-secondary">${wardrobe_value.total_cost}</div>
-              <div className="text-sm text-secondary dark:text-secondary">Total Investment</div>
+              <div className="text-2xl font-bold text-secondary">${wardrobe_value.total_cost}</div>
+              <div className="text-sm text-secondary/80">Total Investment</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-indigo-700 dark:text-secondary">{wardrobe_value.total_wears}</div>
-              <div className="text-sm text-secondary dark:text-secondary">Total Wears</div>
+              <div className="text-2xl font-bold text-secondary">{wardrobe_value.total_wears}</div>
+              <div className="text-sm text-secondary/80">Total Wears</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-indigo-700 dark:text-secondary">${wardrobe_value.average_cost_per_wear}</div>
-              <div className="text-sm text-secondary dark:text-secondary">Avg Cost/Wear</div>
+              <div className="text-2xl font-bold text-secondary">${wardrobe_value.average_cost_per_wear}</div>
+              <div className="text-sm text-secondary/80">Avg Cost/Wear</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-indigo-700 dark:text-secondary">{efficiency_metrics?.utilization_rate}%</div>
-              <div className="text-sm text-secondary dark:text-secondary">Efficiency</div>
+              <div className="text-2xl font-bold text-secondary">{efficiency_metrics?.utilization_rate}%</div>
+              <div className="text-sm text-secondary/80">Efficiency</div>
             </div>
           </div>
         </div>

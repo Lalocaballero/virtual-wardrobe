@@ -264,7 +264,7 @@ You will be provided with a `personalization_profile`. This is a summary of the 
 **Output Requirements:**
 You MUST respond ONLY with a valid JSON object. Do not include any text before or after the JSON. The JSON object must have the exact following structure:
 {
-  "reasoning": "A brief justification for your choices, explaining how the list is optimized for the trip's weather, duration, purpose, and any special activities.",
+  "reasoning": "A witty and direct justification for your choices. Explain your strategy like you're a seasoned travel pro helping a friend pack smart. Keep it concise and clever.",
   "packing_list": {
     "Tops": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
     "Bottoms": [ { "id": <item_id>, "name": "<item_name>" }, ... ],
@@ -558,6 +558,7 @@ REQUIREMENTS:
 7. Ensure color coordination and style harmony according to the 60/30/10 rule.
 8. {variety_instruction}
 9. BE CREATIVE (but within the user's style) and suggest different combinations each time.
+10. **CRITICAL RULE:** Your `reasoning` and `style_notes` text MUST NOT include the item IDs. Refer to items by their name only.
 
 RESPONSE FORMAT (JSON only):
 {{

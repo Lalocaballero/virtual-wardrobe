@@ -13,7 +13,7 @@ const PackingProgressBar = ({ items }) => {
     return (
         <div className="w-full bg-muted dark:bg-inkwell rounded-full h-2.5 my-4">
             <div 
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" 
+                className="bg-primary h-2.5 rounded-full transition-all duration-500" 
                 style={{ width: `${progress}%` }}
             ></div>
         </div>
@@ -83,7 +83,7 @@ const TripForm = ({ trip, onSave, onCancel, isLoading }) => {
                 </div>
                 <div className="md:col-span-2 flex justify-end pt-2 space-x-3">
                     <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
-                    <button type="submit" disabled={isLoading} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white">
+                    <button type="submit" disabled={isLoading} className="btn btn-primary">
                         {isLoading ? 'Saving...' : 'Save Trip'}
                     </button>
                 </div>
@@ -210,7 +210,7 @@ const PackingAssistant = () => {
                 <p className="text-sm text-slate dark:text-dark-text-secondary mt-1">{new Date(selectedTrip.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })} - {new Date(selectedTrip.end_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             {!isCompleted && (
-                 <button onClick={handleCompleteTrip} className="btn btn-success bg-green-500 hover:bg-green-600 text-white">
+                 <button onClick={handleCompleteTrip} className="btn btn-primary">
                     <CheckCircleIcon className="h-5 w-5 mr-2" />
                     Mark Trip as Completed
                 </button>
@@ -221,7 +221,7 @@ const PackingAssistant = () => {
 
         {tripsLoading && !currentTripPackingList && (
           <div className="text-center py-12">
-            <SparklesIcon className="mx-auto h-12 w-12 animate-pulse text-blue-500" />
+            <SparklesIcon className="mx-auto h-12 w-12 animate-pulse text-primary" />
             <h3 className="text-lg font-medium mt-4">Fetching your packing list...</h3>
             <p className="text-slate">Our AI is checking the weather and your wardrobe.</p>
           </div>
@@ -237,9 +237,9 @@ const PackingAssistant = () => {
             )}
 
             {currentTripPackingList.reasoning && !isCompleted && (
-              <div className="bg-blue-50 dark:bg-dark-subtle border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-200 px-4 py-3 rounded-lg" role="alert">
+              <div className="bg-secondary/10 dark:bg-secondary/20 border border-secondary/20 text-secondary-foreground px-4 py-3 rounded-lg" role="alert">
                 <div className="flex">
-                  <div className="py-1"><SparklesIcon className="h-5 w-5 text-blue-400 mr-3"/></div>
+                  <div className="py-1"><SparklesIcon className="h-5 w-5 text-secondary mr-3"/></div>
                   <div>
                     <p className="font-bold">AI Packing Rationale</p>
                     <p className="text-sm">{currentTripPackingList.reasoning}</p>
@@ -316,7 +316,7 @@ const PackingAssistant = () => {
     <div className="p-4 sm:p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-foreground dark:text-white">My Trips</h1>
-        <button onClick={() => { setEditingTrip(null); setIsFormOpen(true); }} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white">
+        <button onClick={() => { setEditingTrip(null); setIsFormOpen(true); }} className="btn btn-primary">
           <PlusIcon className="h-5 w-5 mr-2" />
           Create New Trip
         </button>
@@ -370,7 +370,7 @@ const PackingAssistant = () => {
         <div className="text-center py-16 bg-card dark:bg-dark-subtle dark:bg-dark-subtle/50 rounded-xl border-2 border-dashed border-fog dark:border-inkwell">
           <h3 className="text-xl font-semibold text-foreground dark:text-white mb-2">No trips planned yet!</h3>
           <p className="text-slate dark:text-dark-text-secondary mb-4">Click "Create New Trip" to start your first packing list.</p>
-          <button onClick={() => { setEditingTrip(null); setIsFormOpen(true); }} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white">
+          <button onClick={() => { setEditingTrip(null); setIsFormOpen(true); }} className="btn btn-primary">
             Create Your First Trip
           </button>
         </div>
