@@ -5,6 +5,10 @@ import { CheckIcon } from '@heroicons/react/24/outline';
 import { Disclosure } from '@headlessui/react';
 import { ChevronUpIcon } from '@heroicons/react/24/solid';
 
+import featureWardrobe from './assets/digital-wardrobe.png';
+import featureAI from './assets/images/outfit-suggestion.png';
+import featurePacking from './assets/images/packing-assistant.png';
+
 const Header = () => (
   <header className="fixed top-0 left-0 right-0 z-50 bg-cloud-white/80 backdrop-blur-sm">
     <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -55,14 +59,17 @@ const features = [
   {
     name: 'Digital Wardrobe',
     description: 'Easily catalog your entire wardrobe. Snap a picture, and we’ll handle the rest.',
+    image: featureWardrobe,
   },
   {
     name: 'AI Outfit Generation',
     description: 'Get daily outfit suggestions based on your items, local weather, and personal style.',
+    image: featureAI,
   },
   {
     name: 'Smart Packing Assistant',
     description: 'Tell us where you’re going, and we’ll create the perfect packing list from your wardrobe.',
+    image: featurePacking,
   },
 ];
 
@@ -85,8 +92,12 @@ const Features = () => (
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <div className="bg-muted dark:bg-inkwell h-48 rounded-lg flex items-center justify-center mb-6">
-              <p className="text-slate text-sm">[App Screenshot: {feature.name}]</p>
+            <div className="bg-muted dark:bg-inkwell h-48 rounded-lg flex items-center justify-center mb-6 overflow-hidden">
+              <img 
+                src={feature.image} 
+                alt={`${feature.name} feature screenshot`} 
+                className="w-full h-full object-cover"
+              />
             </div>
             <h3 className="font-poppins font-bold text-2xl mb-3">{feature.name}</h3>
             <p className="text-midnight-ink/80">{feature.description}</p>
