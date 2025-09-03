@@ -13,15 +13,17 @@
     @apply bg-cloud-white dark:bg-midnight-ink;
     @apply text-midnight-ink dark:text-cloud-white;
 
-    /* Set the base font for the entire application to Inter */
-    @apply font-sans;
+    /* Keep your original font settings */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Consistent heading styles using Poppins */
+  /* Consistent heading styles */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-poppins font-semibold text-inkwell dark:text-cloud-white;
+    @apply font-poppins font-bold text-foreground dark:text-cloud-white;
   }
 
   /* Consistent link styles */
@@ -31,11 +33,11 @@
 
   /* Default form input styles */
   input, select, textarea {
-    @apply bg-cloud-white dark:bg-dark-subtle border border-fog dark:border-inkwell text-midnight-ink dark:text-cloud-white placeholder-slate dark:placeholder-slate rounded-lg focus:ring-secondary focus:border-secondary;
+    @apply bg-cloud-white dark:bg-dark-subtle border border-fog dark:border-inkwell text-foreground dark:text-cloud-white placeholder-slate dark:placeholder-slate rounded-lg focus:ring-secondary focus:border-secondary;
   }
 
   p {
-    @apply text-slate dark:text-dark-text-secondary;
+    @apply text-foreground/80 dark:text-dark-text-secondary;
   }
 
   /* Default checkbox styles */

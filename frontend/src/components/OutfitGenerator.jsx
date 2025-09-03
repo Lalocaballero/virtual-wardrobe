@@ -28,8 +28,8 @@ const OutfitGenerator = ({ outfit, mood }) => {
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-48 md:h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        <span className="ml-3 mt-3 text-center">Generating your perfect outfit...</span>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <span className="ml-3 mt-3 text-center">Whipping up a look for you...</span>
       </div>
     );
   }
@@ -44,15 +44,15 @@ const OutfitGenerator = ({ outfit, mood }) => {
             </svg>
           </div>
           <h3 className="text-lg md:text-xl font-medium mb-4">
-            Ready to create your perfect outfit?
+            Your next great look is just a click away.
           </h3>
           <p className="mb-6 text-sm md:text-base">
-            Select your mood and generate AI-powered style suggestions!
+            Pick a mood, and we'll work our magic.
           </p>
         </div>
-        <div className="bg-blue-50 dark:bg-dark-subtle border border-blue-100 dark:border-inkwell rounded-lg p-4 md:p-6 max-w-md mx-auto">
-          <p className="text-sm text-indigo-700 dark:text-secondary font-medium mb-2">💡 Pro Tips:</p>
-          <ul className="text-sm text-secondary dark:text-cloud-white space-y-1 text-left">
+        <div className="bg-accent/10 dark:bg-accent/20 border border-accent/20 rounded-lg p-4 md:p-6 max-w-md mx-auto">
+          <p className="text-sm text-accent-foreground font-medium mb-2">💡 Pro Tips:</p>
+          <ul className="text-sm text-accent-foreground/80 space-y-1 text-left">
             <li>• Add photos to your wardrobe items</li>
             <li>• Set your location for weather-based suggestions</li>
             <li>• Try different moods for variety</li>
@@ -69,7 +69,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
       <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 space-y-3 sm:space-y-0">
           <div className="flex-1">
-            <h2 className="text-lg md:text-xl font-semibold mb-2">Today's Outfit</h2>
+            <h2 className="text-4xl font-bold mb-2">Today's Outfit</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 text-sm">
               <div>
                 <span className="font-medium">Weather:</span> {outfit.weather}
@@ -96,7 +96,7 @@ const OutfitGenerator = ({ outfit, mood }) => {
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              <span>Use Outfit</span>
+              <span>Wear it! ✨</span>
             </button>
           </div>
         </div>
@@ -152,28 +152,28 @@ const OutfitGenerator = ({ outfit, mood }) => {
       {outfit.suggestion && (
         <div className="space-y-3 md:space-y-4">
           {outfit.suggestion.reasoning && (
-            <div className="bg-blue-50 dark:bg-dark-subtle border border-blue-100 dark:border-inkwell rounded-lg p-4 md:p-6">
+            <div className="bg-secondary/10 dark:bg-secondary/20 border border-secondary/20 rounded-lg p-4 md:p-6">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 md:h-6 md:w-6 text-secondary dark:text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                  <svg className="h-5 w-5 md:h-6 md:w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-indigo-900 dark:text-indigo-300 mb-2 text-sm md:text-base">Why this outfit works:</h3>
-                  <p className="text-indigo-800 dark:text-cloud-white leading-relaxed text-sm md:text-base">{outfit.suggestion.reasoning}</p>
+                  <h3 className="font-medium text-secondary-foreground mb-2 text-sm md:text-base">Here's the style breakdown:</h3>
+                  <p className="text-secondary-foreground/80 leading-relaxed text-sm md:text-base">{outfit.suggestion.reasoning}</p>
                 </div>
               </div>
             </div>
           )}
           
           {outfit.suggestion.style_notes && (
-            <div className="bg-purple-50 dark:bg-dark-subtle border border-purple-100 dark:border-inkwell rounded-lg p-4 md:p-6">
+            <div className="bg-accent/10 dark:bg-accent/20 border border-accent/20 rounded-lg p-4 md:p-6">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 md:h-6 md:w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                  <svg className="h-5 w-5 md:h-6 md:w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-purple-900 dark:text-purple-300 mb-2 text-sm md:text-base">Style tips:</h3>
-                  <p className="text-purple-800 dark:text-cloud-white leading-relaxed text-sm md:text-base">{outfit.suggestion.style_notes}</p>
+                  <h3 className="font-medium text-accent-foreground mb-2 text-sm md:text-base">Pro tip:</h3>
+                  <p className="text-accent-foreground/80 leading-relaxed text-sm md:text-base">{outfit.suggestion.style_notes}</p>
                 </div>
               </div>
             </div>

@@ -171,12 +171,11 @@ const Dashboard = () => {
   }
   
   const getBadgeStyle = (badge) => {
-    // ... no changes needed here, your function is perfect
     if (!badge) return '';
-    if (badge === 'AI') return 'bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1.5 py-0.5 rounded-full';
-    if (badge === 'NEW') return 'bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full';
-    if (parseInt(badge) > 0) return 'bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center';
-    return 'bg-secondary/10 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300 text-xs px-1.5 py-0.5 rounded-full';
+    if (badge === 'AI') return 'bg-secondary text-secondary-foreground text-xs px-1.5 py-0.5 rounded-full';
+    if (badge === 'NEW') return 'bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full';
+    if (parseInt(badge) > 0) return 'bg-destructive text-destructive-foreground text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center';
+    return 'bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded-full';
   };
 
   // --- Data Definitions ---
@@ -193,8 +192,8 @@ const Dashboard = () => {
     { id: 'outfit', label: "Today's Outfit", shortLabel: 'Outfit', icon: SunIcon },
     { id: 'wardrobe', label: 'My Wardrobe', shortLabel: 'Wardrobe', icon: UserIcon },
     { id: 'packing', label: 'Packing Assistant', shortLabel: 'Packing', icon: BriefcaseIcon },
-    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon, badge: 'AI' },
-    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon, badge: 'NEW' },
+    { id: 'collections', label: 'Smart Collections', shortLabel: 'Collections', icon: CubeIcon },
+    { id: 'analytics', label: 'Usage Analytics', shortLabel: 'Analytics', icon: ChartBarIcon },
     { id: 'laundry', label: 'Laundry Assistant', shortLabel: 'Laundry', icon: SparklesIcon, badge: getUrgentItemsCount(laundryAlerts) },
     { id: 'history', label: 'Outfit History', shortLabel: 'History', icon: CloudIcon }
   ];
@@ -236,7 +235,7 @@ const Dashboard = () => {
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 md:py-4">
             <div className="flex items-center">
-              <h1 className="text-lg md:text-2xl font-bold font-poppins">
+              <h1 className="text-2xl font-poppins font-bold">
                 WeWear<span className="text-primary">.</span>
               </h1>
             </div>

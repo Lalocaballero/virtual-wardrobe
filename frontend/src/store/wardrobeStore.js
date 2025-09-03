@@ -133,7 +133,7 @@ const useWardrobeStore = create((set, get) => ({
       toast.success("Welcome back! Let's get you styled.");
       return { success: true };
     } catch (error) {
-      const errorMessage = error.data?.error || error.message || 'Login failed.';
+      const errorMessage = error.data?.error || error.message || 'Login failed. Check your credentials?';
       const errorCode = error.data?.code;
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
@@ -182,11 +182,11 @@ const useWardrobeStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ email }),
       });
-      toast.success(data.message);
+      toast.success(data.message || "Verification email sent! Check your inbox.");
       set({ loading: false });
       return true;
     } catch (error) {
-      const errorMessage = error.message || "We couldn't resend the verification email. Maybe a typo?";
+      const errorMessage = error.message || "Couldn't resend the verification email. Maybe a typo?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);
       return false;
@@ -585,7 +585,7 @@ const useWardrobeStore = create((set, get) => ({
       });
       set({ currentTripPackingList: data, tripsLoading: false });
       if (!data.was_cached) { // A hypothetical field to check if it was newly generated
-        toast.success('Your smart packing list is ready. Let\'s get packing!');
+        toast.success("Your smart packing list is ready. Let's get packing!");
       }
       return data;
     } catch (error) {
@@ -745,7 +745,7 @@ const useWardrobeStore = create((set, get) => ({
         wardrobe: [...state.wardrobe, newItem],
         loading: false
       }));
-      toast.success('Looking sharp! That\'s been added to your wardrobe.');
+      toast.success("Looking sharp! That's been added to your wardrobe.");
       get().fetchSmartCollections();
       get().fetchWardrobeGaps();
       
@@ -773,7 +773,7 @@ const useWardrobeStore = create((set, get) => ({
         ),
         loading: false
       }));
-      toast.success("Item updated. All set!");
+      toast.success('Item updated. All set!');
       return true;
     } catch (error) {
       const errorMessage = error.message || "Looks like the squirrels in our server room are on a break. Try again?";
@@ -794,7 +794,7 @@ const useWardrobeStore = create((set, get) => ({
       
       get().fetchSmartCollections();
       get().fetchWardrobeGaps();
-      toast.success('Item deleted. Hope it wasn\'t a favorite!');
+      toast.success("Item deleted. Hope it wasn't a favorite!");
       return true;
     } catch (error) {
       const errorMessage = error.message || "This item is a bit stubborn! Couldn't delete it. Try again?";

@@ -36,17 +36,17 @@ const SmartCollections = () => {
     return iconMap[collectionId] || SparklesIcon;
   };
 
-  const getCollectionGradient = (collectionId) => {
-    const gradientMap = {
-      work: 'from-blue-500 to-indigo-600',
-      casual: 'from-green-500 to-teal-600',
-      special: 'from-pink-500 to-rose-600',
-      active: 'from-orange-500 to-red-600',
-      seasonal: 'from-purple-500 to-indigo-600',
-      favorites: 'from-yellow-500 to-orange-600',
-      underused: 'from-gray-500 to-slate-600'
+  const getCollectionColors = (collectionId) => {
+    const colorMap = {
+      work: 'bg-secondary text-secondary-foreground',
+      casual: 'bg-green-500 text-white', // Using green as a positive color
+      special: 'bg-primary text-primary-foreground',
+      active: 'bg-accent text-accent-foreground',
+      seasonal: 'bg-blue-500 text-white', // Using blue for seasonal
+      favorites: 'bg-yellow-400 text-black',
+      underused: 'bg-slate text-white'
     };
-    return gradientMap[collectionId] || 'from-indigo-500 to-purple-600';
+    return colorMap[collectionId] || 'bg-secondary text-secondary-foreground';
   };
 
   if (intelligenceLoading) {
@@ -63,13 +63,13 @@ const SmartCollections = () => {
       <div className="text-center py-12 bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg border border-fog dark:border-inkwell">
         <SparklesIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate mb-4" />
         <h3 className="text-lg font-medium mb-2">
-          Building Your Smart Collections
+          Getting to know your style...
         </h3>
         <p className="mb-4">
-          Add more clothes and save some outfits to see intelligent collections!
+          Add some more clothes and log a few outfits. We'll handle the rest.
         </p>
-        <div className="bg-blue-50 dark:bg-inkwell/50 rounded-lg p-4 max-w-md mx-auto">
-          <p className="text-sm text-blue-800 dark:text-blue-300">
+        <div className="bg-secondary/10 dark:bg-secondary/20 rounded-lg p-4 max-w-md mx-auto">
+          <p className="text-sm text-secondary-foreground/80">
             💡 Smart collections automatically organize your clothes by style, occasion, and usage patterns
           </p>
         </div>
@@ -80,18 +80,18 @@ const SmartCollections = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">🧠 Smart Collections</h2>
-        <p>AI-organized wardrobe based on your style patterns</p>
+        <h2 className="text-4xl font-bold mb-2">🧠 Smart Collections</h2>
+        <p>Your wardrobe, but smarter. We've organized your clothes into collections.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Object.entries(smartCollections).map(([collectionId, collection]) => {
           const IconComponent = getCollectionIcon(collectionId);
-          const gradient = getCollectionGradient(collectionId);
+          const colors = getCollectionColors(collectionId);
           
           return (
-            <div key={collectionId} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <div className={`bg-gradient-to-r ${gradient} p-4 text-white`}>
+            <div key={collectionId} className="bg-card dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <div className={`${colors} p-4`}>
                 <div className="flex items-center space-x-3">
                   <IconComponent className="h-6 w-6" />
                   <div>
@@ -134,11 +134,11 @@ const SmartCollections = () => {
         })}
       </div>
 
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-lg p-6 border border-fog dark:border-inkwell">
-        <h3 className="font-semibold text-indigo-900 dark:text-indigo-300 mb-3">🔍 Collection Insights</h3>
+      <div className="bg-secondary/10 dark:bg-secondary/20 rounded-lg p-6 border border-secondary/20">
+        <h3 className="font-semibold text-secondary-foreground mb-3">🔍 Collection Insights</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg p-3">
-            <div className="font-medium text-indigo-700 dark:text-secondary">Most Active Collection</div>
+          <div className="bg-card dark:bg-dark-subtle rounded-lg p-3">
+            <div className="font-medium text-secondary">Most Active Collection</div>
             <div>
               {Object.entries(smartCollections).reduce((max, [id, collection]) => {
                 const totalWears = collection.items.reduce((sum, item) => sum + (item.wear_count || 0), 0);
@@ -146,8 +146,8 @@ const SmartCollections = () => {
               }, {}).name || 'No data yet'}
             </div>
           </div>
-          <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg p-3">
-            <div className="font-medium text-indigo-700 dark:text-secondary">Largest Collection</div>
+          <div className="bg-card dark:bg-dark-subtle rounded-lg p-3">
+            <div className="font-medium text-secondary">Largest Collection</div>
             <div>
               {Object.entries(smartCollections).reduce((max, [id, collection]) => 
                 collection.count > (max.count || 0) ? { name: collection.name, count: collection.count } : max

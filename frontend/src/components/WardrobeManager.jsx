@@ -75,7 +75,7 @@ const WardrobeManager = () => {
   };
 
   const handleDeleteItem = async (itemId) => {
-    if (window.confirm("Delete this item for good? It's a forever kind of thing.")) {
+    if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
       await deleteClothingItem(itemId);
     }
   };
@@ -100,7 +100,7 @@ const WardrobeManager = () => {
   });
 
   const LoadingSkeleton = () => (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(8)].map((_, index) => <SkeletonCard key={index} />)}
     </div>
   );
@@ -112,7 +112,7 @@ const WardrobeManager = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">My Wardrobe</h2>
+          <h2 className="text-4xl font-bold">My Wardrobe</h2>
           <p>{wardrobe.length} items</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -138,14 +138,14 @@ const WardrobeManager = () => {
             </select>
           </div>
           <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary add-item-button">
-            {showAddForm ? 'Cancel' : 'Add Item'}
+            {showAddForm ? 'Cancel' : 'Add Piece'}
           </button>
         </div>
       </div>
 
       {showAddForm && (
         <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-lg p-6 border border-fog dark:border-inkwell">
-          <h3 className="text-lg font-medium mb-6">Add New Item</h3>
+          <h3 className="text-lg font-medium mb-6">Add New Piece</h3>
           <form onSubmit={handleAddItem} className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-2">Photo</label>
@@ -272,7 +272,7 @@ const WardrobeManager = () => {
       )}
 
       {loading && wardrobe.length === 0 ? <LoadingSkeleton /> : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredWardrobe.map(item => (
             <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group border border-fog dark:border-inkwell">
               <div className="aspect-square bg-muted dark:bg-inkwell relative">
@@ -299,7 +299,7 @@ const WardrobeManager = () => {
                   </button>
                 </div>
               </div>
-              <div className="p-4">
+              <div className="p-6">
                 <h3 className="font-medium mb-1 truncate">{item.name}</h3>
                 <p className="text-sm mb-2">{item.type} • {item.color}</p>
                 <div className="flex justify-between items-center text-sm">
