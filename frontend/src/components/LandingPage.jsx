@@ -8,6 +8,9 @@ import { ChevronUpIcon } from '@heroicons/react/24/solid';
 import featureWardrobe from '../assets/digital-wardrobe.png';
 import featureAI from '../assets/outfit-suggestion.png';
 import featurePacking from '../assets/packing-assistant.png'; 
+import aiSuggestions from '../assets/ai-suggestions.png';
+import snapCloset from '../assets/snap-closet.png';
+import wearIt from '../assets/wear-it.png';
 
 const Header = () => (
   <header className="fixed top-0 left-0 right-0 z-50 bg-cloud-white/80 backdrop-blur-sm">
@@ -272,19 +275,19 @@ const howItWorksSteps = [
     step: 1,
     title: "Snap Your Closet",
     description: "Quickly add your clothes.",
-    visual: "[App Screenshot: Adding an item]"
+    image: snapCloset,
   },
   {
     step: 2,
     title: "Get AI Suggestions",
     description: "Receive daily outfits and packing lists.",
-    visual: "[App Screenshot: Outfit Suggestion]"
+    image: aiSuggestions,
   },
   {
     step: 3,
     title: "Dress with Confidence",
     description: "Rediscover your style, effortlessly.",
-    visual: "[App Screenshot: User Profile]"
+    image: wearIt,
   }
 ];
 
@@ -298,24 +301,30 @@ const HowItWorks = () => (
   >
     <div className="container mx-auto px-6">
       <div className="text-center mb-16">
-        <h2 className="font-poppins font-bold text-4xl md:text-5xl">How It Works</h2>
+        <h2 className="font-poppins font-bold text-4xl md-text-5xl">How It Works</h2>
         <p className="text-lg text-midnight-ink/80 mt-4 max-w-2xl mx-auto">
           Getting started is easier than you think.
         </p>
       </div>
       <div className="grid md:grid-cols-3 gap-10">
         {howItWorksSteps.map((step, index) => (
+          // CHANGE #1: Add card styling to the motion.div
           <motion.div
             key={step.step}
-            className="text-center"
+            className="text-center p-8 border border-fog rounded-2xl"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <div className="bg-muted dark:bg-inkwell h-48 rounded-lg flex items-center justify-center mb-6">
-              <p className="text-slate text-sm">{step.visual}</p>
-            </div>
+            {/* CHANGE #2: The gray container <div> is gone. */}
+            {/* The placeholder <p> is replaced with a styled <img> tag. */}
+            <img 
+              src={step.image} 
+              alt={`Step ${step.step}: ${step.title}`}
+              className="w-full rounded-lg mb-6"
+            />
+            
             <h3 className="font-poppins font-bold text-2xl mb-3">Step {step.step}: {step.title}</h3>
             <p className="text-midnight-ink/80">{step.description}</p>
           </motion.div>
