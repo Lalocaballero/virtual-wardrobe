@@ -25,10 +25,10 @@ const Billing = () => {
 const FreeUserView = () => {
     return (
         <div>
-            <p className="mt-4">You are currently on the free plan.</p>
-            <p className="mt-2">Upgrade to premium to unlock unlimited AI suggestions, packing lists, and more!</p>
+            <p className="mt-4">You're on the Free Plan.</p>
+            <p className="mt-2">Ready to unlock your wardrobe's full potential? Upgrade to get unlimited AI suggestions, smart packing lists, and more.</p>
             <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary mt-6" target="_blank" rel="noopener noreferrer">
-                Upgrade to Premium
+                Go Premium
             </a>
         </div>
     );
@@ -61,14 +61,14 @@ const PremiumUserView = () => {
 
     return (
         <div>
-            <p className="mt-4">You are a premium user! ✨</p>
-            <p className="mt-2">Thank you for your support. You can manage your subscription and billing details through our secure payment portal.</p>
+            <p className="mt-4">You're a Premium Member! ✨</p>
+            <p className="mt-2">Manage your subscription, view invoices, or update your payment details at any time.</p>
             <button 
                 onClick={handleManageSubscription}
                 className="btn btn-secondary mt-6"
                 disabled={isLoading}
             >
-                {isLoading ? 'Redirecting...' : 'Manage Subscription'}
+                {isLoading ? 'Redirecting...' : 'Manage Billing'}
             </button>
         </div>
     );

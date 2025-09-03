@@ -145,7 +145,7 @@ const UserProfile = () => {
   };
 
   const handleDeleteNegativePrompt = async (promptId) => {
-    if (window.confirm("Are you sure you want to delete this style rule?")) {
+    if (window.confirm("Are you sure you want to ditch this rule?")) {
       try {
         const response = await fetch(`/api/profile/negative-prompts/${promptId}`, {
           method: 'DELETE',
@@ -215,7 +215,7 @@ const UserProfile = () => {
   };
 
   const handleResetHistory = async () => {
-    if (window.confirm("Are you sure you want to reset your AI personalization? This will delete all of your outfit history and cannot be undone.")) {
+    if (window.confirm("Are you sure you want to reset the AI's memory? This will delete your entire outfit history and can't be undone.")) {
         await resetOutfitHistory();
     }
   };
@@ -230,11 +230,11 @@ const UserProfile = () => {
       ) : (
         <>
           {profile && profile.is_premium && (
-              <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-4 rounded-lg shadow-lg flex items-center space-x-3">
+              <div className="bg-accent text-accent-foreground p-4 rounded-lg shadow-lg flex items-center space-x-3">
                   <span className="text-2xl">✨</span>
                   <div>
-                      <h3 className="font-bold">Premium Member</h3>
-                      <p className="text-sm">You have access to all premium features. Thank you for your support!</p>
+                      <h3 className="font-bold">You're a Premium Member!</h3>
+                      <p className="text-sm">Unlimited AI suggestions, packing lists, and all our best features are yours. Thanks for the support!</p>
                   </div>
               </div>
           )}
@@ -287,10 +287,10 @@ const UserProfile = () => {
                   {/* --- 1. General Information Section --- */}
                   <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
           <div className="flex items-center space-x-4 mb-6">
-            <UserCircleIcon className="h-10 w-10 text-indigo-500 dark:text-secondary" />
+            <UserCircleIcon className="h-10 w-10 text-secondary" />
             <div>
-              <h2 className="text-xl font-bold">General Information</h2>
-              <p className="text-sm">Update your public profile and location details.</p>
+              <h2 className="text-xl font-bold">Your Deets</h2>
+              <p className="text-sm">The basics. This helps us get the weather right and personalize your experience.</p>
             </div>
           </div>
 
@@ -338,10 +338,10 @@ const UserProfile = () => {
         {/* --- NEW: Style Rules Section --- */}
         <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
             <div className="flex items-center space-x-4 mb-6">
-                <ShieldExclamationIcon className="h-10 w-10 text-indigo-500 dark:text-secondary" />
+                <ShieldExclamationIcon className="h-10 w-10 text-secondary" />
                 <div>
-                    <h2 className="text-xl font-bold">Style Rules</h2>
-                    <p className="text-sm">Teach the AI your personal style boundaries and what combinations to avoid.</p>
+                    <h2 className="text-xl font-bold">Your Style Rules</h2>
+                    <p className="text-sm">Teach the AI what not to pair. It's smart, but you're the boss.</p>
                 </div>
             </div>
             <div className="space-y-4">
@@ -374,8 +374,8 @@ const UserProfile = () => {
 
         {/* --- 2. Laundry Thresholds Section --- */}
         <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
-          <h2 className="text-xl font-bold mb-4">Laundry Preferences</h2>
-          <p className="text-sm mb-6">Set how many times you wear an item before it needs washing.</p>
+          <h2 className="text-xl font-bold mb-4">Laundry Day Rules</h2>
+          <p className="text-sm mb-6">How many wears before an item is officially 'dirty'?</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Object.entries(formData.laundry_thresholds).map(([itemType, value]) => (
               <div key={itemType}>
@@ -391,15 +391,15 @@ const UserProfile = () => {
           </div>
           <div className="flex justify-end mt-6">
             <button onClick={handleSaveChanges} disabled={profileLoading} className="btn btn-primary">
-              {profileLoading ? 'Saving...' : 'Save Preferences'}
+              {profileLoading ? 'Saving...' : 'Save Rules'}
             </button>
           </div>
         </div>
 
         {/* --- Notification Settings Section --- */}
         <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
-          <h2 className="text-xl font-bold mb-4">Notification Settings</h2>
-          <p className="text-sm mb-6">Choose which notifications you want to receive.</p>
+          <h2 className="text-xl font-bold mb-4">Ping Me About...</h2>
+          <p className="text-sm mb-6">Choose what's important enough to buzz your phone.</p>
           <div className="space-y-4">
             {Object.entries(formData.notification_settings).map(([setting, value]) => (
               <div key={setting} className="flex items-center justify-between">
@@ -408,8 +408,8 @@ const UserProfile = () => {
                   type="button"
                   onClick={() => handleNotificationSettingChange(setting)}
                   className={`${
-                    value ? 'bg-blue-600' : 'bg-muted'
-                  } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+                    value ? 'bg-primary' : 'bg-muted'
+                  } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
                 >
                   <span
                     className={`${
@@ -422,7 +422,7 @@ const UserProfile = () => {
           </div>
           <div className="flex justify-end mt-6">
             <button onClick={handleSaveChanges} disabled={profileLoading} className="btn btn-primary">
-              {profileLoading ? 'Saving...' : 'Save Notifications'}
+              {profileLoading ? 'Saving...' : 'Save Settings'}
             </button>
           </div>
         </div>
@@ -430,10 +430,10 @@ const UserProfile = () => {
         {/* --- 3. Security Section --- */}
         <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle p-6 rounded-lg shadow-sm border border-fog dark:border-inkwell">
           <div className="flex items-center space-x-4 mb-6">
-            <LockClosedIcon className="h-10 w-10 text-indigo-500 dark:text-secondary" />
+            <LockClosedIcon className="h-10 w-10 text-secondary" />
             <div>
-              <h2 className="text-xl font-bold">Security</h2>
-              <p className="text-sm">Change your password.</p>
+              <h2 className="text-xl font-bold">Password & Security</h2>
+              <p className="text-sm">Keep your account secure.</p>
             </div>
           </div>
           <form onSubmit={handleChangePassword} className="space-y-4">
@@ -446,7 +446,7 @@ const UserProfile = () => {
               <input type="password" name="new_password" value={passwordData.new_password} onChange={handlePasswordChange} className="w-full" required />
             </div>
             <div className="flex justify-end">
-              <button type="submit" className="btn btn-secondary">Change Password</button>
+              <button type="submit" className="btn btn-secondary">Update Password</button>
             </div>
           </form>
         </div>
@@ -456,24 +456,24 @@ const UserProfile = () => {
            <div className="space-y-4">
              <div>
                 <h3 className="font-semibold">Export Your Data</h3>
-                <p className="text-sm mb-2">Download a JSON file of all your wardrobe and outfit data.</p>
+                <p className="text-sm mb-2">Download a JSON file of your entire digital wardrobe.</p>
                 <button onClick={exportData} className="btn btn-secondary sm:min-w-[200px]">
                   <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                  Export Data
+                  Download My Data
                 </button>
              </div>
              <div className="border-t border-fog dark:border-inkwell pt-4">
-              <h3 className="font-semibold text-orange-600 dark:text-orange-500">Reset AI Personalization</h3>
-              <p className="text-sm mb-2">Reset the AI's memory of your style by deleting all your past outfit history. Your wardrobe items will not be affected.</p>
+              <h3 className="font-semibold text-warning">Reset AI Personalization</h3>
+              <p className="text-sm mb-2">Give the AI a fresh start by deleting your outfit history. Your wardrobe is safe.</p>
               <button onClick={handleResetHistory} className="btn btn-warning sm:min-w-[200px]">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" /></svg>
                   Reset AI Memory
               </button>
              </div>
              <div className="border-t border-fog dark:border-inkwell pt-4">
-               <h3 className="font-semibold text-destructive dark:text-destructive">Delete Account</h3>
-               <p className="text-sm mb-2">Permanently delete your account and all of your data. This action is irreversible.</p>
-               <button onClick={handleDeleteAccount} className="btn btn-danger sm:min-w-[200px]">
+               <h3 className="font-semibold text-destructive">Delete Account</h3>
+               <p className="text-sm mb-2">Permanently delete your account and all data. No take-backs!</p>
+               <button onClick={handleDeleteAccount} className="btn btn-destructive sm:min-w-[200px]">
                   <TrashIcon className="h-4 w-4 mr-2" />
                   Delete My Account
                 </button>
