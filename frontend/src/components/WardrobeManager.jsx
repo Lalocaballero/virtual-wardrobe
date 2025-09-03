@@ -100,7 +100,7 @@ const WardrobeManager = () => {
   });
 
   const LoadingSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {[...Array(8)].map((_, index) => <SkeletonCard key={index} />)}
     </div>
   );
@@ -272,7 +272,7 @@ const WardrobeManager = () => {
       )}
 
       {loading && wardrobe.length === 0 ? <LoadingSkeleton /> : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredWardrobe.map(item => (
             <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group border border-fog dark:border-inkwell">
               <div className="aspect-square bg-muted dark:bg-inkwell relative">
