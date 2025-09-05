@@ -60,7 +60,9 @@ const Dashboard = () => {
     loading, 
     logout,
     laundryAlerts,
-    updateOnboardingStatus
+    updateOnboardingStatus,
+    shouldRunTourOnLoad, // New state to trigger tour
+    setRunTourOnLoad,      // New action to reset tour trigger
     // fetchAppSettings was removed as it does not exist in the store
   } = useWardrobeStore();
 
@@ -86,36 +88,40 @@ const Dashboard = () => {
     }
   }, [location.pathname, activeTab, getTabFromPath]);
 
+  // This effect checks if the tour should be run on component mount.
   useEffect(() => {
-    if (profile && profile.has_completed_onboarding && !profile.has_seen_app_tour) {
-      // Start the tour with a short delay to allow the page to render
-      setTimeout(() => setRunTour(true), 1000);
+    if (shouldRunTourOnLoad) {
+      // Start the tour with a short delay to allow the page to render fully.
+      setTimeout(() => setRunTour(true), 500);
+      // Reset the flag so the tour doesn't run on every render.
+      setRunTourOnLoad(false);
     }
-  }, [profile?.has_completed_onboarding, profile?.has_seen_app_tour]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldRunTourOnLoad]);
 
   // Establish Server-Sent Events (SSE) connection for notifications
-  // useEffect(() => {
-  //   const eventSource = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
-  //
-  //   eventSource.onmessage = (event) => {
-  //     const newNotification = JSON.parse(event.data);
-  //     console.log('New notification received via SSE:', newNotification);
-  //     toast.info(newNotification.message || 'You have a new notification!');
-  //     // Refetch all notifications to update the list and count
-  //     useWardrobeStore.getState().fetchNotifications();
-  //   };
-  //
-  //   eventSource.onerror = (err) => {
-  //     console.error('EventSource failed:', err);
-  //     // The browser will automatically try to reconnect, but we can close it
-  //     // if we want to stop. For now, we'll let it keep trying.
-  //   };
-  //
-  //   // Clean up the connection when the component unmounts
-  //   return () => {
-  //     eventSource.close();
-  //   };
-  // }, []); // Empty dependency array ensures this runs only once.
+  useEffect(() => {
+    const eventSource = new EventSource(`${API_BASE}/api/notifications/stream`, { withCredentials: true });
+
+    eventSource.onmessage = (event) => {
+      const newNotification = JSON.parse(event.data);
+      console.log('New notification received via SSE:', newNotification);
+      toast.info(newNotification.message || 'You have a new notification!');
+      // Refetch all notifications to update the list and count
+      useWardrobeStore.getState().fetchNotifications();
+    };
+
+    eventSource.onerror = (err) => {
+      console.error('EventSource failed:', err);
+      // The browser will automatically try to reconnect, but we can close it
+      // if we want to stop. For now, we'll let it keep trying.
+    };
+
+    // Clean up the connection when the component unmounts
+    return () => {
+      eventSource.close();
+    };
+  }, []); // Empty dependency array ensures this runs only once.
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);

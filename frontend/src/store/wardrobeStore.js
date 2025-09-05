@@ -24,6 +24,7 @@ const useWardrobeStore = create((set, get) => ({
   profileLoading: false,
   isSyncing: false,
   isSmartSyncing: false,
+  shouldRunTourOnLoad: false, // For triggering the app tour
   // --- END NEW PROFILE STATE ---
 
   // --- NEW IMPERSONATION STATE ---
@@ -330,6 +331,8 @@ const useWardrobeStore = create((set, get) => ({
   // ======================
   // PROFILE ACTIONS
   // ======================
+
+  setRunTourOnLoad: (value) => set({ shouldRunTourOnLoad: value }),
 
   fetchProfile: async () => {
     set({ profileLoading: true });
@@ -958,8 +961,10 @@ fetchWardrobeHealth: async () => {
       });
       set({ smartCollections: data, intelligenceLoading: false });
     } catch (error) {
-      const errorMessage = error.message || "We couldn't fetch your smart collections. The AI is thinking...";
-      set({ error: errorMessage, intelligenceLoading: false });
+      // Per user request, this error toast is not helpful and should be removed.
+      // We will log the error for debugging but not show a toast to the user.
+      console.error("Failed to fetch smart collections:", error);
+      set({ intelligenceLoading: false }); // Still need to turn off loading indicator
     }
   },
 

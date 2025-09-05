@@ -30,9 +30,14 @@ const ProtectedRoute = ({ children }) => {
 
   // If the profile is loaded, check for onboarding status.
   if (profile) {
-    if (!profile.has_completed_onboarding && location.pathname !== '/onboarding') {
+    // A user needs onboarding if the flag is explicitly false, OR if the flag
+    // is true (likely a backend default error) but they haven't filled in their display name.
+    const needsOnboarding = !profile.has_completed_onboarding || (profile.has_completed_onboarding && !profile.display_name);
+
+    if (needsOnboarding && location.pathname !== '/onboarding') {
       return <Navigate to="/onboarding" replace />;
     }
+    // If user has completed onboarding, don't let them go back to the onboarding page.
     if (profile.has_completed_onboarding && location.pathname === '/onboarding') {
       return <Navigate to="/dashboard" replace />;
     }

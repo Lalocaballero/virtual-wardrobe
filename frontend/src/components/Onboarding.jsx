@@ -5,7 +5,7 @@ import ImageUpload from './ImageUpload';
 import toast from 'react-hot-toast';
 
 const Onboarding = () => {
-  const { profile, fetchProfile, updateProfile, updateOnboardingStatus } = useWardrobeStore();
+  const { profile, fetchProfile, updateProfile, updateOnboardingStatus, setRunTourOnLoad } = useWardrobeStore();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -68,6 +68,7 @@ const Onboarding = () => {
     await updateOnboardingStatus({ has_completed_onboarding: true });
 
     toast.success('Profile created! Welcome to WeWear.');
+    setRunTourOnLoad(true); // Signal to the dashboard to start the tour
     navigate('/dashboard'); // Redirect to dashboard after completion
   };
 
