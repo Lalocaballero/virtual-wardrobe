@@ -95,7 +95,7 @@ const Dashboard = () => {
 
   // Establish Server-Sent Events (SSE) connection for notifications
   useEffect(() => {
-    const eventSource = new EventSource(`${API_BASE}/api/notifications/stream`, { withCredentials: true });
+    const eventSource = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
 
     eventSource.onmessage = (event) => {
       const newNotification = JSON.parse(event.data);
