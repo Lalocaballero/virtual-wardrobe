@@ -94,28 +94,28 @@ const Dashboard = () => {
   }, [profile?.has_completed_onboarding, profile?.has_seen_app_tour]);
 
   // Establish Server-Sent Events (SSE) connection for notifications
-  useEffect(() => {
-    const eventSource = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
-
-    eventSource.onmessage = (event) => {
-      const newNotification = JSON.parse(event.data);
-      console.log('New notification received via SSE:', newNotification);
-      toast.info(newNotification.message || 'You have a new notification!');
-      // Refetch all notifications to update the list and count
-      useWardrobeStore.getState().fetchNotifications();
-    };
-
-    eventSource.onerror = (err) => {
-      console.error('EventSource failed:', err);
-      // The browser will automatically try to reconnect, but we can close it
-      // if we want to stop. For now, we'll let it keep trying.
-    };
-
-    // Clean up the connection when the component unmounts
-    return () => {
-      eventSource.close();
-    };
-  }, []); // Empty dependency array ensures this runs only once.
+  // useEffect(() => {
+  //   const eventSource = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
+  //
+  //   eventSource.onmessage = (event) => {
+  //     const newNotification = JSON.parse(event.data);
+  //     console.log('New notification received via SSE:', newNotification);
+  //     toast.info(newNotification.message || 'You have a new notification!');
+  //     // Refetch all notifications to update the list and count
+  //     useWardrobeStore.getState().fetchNotifications();
+  //   };
+  //
+  //   eventSource.onerror = (err) => {
+  //     console.error('EventSource failed:', err);
+  //     // The browser will automatically try to reconnect, but we can close it
+  //     // if we want to stop. For now, we'll let it keep trying.
+  //   };
+  //
+  //   // Clean up the connection when the component unmounts
+  //   return () => {
+  //     eventSource.close();
+  //   };
+  // }, []); // Empty dependency array ensures this runs only once.
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
