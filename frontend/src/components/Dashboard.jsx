@@ -59,7 +59,8 @@ const Dashboard = () => {
     generateOutfit, 
     loading, 
     logout,
-    laundryAlerts
+    laundryAlerts,
+    updateOnboardingStatus
     // fetchAppSettings was removed as it does not exist in the store
   } = useWardrobeStore();
 
@@ -86,12 +87,11 @@ const Dashboard = () => {
   }, [location.pathname, activeTab, getTabFromPath]);
 
   useEffect(() => {
-    const hasCompletedTour = localStorage.getItem('hasCompletedTour');
-    if (!hasCompletedTour) {
+    if (profile && profile.has_completed_onboarding && !profile.has_seen_app_tour) {
       // Start the tour with a short delay to allow the page to render
       setTimeout(() => setRunTour(true), 1000);
     }
-  }, []);
+  }, [profile]);
 
   // Establish Server-Sent Events (SSE) connection for notifications
   useEffect(() => {
@@ -135,7 +135,7 @@ const Dashboard = () => {
       if (action === 'next' && index === tourSteps.length - 1) {
         setRunTour(false);
         setTourStepIndex(0);
-        localStorage.setItem('hasCompletedTour', 'true');
+        updateOnboardingStatus({ has_seen_app_tour: true });
         console.log('Tour explicitly finished on last step next click.');
         return;
       }
@@ -154,7 +154,7 @@ const Dashboard = () => {
     } else if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       setRunTour(false);
       setTourStepIndex(0);
-      localStorage.setItem('hasCompletedTour', 'true');
+      updateOnboardingStatus({ has_seen_app_tour: true });
       console.log(`Tour officially ${status}. Setting hasCompletedTour.`);
     }
   };

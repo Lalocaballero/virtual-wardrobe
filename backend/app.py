@@ -524,7 +524,9 @@ def create_app():
                 'gender': user.gender,
                 'laundry_thresholds': user.get_laundry_thresholds(),
                 'notification_settings': user.get_notification_settings(),
-                'theme': (user.settings or {}).get('theme', 'light')
+                'theme': (user.settings or {}).get('theme', 'light'),
+                'has_completed_onboarding': user.has_completed_onboarding,
+                'has_seen_app_tour': user.has_seen_app_tour
             }
 
             return jsonify(profile_data)

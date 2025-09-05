@@ -96,3 +96,19 @@ def delete_negative_prompt(prompt_id):
     db.session.commit()
 
     return jsonify({'message': 'Prompt deleted successfully.'}), 200
+
+@profile_bp.route('/onboarding-status', methods=['POST'])
+@login_required
+def update_onboarding_status():
+    """Updates the user's onboarding and app tour status."""
+    data = request.get_json()
+    user = current_user
+
+    if 'has_completed_onboarding' in data:
+        user.has_completed_onboarding = bool(data['has_completed_onboarding'])
+    
+    if 'has_seen_app_tour' in data:
+        user.has_seen_app_tour = bool(data['has_seen_app_tour'])
+    
+    db.session.commit()
+    return jsonify({'message': 'Onboarding status updated successfully.'})

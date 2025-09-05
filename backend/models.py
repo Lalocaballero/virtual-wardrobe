@@ -29,6 +29,9 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login_at = db.Column(db.DateTime, nullable=True)
 
+    has_completed_onboarding = db.Column(db.Boolean, nullable=False, default=False)
+    has_seen_app_tour = db.Column(db.Boolean, nullable=False, default=False)
+    
     display_name = db.Column(db.String(80), nullable=True)
     profile_image_url = db.Column(db.String(255), nullable=True)
     age = db.Column(db.Integer, nullable=True)

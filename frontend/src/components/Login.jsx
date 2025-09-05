@@ -72,11 +72,11 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-cloud-white dark:bg-midnight-ink">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold">{isLogin ? 'Sign in to your account' : 'Create your account'}</h2>
-          <p className="mt-2 text-center text-sm">Virtual Intelligent Wardrobe</p>
+          <h2 className="mt-6 text-center text-3xl font-poppins font-bold">{isLogin ? 'Sign in to your account' : "Let's Get You Styled."}</h2>
+          <p className="mt-2 text-center text-sm font-inter">{isLogin ? 'Welcome back!' : 'Your wardrobe is about to get a whole lot smarter.'}</p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-4 font-inter">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">Email address</label>
               <input id="email" name="email" type="email" required className="w-full" value={formData.email} onChange={handleChange} />
@@ -108,12 +108,20 @@ const Login = () => {
           )}
 
           <div>
-            <button type="submit" disabled={loading} className="group relative w-full flex justify-center btn btn-primary">
-              {loading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Sign up')}
+            <button
+              type="submit"
+              disabled={loading}
+              className={`group relative w-full flex justify-center btn ${
+                isLogin
+                  ? 'btn-primary'
+                  : 'bg-sunrise-coral text-white font-bold hover:bg-opacity-90'
+              }`}
+            >
+              {loading ? 'Please wait...' : isLogin ? 'Sign in' : 'Sign up'}
             </button>
           </div>
           <div className="text-center">
-            <button type="button" onClick={handleFormSwitch} className="font-medium">
+            <button type="button" onClick={handleFormSwitch} className="font-medium font-inter">
               {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
             </button>
           </div>

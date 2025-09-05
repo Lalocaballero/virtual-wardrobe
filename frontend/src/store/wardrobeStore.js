@@ -345,6 +345,20 @@ const useWardrobeStore = create((set, get) => ({
     }
   },
 
+  updateOnboardingStatus: async (statusData) => {
+    try {
+      await get().fetchApi(`${API_BASE}/profile/onboarding-status`, {
+        method: 'POST',
+        body: JSON.stringify(statusData),
+      });
+      // After updating, refetch the profile to get the latest data
+      await get().fetchProfile();
+    } catch (error) {
+      const errorMessage = error.message || "Couldn't update your onboarding status.";
+      toast.error(errorMessage);
+    }
+  },
+
   updateProfile: async (profileData) => {
     set({ profileLoading: true });
     try {
@@ -943,11 +957,9 @@ fetchWardrobeHealth: async () => {
         method: 'GET',
       });
       set({ smartCollections: data, intelligenceLoading: false });
-      toast.success("Your smart collections are here. Check 'em out.");
     } catch (error) {
       const errorMessage = error.message || "We couldn't fetch your smart collections. The AI is thinking...";
-      set({ error: errorMessage, loading: false });
-      toast.error(errorMessage);
+      set({ error: errorMessage, intelligenceLoading: false });
     }
   },
 
