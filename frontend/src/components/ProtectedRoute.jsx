@@ -16,7 +16,10 @@ const ProtectedRoute = ({ children }) => {
     if (user && !profile) {
       fetchProfile();
     }
-  }, [user, profile, fetchProfile]);
+    // This effect should only run when the user object is first available,
+    // not every time the profile object is updated, to prevent loops.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, fetchProfile]);
 
   // While the initial authentication check is running, show a loading screen.
   if (!authChecked || (user && profileLoading)) {
