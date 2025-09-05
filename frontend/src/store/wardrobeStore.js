@@ -24,7 +24,6 @@ const useWardrobeStore = create((set, get) => ({
   profileLoading: false,
   isSyncing: false,
   isSmartSyncing: false,
-  shouldRunTourOnLoad: false, // For triggering the app tour
   // --- END NEW PROFILE STATE ---
 
   // --- NEW IMPERSONATION STATE ---
@@ -332,10 +331,12 @@ const useWardrobeStore = create((set, get) => ({
   // PROFILE ACTIONS
   // ======================
 
-  setRunTourOnLoad: (value) => set({ shouldRunTourOnLoad: value }),
-
   fetchProfile: async () => {
-    set({ profileLoading: true });
+    // Only set loading to true if the profile is not already loaded.
+    // This prevents the full-page loader from flashing during background refreshes.
+    if (!get().profile) {
+      set({ profileLoading: true });
+    }
     try {
       const data = await get().fetchApi(`${API_BASE}/profile`, {
         method: 'GET',
@@ -344,20 +345,6 @@ const useWardrobeStore = create((set, get) => ({
     } catch (error) {
       const errorMessage = error.message || "We couldn't seem to find your profile. It might be playing hide and seek.";
       set({ error: errorMessage, profileLoading: false });
-      toast.error(errorMessage);
-    }
-  },
-
-  updateOnboardingStatus: async (statusData) => {
-    try {
-      await get().fetchApi(`${API_BASE}/profile/onboarding-status`, {
-        method: 'POST',
-        body: JSON.stringify(statusData),
-      });
-      // After updating, refetch the profile to get the latest data
-      await get().fetchProfile();
-    } catch (error) {
-      const errorMessage = error.message || "Couldn't update your onboarding status.";
       toast.error(errorMessage);
     }
   },
@@ -960,11 +947,11 @@ fetchWardrobeHealth: async () => {
         method: 'GET',
       });
       set({ smartCollections: data, intelligenceLoading: false });
+      toast.success("Your smart collections are here. Check 'em out.");
     } catch (error) {
-      // Per user request, this error toast is not helpful and should be removed.
-      // We will log the error for debugging but not show a toast to the user.
-      console.error("Failed to fetch smart collections:", error);
-      set({ intelligenceLoading: false }); // Still need to turn off loading indicator
+      const errorMessage = error.message || "We couldn't fetch your smart collections. The AI is thinking...";
+      set({ error: errorMessage, loading: false });
+      toast.error(errorMessage);
     }
   },
 

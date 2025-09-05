@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   SunIcon, MoonIcon, CloudIcon, UserIcon, SparklesIcon,
-  ChartBarIcon, CubeIcon, Bars3Icon, XMarkIcon,
+  ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon,
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import { Toaster, toast } from 'react-hot-toast';
@@ -66,17 +66,6 @@ const Dashboard = () => {
     // fetchAppSettings was removed as it does not exist in the store
   } = useWardrobeStore();
 
-  // Fetch profile data once when the user logs in.
-  useEffect(() => {
-    // If we have a user but no profile data yet, fetch it.
-    if (user && !profile) {
-      fetchProfile();
-    }
-    // We disable the lint rule because adding `profile` to the dependency array
-    // would cause an infinite loop, as this effect itself fetches the profile.
-    // This effect should only run when the user object is first available.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, fetchProfile]);
 
   // This effect synchronizes the activeTab state with the URL.
   // This is necessary for handling navigation from outside the tab buttons,

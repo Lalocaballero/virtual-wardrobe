@@ -73,9 +73,10 @@ const UserProfile = () => {
       handlePostCheckoutSync();
       // Optionally, remove the query param from the URL so it doesn't run again on refresh
       window.history.replaceState(null, '', location.pathname);
-    } else {
-      syncSubscription();
     }
+    // The redundant `else { syncSubscription() }` block has been removed,
+    // as it was causing an infinite loop. Profile data is now reliably fetched
+    // by the parent ProtectedRoute component.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // We explicitly want this to run only ONCE on mount.
 
