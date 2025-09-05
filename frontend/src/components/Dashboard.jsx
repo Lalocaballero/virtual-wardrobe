@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   SunIcon, MoonIcon, CloudIcon, UserIcon, SparklesIcon,
-  ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon,
+  ChartBarIcon, CubeIcon, Bars3Icon, XMarkIcon,
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import { Toaster, toast } from 'react-hot-toast';
@@ -91,7 +91,7 @@ const Dashboard = () => {
       // Start the tour with a short delay to allow the page to render
       setTimeout(() => setRunTour(true), 1000);
     }
-  }, [profile]);
+  }, [profile?.has_completed_onboarding, profile?.has_seen_app_tour]);
 
   // Establish Server-Sent Events (SSE) connection for notifications
   useEffect(() => {

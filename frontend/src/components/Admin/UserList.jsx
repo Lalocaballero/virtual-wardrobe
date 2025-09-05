@@ -5,9 +5,7 @@ import useWardrobeStore from '../../store/wardrobeStore';
 
 const UserList = () => {
     const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [pageCount, setPageCount] = useState(0);
-    const [totalUsers, setTotalUsers] = useState(0);
     const [emailFilter, setEmailFilter] = useState('');
     const { fetchApi } = useWardrobeStore();
     const navigate = useNavigate();
@@ -50,7 +48,6 @@ const UserList = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
             const params = new URLSearchParams({
                 page: pageIndex + 1,
                 per_page: pageSize,
@@ -80,12 +77,9 @@ const UserList = () => {
                 }
 
                 setPageCount(data.pages || 0);
-                setTotalUsers(data.total || 0);
             } catch (error) {
                 console.error("Failed to fetch users:", error);
                 setUsers([]); // Ensure users is an array on error
-            } finally {
-                setLoading(false);
             }
         };
         fetchData();

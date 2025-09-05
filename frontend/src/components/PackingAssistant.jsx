@@ -60,11 +60,11 @@ const TripForm = ({ trip, onSave, onCancel, isLoading }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">Start Date *</label>
-                        <input type="date" name="start_date" required value={formData.start_date} onChange={handleChange} className="input-form" />
+                        <input type="date" name="start_date" required value={formData.start_date} onChange={handleChange} className="date-picker-input" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1">End Date *</label>
-                        <input type="date" name="end_date" required value={formData.end_date} onChange={handleChange} className="input-form" />
+                        <input type="date" name="end_date" required value={formData.end_date} onChange={handleChange} className="date-picker-input" />
                     </div>
                 </div>
                 <div>

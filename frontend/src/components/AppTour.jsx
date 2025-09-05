@@ -1,5 +1,5 @@
 import React from 'react';
-import Joyride, { STATUS } from 'react-joyride';
+import Joyride from 'react-joyride';
 
 import { tourSteps } from '../tourSteps';
 

@@ -2,10 +2,8 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { format, parse, startOfWeek, getDay, startOfDay } from 'date-fns';
 import useWardrobeStore from '../store/wardrobeStore';
 import { PhotoIcon, CalendarIcon, Bars3Icon } from '@heroicons/react/24/outline';
-import DatePicker from 'react-datepicker';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import OutfitDetailModal from './OutfitDetailModal'; // Import the new modal
-import "react-datepicker/dist/react-datepicker.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import toast from 'react-hot-toast';
 
@@ -163,11 +161,24 @@ const OutfitHistory = () => {
             <div className="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="startDate" className="block text-sm font-medium text-inkwell dark:text-cloud-white mb-1">Start Date</label>
-                <DatePicker id="startDate" selected={startDate} onChange={date => setStartDate(date)} selectsStart startDate={startDate} endDate={endDate} placeholderText="Select start date" className="w-full p-2 border rounded-md dark:bg-inkwell dark:border-inkwell focus:ring-secondary focus:border-secondary" wrapperClassName="w-full" />
+                <input
+                  type="date"
+                  id="startDate"
+                  value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
+                  onChange={e => setStartDate(e.target.value ? startOfDay(new Date(e.target.value)) : null)}
+                  className="date-picker-input"
+                />
               </div>
               <div>
                 <label htmlFor="endDate" className="block text-sm font-medium text-inkwell dark:text-cloud-white mb-1">End Date</label>
-                <DatePicker id="endDate" selected={endDate} onChange={date => setEndDate(date)} selectsEnd startDate={startDate} endDate={endDate} minDate={startDate} placeholderText="Select end date" className="w-full p-2 border rounded-md dark:bg-inkwell dark:border-inkwell focus:ring-secondary focus:border-secondary" wrapperClassName="w-full" />
+                <input
+                  type="date"
+                  id="endDate"
+                  value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
+                  onChange={e => setEndDate(e.target.value ? startOfDay(new Date(e.target.value)) : null)}
+                  min={startDate ? format(startDate, 'yyyy-MM-dd') : undefined}
+                  className="date-picker-input"
+                />
               </div>
             </div>
             <div className="flex space-x-2">

@@ -72,6 +72,10 @@
   .btn-danger {
     @apply btn bg-destructive hover:bg-destructive/90 text-destructive-foreground;
   }
+
+  .date-picker-input {
+    @apply w-full p-2 bg-cloud-white dark:bg-dark-subtle border border-fog dark:border-inkwell text-foreground dark:text-cloud-white placeholder-slate dark:placeholder-slate rounded-lg focus:ring-secondary focus:border-secondary;
+  }
 }
 
 
