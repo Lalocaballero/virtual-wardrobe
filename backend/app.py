@@ -17,9 +17,10 @@ import cloudinary.uploader
 import cloudinary.api
 
 # Import db, User, ClothingItem, Outfit from models.
-from models import db, User, ClothingItem, Outfit, UserActivity, Notification, NegativePrompt
+from models import db, User, ClothingItem, Outfit, UserActivity, Notification, NegativePrompt, Brand
 from utils.auth import get_actual_user
 from sqlalchemy.orm import selectinload
+from sqlalchemy import func
 from utils.limiter import limiter, get_user_specific_limit
 
 # Initialize extensions globally
@@ -737,6 +738,11 @@ def create_app():
             cost = data.get('purchase_cost')
             purchase_cost = float(cost) if cost is not None and cost != '' else None
 
+            brand_name = data.get('brand')
+            brand_obj = None
+            if brand_name:
+                brand_obj = Brand.query.filter(func.lower(Brand.name) == func.lower(brand_name)).first()
+
             item = ClothingItem(
                 user_id=user.id,
                 name=data['name'],
@@ -748,7 +754,7 @@ def create_app():
                 season=data.get('season', 'all'),
                 fabric=data.get('fabric', ''),
                 mood_tags=json.dumps(data.get('mood_tags', [])),
-                brand=data.get('brand', ''),
+                brand=brand_obj,
                 condition=data.get('condition', 'good'),
                 is_clean=data.get('is_clean', True),
                 image_url=data.get('image_url', ''),
@@ -809,7 +815,12 @@ def create_app():
             item.season = data.get('season', item.season)
             item.fabric = data.get('fabric', item.fabric)
             item.mood_tags = json.dumps(data.get('mood_tags', json.loads(item.mood_tags or '[]')))
-            item.brand = data.get('brand', item.brand)
+            if 'brand' in data:
+                brand_name = data.get('brand')
+                brand_obj = None
+                if brand_name:
+                    brand_obj = Brand.query.filter(func.lower(Brand.name) == func.lower(brand_name)).first()
+                item.brand = brand_obj
             item.condition = data.get('condition', item.condition)
             item.is_clean = data.get('is_clean', item.is_clean)
             item.custom_tags = json.dumps(data.get('custom_tags', json.loads(item.custom_tags or '[]')))

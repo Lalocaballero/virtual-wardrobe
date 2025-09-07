@@ -67,11 +67,11 @@ const WardrobeManager = () => {
 
   const handleAddItem = async (e) => {
     e.preventDefault();
+    // First, ensure the brand exists on the backend
+    await submitBrandForReview(newItem.brand);
+    
     const success = await addClothingItem(newItem);
     if (success) {
-      // Submit the brand for review in the background
-      submitBrandForReview(newItem.brand);
-      
       setNewItem({
         name: '', type: '', color: '', style: '', season: 'all',
         brand: '', fabric: '', mood_tags: [], image_url: '',
@@ -89,10 +89,11 @@ const WardrobeManager = () => {
   };
 
   const handleEditItem = async (itemId, itemData) => {
+    // First, ensure the brand exists on the backend
+    await submitBrandForReview(itemData.brand);
+
     const success = await updateClothingItem(itemId, itemData);
     if (success) {
-      // Submit the brand for review in the background
-      submitBrandForReview(itemData.brand);
       setEditingItem(null);
     }
   };
