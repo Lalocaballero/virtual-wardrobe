@@ -7,6 +7,7 @@ const ContentModeration = () => {
     const [reportedItems, setReportedItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('reported');
     const { fetchApi } = useWardrobeStore();
 
     const fetchReportedContent = useCallback(async () => {
@@ -51,8 +52,6 @@ const ContentModeration = () => {
             <span className="block sm:inline"> {error}</span>
         </div>
     );
-
-    const [activeTab, setActiveTab] = useState('reported');
 
     return (
         <div className="bg-card dark:bg-dark-subtle p-6 rounded-lg shadow-md">
