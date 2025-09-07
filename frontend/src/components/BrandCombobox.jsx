@@ -37,18 +37,16 @@ const BrandCombobox = ({ value, onChange }) => {
     debouncedFetch(query);
   }, [query]);
 
-  // When the selected value changes, we update the parent form state
-  const handleChange = (newValue) => {
-    onChange(newValue);
-  };
-
   return (
-    <Combobox value={value} onChange={handleChange}>
+    <Combobox value={value} onChange={onChange}>
       <div className="relative mt-1">
         <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
           <Combobox.Input
             className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              onChange(event.target.value);
+            }}
             displayValue={(brand) => brand}
           />
           <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
