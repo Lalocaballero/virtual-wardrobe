@@ -1009,18 +1009,28 @@ def create_app():
         try:
             data = request.get_json()
             mood = data.get('mood', 'casual')
-            exclude_ids = data.get('exclude_ids', []) # Get the list of IDs to exclude
-            
+            exclude_ids = data.get('exclude_ids', [])
+            collection_slug = request.args.get('collection')
+
             # Let the backend determine the season for reliability
             season = _get_current_season()
-
             user = get_actual_user()
-            wardrobe_items = ClothingItem.query.filter_by(user_id=user.id, is_clean=True).all()
-            wardrobe = [item.to_dict() for item in wardrobe_items]
+
+            if collection_slug:
+                collection_data = current_app.wardrobe_intelligence_service.get_single_smart_collection(user.id, collection_slug)
+                if not collection_data:
+                    return jsonify({'error': 'Collection not found'}), 404
+                # We already have items as dicts from get_single_smart_collection
+                wardrobe = [item for item in collection_data['items'] if item.get('is_clean', True)]
+            else:
+                wardrobe_items = ClothingItem.query.filter_by(user_id=user.id, is_clean=True).all()
+                wardrobe = [item.to_dict() for item in wardrobe_items]
+
             if not wardrobe:
+                error_message = "That collection needs a few more pieces to create a full look. Try adding another item!" if collection_slug else "Add some clothes to your wardrobe first or do some laundry!"
                 return jsonify({
-                    'error': 'No clean clothes in wardrobe',
-                    'message': 'Add some clothes to your wardrobe first or do some laundry!',
+                    'error': 'No clean clothes available',
+                    'message': error_message,
                     'suggestion': None,
                     'items': [],
                     'weather': None,
