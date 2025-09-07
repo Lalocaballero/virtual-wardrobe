@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, make_response, current_app
 from sqlalchemy import text, func, case
 from flask_login import current_user
 from datetime import datetime, timedelta
-from models import User, db, ClothingItem, AdminAction, Outfit
+from models import User, db, ClothingItem, AdminAction, Outfit, Brand
 from utils.decorators import admin_required
 import csv
 from io import StringIO
@@ -413,3 +413,63 @@ def get_user_demographics():
         'gender_distribution': gender_data,
         'age_distribution': age_data
     })
+
+
+# ==================================
+# BRAND MODERATION
+# ==================================
+
+@admin_bp.route('/brands/pending', methods=['GET'])
+@admin_required
+def get_pending_brands():
+    """
+    Fetches all brands that are pending approval.
+    """
+    pending_brands = Brand.query.filter_by(is_approved=False).order_by(Brand.created_at.asc()).all()
+    return jsonify([brand.to_dict() for brand in pending_brands])
+
+@admin_bp.route('/brands/<int:brand_id>', methods=['PATCH'])
+@admin_required
+def approve_brand(brand_id):
+    """
+    Approves a brand.
+    """
+    brand = Brand.query.get_or_404(brand_id)
+    data = request.get_json()
+
+    if 'is_approved' not in data or data['is_approved'] is not True:
+        return jsonify({'error': 'Invalid request. "is_approved" must be set to true.'}), 400
+
+    brand.is_approved = True
+    
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        action_type='approve_brand',
+        details=f"Approved brand: {brand.name} (ID: {brand.id})"
+    )
+    db.session.add(admin_action)
+    db.session.commit()
+
+    return jsonify({'message': f"Brand '{brand.name}' has been approved.", 'brand': brand.to_dict()})
+
+@admin_bp.route('/brands/<int:brand_id>', methods=['DELETE'])
+@admin_required
+def reject_brand(brand_id):
+    """
+    Rejects (deletes) a brand submission.
+    """
+    brand = Brand.query.get_or_404(brand_id)
+    
+    brand_name = brand.name # Capture name before deleting
+    
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        action_type='reject_brand',
+        details=f"Rejected and deleted brand submission: {brand_name} (ID: {brand.id})"
+    )
+    db.session.add(admin_action)
+    
+    db.session.delete(brand)
+    db.session.commit()
+
+    return jsonify({'message': f"Brand submission '{brand_name}' has been rejected and deleted."})

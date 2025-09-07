@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import ImageUpload from './ImageUpload';
+import BrandCombobox from './BrandCombobox';
 
 const EditItemModal = ({ item, onClose, onSave, loading }) => {
   const [formData, setFormData] = useState({
@@ -180,11 +181,9 @@ const EditItemModal = ({ item, onClose, onSave, loading }) => {
 
             <div>
               <label className="block text-sm font-medium mb-2">Brand</label>
-              <input
-                type="text"
+              <BrandCombobox
                 value={formData.brand}
-                onChange={(e) => setFormData({...formData, brand: e.target.value})}
-                className="w-full"
+                onChange={(newValue) => setFormData({ ...formData, brand: newValue })}
               />
             </div>
 

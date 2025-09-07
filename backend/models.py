@@ -118,7 +118,8 @@ class ClothingItem(db.Model):
     season = db.Column(db.String(20))
     fabric = db.Column(db.String(50))
     mood_tags = db.Column(db.Text)
-    brand = db.Column(db.String(50))
+    brand_id = db.Column(db.Integer, db.ForeignKey('brand.id'), nullable=True)
+    brand = db.relationship('Brand', backref='clothing_items')
     fit = db.Column(db.String(50), nullable=True)
     pattern = db.Column(db.String(50), nullable=True)
     condition = db.Column(db.String(20), default='good')
@@ -164,7 +165,7 @@ class ClothingItem(db.Model):
             'season': self.season,
             'fabric': self.fabric,
             'mood_tags': json.loads(self.mood_tags) if self.mood_tags else [],
-            'brand': self.brand,
+            'brand': self.brand.name if self.brand else None,
             'fit': self.fit,
             'pattern': self.pattern,
             'condition': self.condition,
@@ -474,5 +475,21 @@ class NegativePrompt(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'prompt_text': self.prompt_text,
+            'created_at': self.created_at.isoformat()
+        }
+
+class Brand(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.Index('ix_brand_name', 'name'),)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'is_approved': self.is_approved,
             'created_at': self.created_at.isoformat()
         }

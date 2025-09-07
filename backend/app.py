@@ -159,6 +159,9 @@ def create_app():
     from routes.admin import admin_bp
     app.register_blueprint(admin_bp)
 
+    from routes.brands import brands_bp
+    app.register_blueprint(brands_bp)
+
     from routes.trips import trips_bp
     app.register_blueprint(trips_bp)
 

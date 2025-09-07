@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import useWardrobeStore from '../store/wardrobeStore';
+import axios from 'axios';
 import ImageUpload from './ImageUpload';
 import EditItemModal from './EditItemModal';
+import BrandCombobox from './BrandCombobox';
 import SkeletonCard from './SkeletonCard';
 import { 
   MagnifyingGlassIcon, 
@@ -49,10 +51,27 @@ const WardrobeManager = () => {
     }
   }, [wardrobe.length, fetchWardrobe]);
 
+  const submitBrandForReview = async (brandName) => {
+    if (!brandName || !brandName.trim()) {
+      return; // Don't submit empty brand names
+    }
+    try {
+      // This is a "fire and forget" request. We don't need to block the UI
+      // or show an error to the user, as it's a background process.
+      await axios.post('/api/brands', { name: brandName.trim() });
+    } catch (error) {
+      // Log the error for debugging, but don't bother the user.
+      console.error('Failed to submit brand for review:', error);
+    }
+  };
+
   const handleAddItem = async (e) => {
     e.preventDefault();
     const success = await addClothingItem(newItem);
     if (success) {
+      // Submit the brand for review in the background
+      submitBrandForReview(newItem.brand);
+      
       setNewItem({
         name: '', type: '', color: '', style: '', season: 'all',
         brand: '', fabric: '', mood_tags: [], image_url: '',
@@ -71,7 +90,11 @@ const WardrobeManager = () => {
 
   const handleEditItem = async (itemId, itemData) => {
     const success = await updateClothingItem(itemId, itemData);
-    if (success) setEditingItem(null);
+    if (success) {
+      // Submit the brand for review in the background
+      submitBrandForReview(itemData.brand);
+      setEditingItem(null);
+    }
   };
 
   const handleDeleteItem = async (itemId) => {
@@ -190,7 +213,10 @@ const WardrobeManager = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Brand</label>
-                <input type="text" value={newItem.brand} onChange={(e) => setNewItem({...newItem, brand: e.target.value})} className="w-full" placeholder="e.g., Zara, H&M" />
+                <BrandCombobox
+                  value={newItem.brand}
+                  onChange={(newValue) => setNewItem({ ...newItem, brand: newValue })}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Fabric</label>
