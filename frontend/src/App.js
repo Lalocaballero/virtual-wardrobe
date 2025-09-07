@@ -15,7 +15,6 @@ import CheckEmail from './components/CheckEmail';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import CookieBanner from './components/CookieBanner';
-import CollectionPage from './components/CollectionPage';
 
 function App() {
   const { user, initUser, isImpersonating } = useWardrobeStore();
@@ -44,7 +43,6 @@ function App() {
           {/* Protected Routes */}
           <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          <Route path="/collections" element={<ProtectedRoute><CollectionPage /></ProtectedRoute>} />
 
           <Route path="/admin/*" element={isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} />
         </Routes>
