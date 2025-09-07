@@ -1052,14 +1052,16 @@ def create_app():
             # Fetch user's negative prompts
             negative_prompts = [p.prompt_text for p in user.negative_prompts]
 
+            if exclude_ids:
+                wardrobe = [item for item in wardrobe if item.get('id') not in exclude_ids]
+
             # --- AI Suggestion Call ---
             suggestion = current_app.ai_service.generate_outfit_suggestion(
-                wardrobe=wardrobe,
+                available_items=wardrobe,
                 weather=weather_str,
                 mood=mood,
                 season=season,
                 outfit_history=outfit_history_data,
-                exclude_ids=exclude_ids,
                 negative_prompts=negative_prompts
             )
 

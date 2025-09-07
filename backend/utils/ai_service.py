@@ -99,41 +99,11 @@ class AIOutfitService:
             self.client_available = False
             print("⚠️  OpenAI API key not provided - using fallback outfit suggestions")
     
-    def generate_outfit_suggestion(self, wardrobe: List[Dict], weather: str, mood: str, season: str = "any", outfit_history: List[Dict] = None, exclude_ids: List[int] = None, negative_prompts: List[str] = None) -> Dict[str, Any]:
-        """Generate outfit suggestion using OpenAI with enhanced prompting"""
-        
-        # Exclude items from the previous suggestion if provided
-        if exclude_ids:
-            wardrobe = [item for item in wardrobe if item.get('id') not in exclude_ids]
-
-        # Filter available (clean) items
-        clean_items = [item for item in wardrobe if item.get('is_clean', True)]
-        
-        # Pre-filter by season for more reliable results.
-        # This is a hard constraint that is better handled in code than by the AI.
-        if season != 'any':
-            season_filtered_items = [
-                item for item in clean_items 
-                if item.get('season', 'all').lower() == season.lower() or item.get('season', 'all').lower() == 'all'
-            ]
-            # Only use the seasonal filter if it returns items, otherwise use all clean items.
-            if season_filtered_items:
-                available_items = season_filtered_items
-            else:
-                available_items = clean_items # Fallback
-        else:
-            available_items = clean_items
-            
-        # Stricter style/mood pre-filtering to prevent style mixing.
-        style_filtered_items = [
-            item for item in available_items
-            if not item.get('style') or item.get('style', '').lower() == mood.lower()
-        ]
-        if style_filtered_items:
-            available_items = style_filtered_items
-        # If no items match the style, we proceed with the seasonally-appropriate items.
-        # The AI will have to do its best to match the mood.
-
+    def generate_outfit_suggestion(self, available_items: List[Dict], weather: str, mood: str, season: str = "any", outfit_history: List[Dict] = None, negative_prompts: List[str] = None) -> Dict[str, Any]:
+        """
+        Generate outfit suggestion using OpenAI with enhanced prompting.
+        This function now expects a pre-filtered list of available (e.g., clean, in-season) items.
+        """
         if not available_items:
             return {
                 "selected_items": [],
@@ -426,7 +396,7 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
 }
 """
     
-    def _create_enhanced_outfit_prompt(self, wardrobe: List[Dict], weather: str, mood: str, season: str, outfit_history: List[Dict] = None, negative_prompts: List[str] = None) -> str:
+    def _create_enhanced_outfit_prompt(self, available_items: List[Dict], weather: str, mood: str, season: str, outfit_history: List[Dict] = None, negative_prompts: List[str] = None) -> str:
         # Get recently worn items to avoid repetition
         recent_item_ids = []
         if outfit_history:
@@ -438,7 +408,7 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
             'tops': [], 'bottoms': [], 'outerwear': [],
             'shoes': [], 'accessories': [], 'dresses': []
         }
-        for item in wardrobe:
+        for item in available_items:
             item_type = item['type'].lower()
             if item_type in ['shirt', 't-shirt', 'blouse', 'sweater', 'tank-top']:
                 wardrobe_by_category['tops'].append(item)
@@ -454,7 +424,7 @@ You MUST respond ONLY with a valid JSON object. Do not include any text before o
                 wardrobe_by_category['accessories'].append(item)
 
         # Get User's Style DNA, now with mood context
-        style_dna = self._get_style_dna(wardrobe, outfit_history, mood)
+        style_dna = self._get_style_dna(available_items, outfit_history, mood)
         style_dna_prompt_section = ""
         if style_dna:
             style_dna_prompt_section = f"USER'S {mood.upper()} STYLE DNA (for personalization):\n{json.dumps(style_dna, indent=2)}\n"
@@ -572,7 +542,7 @@ RESPONSE FORMAT (JSON only):
 """
         return prompt
 
-    def _get_style_dna(self, wardrobe: List[Dict], outfit_history: List[Dict], mood: str) -> Dict[str, Any]:
+    def _get_style_dna(self, available_items: List[Dict], outfit_history: List[Dict], mood: str) -> Dict[str, Any]:
         """Analyzes wardrobe and outfit history to create a user style profile, now with mood context."""
         
         # Counters for different attributes
@@ -582,7 +552,7 @@ RESPONSE FORMAT (JSON only):
         fabric_counter = Counter()
         
         # Analyze the entire wardrobe as a baseline
-        for item in wardrobe:
+        for item in available_items:
             if item.get('style'):
                 style_counter[item['style']] += 1
             if item.get('color'):
