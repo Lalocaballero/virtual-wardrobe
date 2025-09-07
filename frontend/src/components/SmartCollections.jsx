@@ -188,7 +188,7 @@ const SmartCollections = () => {
                   </div>
   
                   <div className="mt-4 flex items-center justify-center gap-x-4">
-                    <Link to={`/outfit-generator?collection=${collectionId}`} className="btn btn-primary text-sm font-bold" style={{backgroundColor: '#FF6B6B', color: 'white'}}>
+                    <Link to={`/dashboard/outfit?collection=${collectionId}`} className="btn btn-primary text-sm font-bold" style={{backgroundColor: '#FF6B6B', color: 'white'}}>
                       Generate Outfit
                     </Link>
                     <button onClick={() => handleSelectCollection(collectionId)} className="btn btn-ghost text-sm" style={{color: '#7E7E9A', borderColor: '#7E7E9A'}}>
