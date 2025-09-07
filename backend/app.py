@@ -1263,6 +1263,21 @@ def create_app():
                 print(f"Smart collections error: {str(e)}")
             return jsonify({'error': f'Failed to get smart collections: {str(e)}'}), 500
 
+    @app.route('/api/intelligence/collections/<collection_slug>', methods=['GET'])
+    @login_required
+    def get_single_smart_collection_route(collection_slug):
+        try:
+            user = get_actual_user()
+            collection = current_app.wardrobe_intelligence_service.get_single_smart_collection(user.id, collection_slug)
+            if collection:
+                return jsonify(collection)
+            else:
+                return jsonify({'error': 'Collection not found'}), 404
+        except Exception as e:
+            if app.debug:
+                print(f"Single smart collection error: {str(e)}")
+            return jsonify({'error': f'Failed to get single smart collection: {str(e)}'}), 500
+
     @app.route('/api/intelligence/gaps', methods=['GET'])
     @login_required
     def get_wardrobe_gaps():

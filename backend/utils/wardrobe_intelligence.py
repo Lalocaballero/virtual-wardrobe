@@ -126,6 +126,19 @@ class WardrobeIntelligenceService:
         except Exception as e:
             print(f"Error generating smart collections: {e}")
             return {}
+
+    @staticmethod
+    def get_single_smart_collection(user_id: int, collection_slug: str) -> Dict[str, Any]:
+        """
+        Retrieves a single smart collection by its slug.
+        This is a temporary method until collections are moved to the database.
+        """
+        try:
+            all_collections = WardrobeIntelligenceService.get_smart_collections(user_id)
+            return all_collections.get(collection_slug)
+        except Exception as e:
+            print(f"Error getting single smart collection {collection_slug}: {e}")
+            return None
     
     @staticmethod
     def get_wardrobe_gaps(user_id: int) -> Dict[str, Any]:

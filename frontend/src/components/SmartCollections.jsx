@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import { 
   BriefcaseIcon, 
@@ -125,9 +126,9 @@ const SmartCollections = () => {
                   )}
                 </div>
 
-                <button className="w-full mt-3 py-2 px-4 text-sm btn btn-secondary">
+                <Link to={`/collections?collection=${collectionId}`} className="w-full mt-3 py-2 px-4 text-sm btn btn-secondary text-center">
                   View All Items
-                </button>
+                </Link>
               </div>
             </div>
           );
