@@ -55,17 +55,26 @@ def lemonsqueezy_webhook():
         if event_name == 'subscription_payment_success':
             # This event is a strong indicator that the user should be premium.
             user.is_premium = True
+            subscription_id = attributes.get('subscription_id')
+            if subscription_id:
+                user.subscription_id = str(subscription_id)
+                current_app.logger.info(f"Updated subscription ID for {user_email} to {subscription_id} via '{event_name}'.")
+            else:
+                current_app.logger.warning(f"Webhook event '{event_name}' for {user_email} missing subscription_id in attributes.")
             current_app.logger.info(f"Set user {user_email} to premium via '{event_name}' webhook.")
 
         elif event_name in ['subscription_created', 'subscription_updated']:
+            # This event's data object is the subscription itself.
+            subscription_data = data.get('data', {})
+            
             # Only grant premium if the status is active. Ignore other statuses like 'on_trial', 'past_due', etc.
-            if attributes.get('status') == 'active':
+            if subscription_data.get('attributes', {}).get('status') == 'active':
                 user.is_premium = True
                 
                 # Get the subscription ID and save it to the user
-                subscription_id = data.get('data', {}).get('id')
+                subscription_id = subscription_data.get('id')
                 if subscription_id:
-                    user.subscription_id = subscription_id
+                    user.subscription_id = str(subscription_id)
                     current_app.logger.info(f"Updated subscription ID for {user_email} to {subscription_id}.")
 
                 current_app.logger.info(f"Set user {user_email} to premium via '{event_name}' (status: active) webhook.")

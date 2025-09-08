@@ -38,6 +38,10 @@ class User(UserMixin, db.Model):
     gender = db.Column(db.String(30), nullable=True)
     subscription_id = db.Column(db.String(255), nullable=True)
 
+    # For tracking daily outfit generation limits for free users
+    outfit_generations_today = db.Column(db.Integer, nullable=False, default=0)
+    last_generation_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+
     settings = db.Column(JSON, nullable=True)
 
     # User preferences for laundry thresholds

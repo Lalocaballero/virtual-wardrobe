@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import { 
   ChartBarIcon, 
@@ -9,16 +10,26 @@ import {
 
 const UsageAnalytics = () => {
   const { 
+    profile,
+    fetchProfile,
     usageAnalytics, 
     fetchUsageAnalytics, 
+    styleDNA,
+    fetchStyleDNA,
     analyticsLoading 
   } = useWardrobeStore();
 
   useEffect(() => {
+    if (!profile) {
+      fetchProfile();
+    }
     if (!usageAnalytics) {
       fetchUsageAnalytics();
     }
-  }, [usageAnalytics, fetchUsageAnalytics]);
+    if (profile?.is_premium && !styleDNA) {
+      fetchStyleDNA();
+    }
+  }, [profile, usageAnalytics, styleDNA, fetchProfile, fetchUsageAnalytics, fetchStyleDNA]);
 
   if (analyticsLoading) {
     return (
@@ -56,6 +67,7 @@ const UsageAnalytics = () => {
 
   return (
     <div className="space-y-6">
+      <StyleDNACard profile={profile} styleDNA={styleDNA} analyticsLoading={analyticsLoading} />
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">📊 Usage Analytics</h2>
         <p>Deep insights into your wardrobe patterns</p>
@@ -267,6 +279,71 @@ const UsageAnalytics = () => {
       )}
     </div>
   );
+};
+
+const StyleDNACard = ({ profile, styleDNA, analyticsLoading }) => {
+  const navigate = useNavigate();
+
+  if (!profile) return null; // Wait for profile to load
+
+  if (!profile.is_premium) {
+    return (
+      <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center p-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-12 h-12 text-gray-500 mx-auto mb-3">
+              <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+            </svg>
+            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Discover Your Style DNA</h3>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 mb-4">Unlock advanced analytics to see your dominant styles, color palettes, and brand loyalty.</p>
+            <button
+              onClick={() => navigate('/billing')}
+              className="bg-coral-500 hover:bg-coral-600 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
+            >
+              Upgrade to Unlock
+            </button>
+          </div>
+        </div>
+        {/* Placeholder content for layout */}
+        <h3 className="font-semibold text-transparent mb-4">🧬 Style DNA</h3>
+        <p className="text-transparent">This is a premium feature.</p>
+      </div>
+    );
+  }
+
+  if (analyticsLoading) {
+    return <p>Loading Style DNA...</p>
+  }
+  
+  if (!styleDNA) return null;
+
+  return (
+    <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
+      <h3 className="font-semibold mb-4">🧬 Style DNA</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div>
+          <div className="text-lg font-bold">{styleDNA.dominant_style ? styleDNA.dominant_style[0] : 'N/A'}</div>
+          <div className="text-sm text-gray-500">Dominant Style</div>
+        </div>
+        <div>
+          <div className="text-lg font-bold">{styleDNA.style_diversity}</div>
+          <div className="text-sm text-gray-500">Styles Explored</div>
+        </div>
+        <div>
+          <div className="text-lg font-bold capitalize">{styleDNA.risk_tolerance}</div>
+          <div className="text-sm text-gray-500">Risk Tolerance</div>
+        </div>
+        <div>
+          <div className="flex justify-center items-center h-full">
+             {Object.keys(styleDNA.color_personality).slice(0, 3).map(color => (
+                <div key={color} className="w-6 h-6 rounded-full border-2 border-white" style={{ backgroundColor: color.toLowerCase(), marginLeft: '-8px' }}></div>
+              ))}
+          </div>
+           <div className="text-sm text-gray-500 mt-1">Top Colors</div>
+        </div>
+      </div>
+    </div>
+  )
 };
 
 export default UsageAnalytics;

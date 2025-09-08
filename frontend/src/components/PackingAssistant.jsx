@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import { PlusIcon, TrashIcon, PencilIcon, ArrowLeftIcon, SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import FeedbackModal from './FeedbackModal'; // Import the new modal
@@ -95,6 +96,8 @@ const TripForm = ({ trip, onSave, onCancel, isLoading }) => {
 
 const PackingAssistant = () => {
   const { 
+    profile,
+    fetchProfile,
     trips, 
     fetchTrips, 
     createTrip,
@@ -123,7 +126,10 @@ const PackingAssistant = () => {
 
   useEffect(() => {
     fetchTrips();
-  }, [fetchTrips]);
+    if (!profile) {
+      fetchProfile();
+    }
+  }, [fetchTrips, profile, fetchProfile]);
 
   useEffect(() => {
     if (selectedTrip) {
@@ -186,6 +192,48 @@ const PackingAssistant = () => {
     setIsFeedbackModalOpen(false);
     setSelectedTrip(null);
   };
+
+const FeatureLockPage = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="relative h-[calc(100vh-200px)] flex items-center justify-center p-6 overflow-hidden rounded-lg">
+      {/* Background Image */}
+      <img 
+        src="/src/assets/packing-assistant.png" 
+        alt="A preview of the Packing Assistant feature"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      {/* Blur Overlay */}
+      <div className="absolute inset-0 w-full h-full bg-white/30 backdrop-blur-md"></div>
+      
+      {/* Content */}
+      <div className="relative z-10 text-center text-white bg-black/50 p-8 rounded-xl shadow-2xl">
+        <h2 className="text-4xl font-bold font-poppins mb-3">Pack Smarter, Not Harder.</h2>
+        <p className="max-w-xl mx-auto font-inter text-lg mb-6">
+          Let our AI analyze your trip details and weather forecasts to create the perfect packing list from your wardrobe.
+        </p>
+        <button 
+          onClick={() => navigate('/billing')}
+          className="bg-coral-500 hover:bg-coral-600 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg"
+        >
+          Unlock Your Smart Suitcase
+        </button>
+      </div>
+    </div>
+  );
+};
+
+  if (!profile) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Loading your profile...</p>
+      </div>
+    );
+  }
+
+  if (!profile.is_premium) {
+    return <FeatureLockPage />;
+  }
 
   if (selectedTrip) {
     const isCompleted = currentTripPackingList?.status === 'completed';

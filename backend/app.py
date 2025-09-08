@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from collections import Counter
 import json
 import traceback
@@ -22,6 +22,7 @@ from utils.auth import get_actual_user
 from sqlalchemy.orm import selectinload
 from sqlalchemy import func
 from utils.limiter import limiter, get_user_specific_limit
+from utils.decorators import premium_required
 
 # Initialize extensions globally
 login_manager = LoginManager()
@@ -719,6 +720,16 @@ def create_app():
     def add_clothing_item():
         try:
             user = get_actual_user()
+
+            # --- Wardrobe Limit for Free Users ---
+            if not user.is_premium:
+                item_count = ClothingItem.query.filter_by(user_id=user.id).count()
+                if item_count >= 50:
+                    return jsonify({
+                        "error": "wardrobe_limit_reached",
+                        "message": "You have reached the 50-item limit for your free plan. Upgrade to Premium for unlimited space."
+                    }), 403
+
             data = request.get_json()
 
             # --- Validation for mandatory fields ---
@@ -1015,6 +1026,21 @@ def create_app():
             # Let the backend determine the season for reliability
             season = _get_current_season()
             user = get_actual_user()
+
+            # --- Usage Tracking & Limiting for Free Users ---
+            if not user.is_premium:
+                today = date.today()
+                # Reset counter if it's a new day. Handles None case on first run.
+                if user.last_generation_date is None or user.last_generation_date < today:
+                    user.last_generation_date = today
+                    user.outfit_generations_today = 0
+                
+                # Check the limit
+                if user.outfit_generations_today >= 2:
+                    return jsonify({
+                        "error": "generation_limit_reached",
+                        "message": "You've used your 2 free outfit generations for today. Upgrade to Premium for unlimited suggestions."
+                    }), 403
             
             wardrobe = []
             if collection_slug:
@@ -1067,6 +1093,12 @@ def create_app():
 
             # --- Post-AI Validation and Correction ---
             suggestion, suggested_items_list = _validate_and_correct_outfit(suggestion, wardrobe, mood)
+
+            # --- Increment counter on success for free user ---
+            if not user.is_premium:
+                user.outfit_generations_today += 1
+            
+            db.session.commit()
             
             return jsonify({
                 'suggestion': suggestion,
@@ -1193,6 +1225,7 @@ def create_app():
 
     @app.route('/api/laundry/health-score', methods=['GET'])
     @login_required
+    @premium_required
     def get_wardrobe_health():
         try:
             user = get_actual_user()
@@ -1317,6 +1350,7 @@ def create_app():
 
     @app.route('/api/analytics/style-dna', methods=['GET'])
     @login_required
+    @premium_required
     def get_style_dna():
         try:
             user = get_actual_user()

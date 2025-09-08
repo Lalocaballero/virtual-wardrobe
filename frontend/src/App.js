@@ -12,9 +12,13 @@ import ImpersonationBanner from './components/ImpersonationBanner';
 import Onboarding from './components/Onboarding';
 import ProtectedRoute from './components/ProtectedRoute';
 import CheckEmail from './components/CheckEmail';
+import PackingAssistant from './components/PackingAssistant';
+import UsageAnalytics from './components/UsageAnalytics';
+import LaundryDashboard from './components/LaundryDashboard';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import CookieBanner from './components/CookieBanner';
+import UpgradeModal from './components/UpgradeModal';
 
 function App() {
   const { user, initUser, isImpersonating } = useWardrobeStore();
@@ -29,6 +33,7 @@ function App() {
     <Router>
       <ImpersonationBanner />
       <CookieBanner />
+      <UpgradeModal />
       <div className={isImpersonating ? 'pt-10' : ''}>
         <Routes>
           <Route path="/" element={!user ? <LandingPage /> : <Navigate to="/dashboard" />} />
@@ -45,6 +50,11 @@ function App() {
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
           <Route path="/admin/*" element={isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} />
+
+          {/* Temporary Verification Routes */}
+          <Route path="/verify-packing-assistant" element={<PackingAssistant />} />
+          <Route path="/verify-analytics" element={<UsageAnalytics />} />
+          <Route path="/verify-laundry" element={<LaundryDashboard />} />
         </Routes>
       </div>
     </Router>

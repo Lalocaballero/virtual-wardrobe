@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required
 from utils.limiter import limiter, get_user_specific_limit
+from utils.decorators import premium_required
 from models import db, Trip, ClothingItem, PackingList, PackingListItem, UserEssentialPreference, PackingListFeedback
 from utils.auth import get_actual_user
 from utils.personalization_service import summarize_feedback_for_ai
@@ -108,6 +109,7 @@ def delete_trip(trip_id):
 
 @trips_bp.route('/api/trips/<int:trip_id>/packing-list', methods=['GET'])
 @login_required
+@premium_required
 @limiter.limit(get_user_specific_limit)
 def get_packing_list(trip_id):
     user = get_actual_user()

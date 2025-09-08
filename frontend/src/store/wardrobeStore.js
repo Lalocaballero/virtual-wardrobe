@@ -19,6 +19,14 @@ const useWardrobeStore = create((set, get) => ({
   loading: false,
   error: null,
 
+  // --- Monetization/Gating State ---
+  upgradeModal: {
+    isOpen: false,
+    type: null, // e.g., 'wardrobe', 'generation'
+  },
+  showUpgradeModal: (type) => set({ upgradeModal: { isOpen: true, type } }),
+  hideUpgradeModal: () => set({ upgradeModal: { isOpen: false, type: null } }),
+
   // --- NEW PROFILE STATE ---
   profile: null,
   profileLoading: false,
@@ -99,6 +107,18 @@ const useWardrobeStore = create((set, get) => ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+
+        // Check for specific premium-related 403 errors
+        if (response.status === 403 && errorData.error === 'wardrobe_limit_reached') {
+          get().showUpgradeModal('wardrobe');
+          // We don't throw an error here because the UI will react by showing the modal
+          return Promise.reject({ ...errorData, handled: true }); 
+        }
+        if (response.status === 403 && errorData.error === 'generation_limit_reached') {
+          get().showUpgradeModal('generation');
+          return Promise.reject({ ...errorData, handled: true });
+        }
+
         const error = new Error(errorData.error || `API Error: ${response.status} ${response.statusText}`);
         error.response = response;
         error.data = errorData;
@@ -593,6 +613,10 @@ const useWardrobeStore = create((set, get) => ({
       }
       return data;
     } catch (error) {
+        if (error.handled) {
+          set({ loading: false });
+          return;
+        }
         if (error.code === 'UPGRADE_REQUIRED') {
             toast.error(
                 (t) => (
@@ -755,6 +779,10 @@ const useWardrobeStore = create((set, get) => ({
       
       return true;
     } catch (error) {
+      if (error.handled) {
+        set({ loading: false });
+        return false;
+      }
       const errorMessage = error.message || "We're having a little trouble adding that item. One more try?";
       set({ error: errorMessage, loading: false });
       toast.error(errorMessage);

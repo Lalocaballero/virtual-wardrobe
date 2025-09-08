@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import { 
   ExclamationTriangleIcon, 
@@ -10,7 +11,10 @@ import {
 } from '@heroicons/react/24/outline';
 
 const LaundryDashboard = () => {
+  const navigate = useNavigate();
   const { 
+    profile,
+    fetchProfile,
     laundryAlerts, 
     wardrobeHealth, 
     fetchLaundryAlerts, 
@@ -20,9 +24,14 @@ const LaundryDashboard = () => {
   } = useWardrobeStore();
 
   useEffect(() => {
+    if (!profile) {
+      fetchProfile();
+    }
     fetchLaundryAlerts();
-    fetchWardrobeHealth();
-  }, [fetchLaundryAlerts, fetchWardrobeHealth]);
+    if (profile?.is_premium) {
+      fetchWardrobeHealth();
+    }
+  }, [profile, fetchProfile, fetchLaundryAlerts, fetchWardrobeHealth]);
 
   const handleMarkWashed = async (itemIds) => {
     const success = await markItemsWashed(itemIds);
@@ -57,9 +66,67 @@ const LaundryDashboard = () => {
       </div>
 
       {/* Wardrobe Health Score */}
-      {wardrobeHealth && (
-        <div className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
-          <div className="text-center">
+      {profile?.is_premium ? (
+        wardrobeHealth && (
+          <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 dark:bg-primary/20 mb-4">
+                <span className={`text-2xl font-bold ${getHealthScoreColor(wardrobeHealth.score)}`}>
+                  {wardrobeHealth.score}
+                </span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Your Wardrobe's Vibe Check</h3>
+              <p className="mb-4">{wardrobeHealth.message}</p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-500">{wardrobeHealth.clean_items}</div>
+                  <div>Clean Items</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-warning">{wardrobeHealth.items_needing_wash}</div>
+                  <div>Need Washing</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{wardrobeHealth.total_items}</div>
+                  <div>Total Items</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-secondary">{wardrobeHealth.clean_percentage}%</div>
+                  <div>Clean Rate</div>
+                </div>
+              </div>
+
+              {wardrobeHealth.recommendations && wardrobeHealth.recommendations.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {wardrobeHealth.recommendations.map((rec, index) => (
+                    <div key={index} className="bg-secondary/10 dark:bg-secondary/20 text-secondary-foreground text-sm p-2 rounded-lg">
+                      {rec}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      ) : (
+        <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-sm flex items-center justify-center">
+            <div className="text-center p-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-12 h-12 text-gray-500 mx-auto mb-3">
+                <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+              </svg>
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Unlock Wardrobe Health Score</h3>
+              <p className="text-gray-500 dark:text-gray-400 mt-1 mb-4">Get a real-time score on your wardrobe's freshness and get smart recommendations.</p>
+              <button
+                onClick={() => navigate('/billing')}
+                className="bg-coral-500 hover:bg-coral-600 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
+              >
+                Upgrade to Unlock
+              </button>
+            </div>
+          </div>
+          <div className="text-center text-transparent">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 dark:bg-primary/20 mb-4">
               <span className={`text-2xl font-bold ${getHealthScoreColor(wardrobeHealth.score)}`}>
                 {wardrobeHealth.score}
