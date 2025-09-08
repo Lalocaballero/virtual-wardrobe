@@ -30,6 +30,12 @@ const MODAL_CONTENT = {
     body: "Upgrade to Premium to unlock our most powerful collections, including 'Date Night & Special', 'Work & Professional', and 'Ready for Rotation', to get the perfect outfit for any occasion.",
     cta: "Unlock All Collections",
   },
+  packing_assistant: {
+    headline: "Unlock Your Smart Suitcase",
+    body: "Our AI-powered Packing Assistant creates perfect packing lists based on your trip details and wardrobe. Upgrade to pack smarter, not harder.",
+    cta: "Upgrade Now",
+    externalLink: "https://wewear.lemonsqueezy.com/checkout",
+  },
 };
 
 const UpgradeModal = () => {
@@ -40,7 +46,11 @@ const UpgradeModal = () => {
 
   const handleUpgrade = () => {
     hideUpgradeModal();
-    navigate('/billing');
+    if (content.externalLink) {
+      window.location.href = content.externalLink;
+    } else {
+      navigate('/billing');
+    }
   };
 
   return (

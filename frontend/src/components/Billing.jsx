@@ -24,12 +24,16 @@ const Billing = () => {
 
 const FreeUserView = () => {
     return (
-        <div>
-            <p className="mt-4">You're on the Free Plan.</p>
-            <p className="mt-2">Ready to unlock your wardrobe's full potential? Upgrade to get unlimited AI suggestions, smart packing lists, and more.</p>
-            <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary mt-8" target="_blank" rel="noopener noreferrer">
-                Go Premium
-            </a>
+        <div className="flex flex-col">
+            <div>
+                <p className="mt-4">You're on the Free Plan.</p>
+                <p className="mt-2">Ready to unlock your wardrobe's full potential? Upgrade to get unlimited AI suggestions, smart packing lists, and more.</p>
+            </div>
+            <div className="mt-6">
+                <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                    Go Premium
+                </a>
+            </div>
         </div>
     );
 };

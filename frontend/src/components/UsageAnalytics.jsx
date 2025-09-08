@@ -291,13 +291,13 @@ const StyleDNACard = ({ profile, styleDNA, analyticsLoading, showUpgradeModal })
     return (
       <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-lg border border-fog dark:border-inkwell p-6 relative overflow-hidden min-h-[200px] flex items-center justify-center">
         <img src="/src/assets/ai-suggestions.png" alt="Blurred analytics preview" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-white/30 dark:bg-black/30 backdrop-blur-md"></div>
+        <div className="absolute inset-0 bg-[#1A1A2E]/70 backdrop-blur-md"></div>
         <div className="relative z-10 text-center p-4">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-12 h-12 text-white drop-shadow-lg mx-auto mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-12 h-12 text-[#F7F7F7] drop-shadow-lg mx-auto mb-3">
             <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
           </svg>
-          <h3 className="text-2xl font-bold text-white drop-shadow-md font-poppins">Discover Your Style DNA</h3>
-          <p className="text-white/90 drop-shadow-md mt-1 mb-4 max-w-md mx-auto">Unlock advanced analytics to see your dominant styles, color palettes, and brand loyalty.</p>
+          <h3 className="text-2xl font-bold text-[#F7F7F7] drop-shadow-md font-poppins">Discover Your Style DNA</h3>
+          <p className="text-[#F7F7F7]/90 drop-shadow-md mt-1 mb-4 max-w-md mx-auto">Unlock advanced analytics to see your dominant styles, color palettes, and brand loyalty.</p>
           <button
             onClick={() => showUpgradeModal('style_dna')}
             className="bg-[#FF6B6B] hover:bg-[#ff5c5c] text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg"

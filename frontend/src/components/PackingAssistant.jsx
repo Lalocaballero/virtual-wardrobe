@@ -194,6 +194,7 @@ const PackingAssistant = () => {
   };
 
 const FeatureLockPage = () => {
+  const { showUpgradeModal } = useWardrobeStore();
   return (
     <div className="relative h-[calc(100vh-200px)] flex items-center justify-center p-6 overflow-hidden rounded-lg">
       {/* Background Image */}
@@ -212,7 +213,7 @@ const FeatureLockPage = () => {
           Let our AI analyze your trip details and weather forecasts to create the perfect packing list from your wardrobe.
         </p>
         <button 
-          onClick={() => window.location.href = 'https://wewear.lemonsqueezy.com/checkout'}
+          onClick={() => showUpgradeModal('packing_assistant')}
           className="bg-[#FF6B6B] hover:opacity-90 text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg"
         >
           Unlock Your Smart Suitcase
