@@ -23,9 +23,25 @@ const useWardrobeStore = create((set, get) => ({
   upgradeModal: {
     isOpen: false,
     type: null, // e.g., 'wardrobe', 'generation'
+    ctaText: null,
+    checkoutUrl: null,
   },
-  showUpgradeModal: (type) => set({ upgradeModal: { isOpen: true, type } }),
-  hideUpgradeModal: () => set({ upgradeModal: { isOpen: false, type: null } }),
+  showUpgradeModal: (type, options = {}) => set({ 
+    upgradeModal: { 
+      isOpen: true, 
+      type, 
+      ctaText: options.ctaText || null, 
+      checkoutUrl: options.checkoutUrl || null,
+    } 
+  }),
+  hideUpgradeModal: () => set({ 
+    upgradeModal: { 
+      isOpen: false, 
+      type: null, 
+      ctaText: null, 
+      checkoutUrl: null,
+    } 
+  }),
 
   // --- NEW PROFILE STATE ---
   profile: null,

@@ -11,26 +11,36 @@ import {
 } from '@heroicons/react/24/outline';
 
 const LockedSmartLoads = () => {
-  const { showUpgradeModal } = useWardrobeStore();
+  const { showUpgradeModal, profile } = useWardrobeStore();
+  
+  const constructCheckoutUrl = () => {
+    if (!profile) return '';
+    const productId = process.env.REACT_APP_LEMONSQUEEZY_PRODUCT_ID;
+    const baseUrl = `https://wewear.lemonsqueezy.com/buy/${productId}`;
+    const params = new URLSearchParams({
+      'checkout[email]': profile.email,
+      'checkout_data[custom][user_id]': profile.id,
+    });
+    return `${baseUrl}?${params.toString()}`;
+  };
+
+  const handleCardClick = () => {
+    const checkoutUrl = constructCheckoutUrl();
+    if (checkoutUrl) {
+      showUpgradeModal('laundry', {
+        ctaText: 'Unlock Smart Loads',
+        checkoutUrl: checkoutUrl,
+      });
+    }
+  };
+
   return (
-    <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-sm flex items-center justify-center z-10">
-        <div className="text-center p-4">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-12 h-12 text-gray-500 mx-auto mb-3">
-            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
-          </svg>
-          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Unlock Smart Laundry Loads</h3>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 mb-4">Let AI create optimized laundry loads to save you time and energy.</p>
-          <button
-            onClick={() => showUpgradeModal('laundry')}
-            className="bg-coral-500 hover:bg-coral-600 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
-          >
-            Upgrade to Unlock
-          </button>
-        </div>
-      </div>
-      {/* Placeholder for layout */}
-      <div className="opacity-50">
+    <div 
+      className="bg-card dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6 relative cursor-pointer group"
+      onClick={handleCardClick}
+    >
+      {/* The blurred, underlying content */}
+      <div className="opacity-50 blur-sm">
         <div className="flex items-center space-x-3 mb-4">
             <SparklesIcon className="h-6 w-6 text-secondary dark:text-secondary" />
             <h3 className="text-lg font-semibold">Smart Laundry Loads</h3>
@@ -43,6 +53,15 @@ const LockedSmartLoads = () => {
                 <h4 className="font-medium">Whites</h4>
             </div>
         </div>
+      </div>
+      
+      {/* The overlay */}
+      <div className="absolute inset-0 bg-gray-200 bg-opacity-75 dark:bg-gray-800 dark:bg-opacity-75 flex flex-col items-center justify-center text-center p-4 transition-all duration-300 group-hover:bg-opacity-85">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-10 h-10 text-gray-600 dark:text-gray-400 mb-2">
+            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+        </svg>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Unlock Smart Laundry Loads</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Upgrade to Premium to let AI optimize your laundry.</p>
       </div>
     </div>
   );
@@ -67,9 +86,7 @@ const LaundryDashboard = () => {
       fetchProfile();
     }
     fetchLaundryAlerts();
-    if (profile?.is_premium) {
-      fetchWardrobeHealth();
-    }
+    fetchWardrobeHealth();
   }, [profile, fetchProfile, fetchLaundryAlerts, fetchWardrobeHealth]);
 
   const handleMarkWashed = async (itemIds) => {

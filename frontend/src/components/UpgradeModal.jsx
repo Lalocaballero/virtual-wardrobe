@@ -42,15 +42,19 @@ const UpgradeModal = () => {
   const { upgradeModal, hideUpgradeModal } = useWardrobeStore();
   const navigate = useNavigate();
 
-  const content = MODAL_CONTENT[upgradeModal.type] || {};
+  // Destructure with defaults
+  const { type, ctaText, checkoutUrl } = upgradeModal;
+  const content = MODAL_CONTENT[type] || {};
+  const buttonText = ctaText || content.cta || 'Go Premium';
 
   const handleUpgrade = () => {
-    hideUpgradeModal();
-    if (content.externalLink) {
-      window.location.href = content.externalLink;
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
     } else {
+      // Fallback for any old calls that don't pass a URL
       navigate('/billing');
     }
+    hideUpgradeModal();
   };
 
   return (
@@ -108,14 +112,14 @@ const UpgradeModal = () => {
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                   <button
                     type="button"
-                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-coral-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-coral-700 focus:outline-none focus:ring-2 focus:ring-coral-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="btn btn-primary w-full sm:w-auto sm:ml-3"
                     onClick={handleUpgrade}
                   >
-                    {content.cta}
+                    {buttonText}
                   </button>
                   <button
                     type="button"
-                    className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+                    className="btn btn-secondary w-full mt-3 sm:mt-0 sm:w-auto"
                     onClick={hideUpgradeModal}
                   >
                     Maybe Later

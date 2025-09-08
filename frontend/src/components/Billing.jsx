@@ -23,6 +23,29 @@ const Billing = () => {
 };
 
 const FreeUserView = () => {
+    const { showUpgradeModal, profile } = useWardrobeStore();
+
+    const constructCheckoutUrl = () => {
+        if (!profile) return '';
+        const productId = process.env.REACT_APP_LEMONSQUEEZY_PRODUCT_ID;
+        const baseUrl = `https://wewear.lemonsqueezy.com/buy/${productId}`;
+        const params = new URLSearchParams({
+            'checkout[email]': profile.email,
+            'checkout_data[custom][user_id]': profile.id,
+        });
+        return `${baseUrl}?${params.toString()}`;
+    };
+
+    const handleUpgradeClick = () => {
+        const checkoutUrl = constructCheckoutUrl();
+        if (checkoutUrl) {
+            showUpgradeModal('billing', {
+                ctaText: 'Go Premium',
+                checkoutUrl: checkoutUrl,
+            });
+        }
+    };
+
     return (
         <div className="flex flex-col">
             <div>
@@ -30,9 +53,9 @@ const FreeUserView = () => {
                 <p className="mt-2">Ready to unlock your wardrobe's full potential? Upgrade to get unlimited AI suggestions, smart packing lists, and more.</p>
             </div>
             <div className="mt-6">
-                <a href="https://wewear.lemonsqueezy.com/buy/b57504d5-bc14-4870-aa22-a7196fe68db2" className="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                <button onClick={handleUpgradeClick} className="btn btn-primary">
                     Go Premium
-                </a>
+                </button>
             </div>
         </div>
     );
