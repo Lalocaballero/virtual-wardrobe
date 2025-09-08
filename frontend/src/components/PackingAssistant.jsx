@@ -194,7 +194,6 @@ const PackingAssistant = () => {
   };
 
 const FeatureLockPage = () => {
-  const navigate = useNavigate();
   return (
     <div className="relative h-[calc(100vh-200px)] flex items-center justify-center p-6 overflow-hidden rounded-lg">
       {/* Background Image */}
@@ -203,18 +202,18 @@ const FeatureLockPage = () => {
         alt="A preview of the Packing Assistant feature"
         className="absolute inset-0 w-full h-full object-cover"
       />
-      {/* Blur Overlay */}
-      <div className="absolute inset-0 w-full h-full bg-white/30 backdrop-blur-md"></div>
+      {/* Overlay */}
+      <div className="absolute inset-0 w-full h-full bg-[#1A1A2E]/70 backdrop-blur-md"></div>
       
       {/* Content */}
-      <div className="relative z-10 text-center text-white bg-black/50 p-8 rounded-xl shadow-2xl">
-        <h2 className="text-4xl font-bold font-poppins mb-3">Pack Smarter, Not Harder.</h2>
-        <p className="max-w-xl mx-auto font-inter text-lg mb-6">
+      <div className="relative z-10 text-center p-8">
+        <h2 className="text-4xl font-bold font-poppins mb-3 text-[#F7F7F7]">Pack Smarter, Not Harder.</h2>
+        <p className="max-w-xl mx-auto font-inter text-lg mb-6 text-[#F7F7F7]/90">
           Let our AI analyze your trip details and weather forecasts to create the perfect packing list from your wardrobe.
         </p>
         <button 
           onClick={() => window.location.href = 'https://wewear.lemonsqueezy.com/checkout'}
-          className="bg-coral-500 hover:bg-coral-600 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg"
+          className="bg-[#FF6B6B] hover:opacity-90 text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg"
         >
           Unlock Your Smart Suitcase
         </button>

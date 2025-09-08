@@ -129,6 +129,9 @@ const SmartCollections = () => {
   );
   
   const AllCollectionsView = () => {
+    const { profile, showUpgradeModal } = useWardrobeStore();
+    const PREMIUM_COLLECTIONS = ['special', 'work', 'underused'];
+
     if (intelligenceLoading && (!smartCollections || Object.keys(smartCollections).length === 0)) {
       return (
         <div className="flex justify-center items-center h-64">
@@ -163,6 +166,37 @@ const SmartCollections = () => {
           {Object.entries(smartCollections).map(([collectionId, collection]) => {
             const IconComponent = getCollectionIcon(collectionId);
             const colors = getCollectionColors(collectionId);
+            const isPremium = PREMIUM_COLLECTIONS.includes(collectionId);
+
+            if (isPremium && !profile?.is_premium) {
+              return (
+                <div 
+                  key={collectionId}
+                  className="bg-card dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden relative cursor-pointer"
+                  onClick={() => showUpgradeModal('smart_collections')}
+                >
+                  <div className="p-4 opacity-30">
+                    <div className={`${colors} p-4`}>
+                      <div className="flex items-center space-x-3">
+                        <IconComponent className="h-6 w-6" />
+                        <div>
+                          <h3 className="font-semibold">{collection.name}</h3>
+                          <p className="text-sm opacity-90">{collection.count} items</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <p className="text-sm mb-4 h-10">{collection.description}</p>
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 bg-gray-500/30 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-10 h-10 text-white">
+                      <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              );
+            }
             
             return (
               <div key={collectionId} className="bg-card dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">

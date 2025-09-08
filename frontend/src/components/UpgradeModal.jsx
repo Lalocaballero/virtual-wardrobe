@@ -25,6 +25,11 @@ const MODAL_CONTENT = {
     body: "Get a deep dive into your wardrobe with advanced analytics on your dominant styles, color palettes, and brand loyalty. Discover what makes you, you!",
     cta: "Unlock Style DNA",
   },
+  smart_collections: {
+    headline: "Unlock All Smart Collections",
+    body: "Upgrade to Premium to unlock our most powerful collections, including 'Date Night & Special', 'Work & Professional', and 'Ready for Rotation', to get the perfect outfit for any occasion.",
+    cta: "Unlock All Collections",
+  },
 };
 
 const UpgradeModal = () => {

@@ -854,6 +854,7 @@ toggleCleanStatus: async (itemId) => {
         toast(`'${updatedItem.name}' is in the dirty pile.`);
       }
       
+      get().fetchLaundryAlerts();
       return true;
     } catch (error) {
       const errorMessage = error.message || "Whoops! That didn't work. Let's try that again.";
