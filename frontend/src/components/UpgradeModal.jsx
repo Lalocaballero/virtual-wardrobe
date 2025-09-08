@@ -15,6 +15,16 @@ const MODAL_CONTENT = {
     body: "You've used your 2 free AI outfit generations for today. Upgrade to Premium for unlimited inspiration.",
     cta: "Upgrade for Unlimited Ideas",
   },
+  laundry: {
+    headline: "Leave Laundry Day to the Robots!",
+    body: "Upgrade to Premium to unlock Smart Laundry Loads. Our AI will group your dirty clothes into perfect loads to save you time and energy.",
+    cta: "Upgrade for Smart Loads",
+  },
+  style_dna: {
+    headline: "Unlock Your Personal Style DNA",
+    body: "Get a deep dive into your wardrobe with advanced analytics on your dominant styles, color palettes, and brand loyalty. Discover what makes you, you!",
+    cta: "Unlock Style DNA",
+  },
 };
 
 const UpgradeModal = () => {

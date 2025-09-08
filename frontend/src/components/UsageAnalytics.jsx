@@ -16,7 +16,8 @@ const UsageAnalytics = () => {
     fetchUsageAnalytics, 
     styleDNA,
     fetchStyleDNA,
-    analyticsLoading 
+    analyticsLoading,
+    showUpgradeModal
   } = useWardrobeStore();
 
   useEffect(() => {
@@ -67,7 +68,7 @@ const UsageAnalytics = () => {
 
   return (
     <div className="space-y-6">
-      <StyleDNACard profile={profile} styleDNA={styleDNA} analyticsLoading={analyticsLoading} />
+      <StyleDNACard profile={profile} styleDNA={styleDNA} analyticsLoading={analyticsLoading} showUpgradeModal={showUpgradeModal} />
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">📊 Usage Analytics</h2>
         <p>Deep insights into your wardrobe patterns</p>
@@ -75,7 +76,7 @@ const UsageAnalytics = () => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-primary rounded-lg p-4 text-primary-foreground">
+        <div className="bg-[#FF6B6B] rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Utilization Rate</p>
@@ -84,7 +85,7 @@ const UsageAnalytics = () => {
             <ChartBarIcon className="h-8 w-8 opacity-50" />
           </div>
         </div>
-        <div className="bg-secondary rounded-lg p-4 text-secondary-foreground">
+        <div className="bg-[#6F00FF] rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Avg Cost/Wear</p>
@@ -93,7 +94,7 @@ const UsageAnalytics = () => {
             <CurrencyDollarIcon className="h-8 w-8 opacity-50" />
           </div>
         </div>
-        <div className="bg-accent rounded-lg p-4 text-accent-foreground">
+        <div className="bg-[#FFD300] rounded-lg p-4 text-black">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Total Wears</p>
@@ -102,7 +103,7 @@ const UsageAnalytics = () => {
             <TrophyIcon className="h-8 w-8 opacity-50" />
           </div>
         </div>
-        <div className="bg-destructive rounded-lg p-4 text-destructive-foreground">
+        <div className="bg-[#7E7E9A] rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Outfits/Week</p>
@@ -281,32 +282,29 @@ const UsageAnalytics = () => {
   );
 };
 
-const StyleDNACard = ({ profile, styleDNA, analyticsLoading }) => {
+const StyleDNACard = ({ profile, styleDNA, analyticsLoading, showUpgradeModal }) => {
   const navigate = useNavigate();
 
   if (!profile) return null; // Wait for profile to load
 
   if (!profile.is_premium) {
     return (
-      <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-sm border border-fog dark:border-inkwell p-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-sm flex items-center justify-center">
-          <div className="text-center p-4">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-12 h-12 text-gray-500 mx-auto mb-3">
-              <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Discover Your Style DNA</h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-1 mb-4">Unlock advanced analytics to see your dominant styles, color palettes, and brand loyalty.</p>
-            <button
-              onClick={() => navigate('/billing')}
-              className="bg-coral-500 hover:bg-coral-600 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
-            >
-              Upgrade to Unlock
-            </button>
-          </div>
+      <div className="bg-card dark:bg-dark-subtle rounded-lg shadow-lg border border-fog dark:border-inkwell p-6 relative overflow-hidden min-h-[200px] flex items-center justify-center">
+        <img src="/src/assets/ai-suggestions.png" alt="Blurred analytics preview" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-white/30 dark:bg-black/30 backdrop-blur-md"></div>
+        <div className="relative z-10 text-center p-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-12 h-12 text-white drop-shadow-lg mx-auto mb-3">
+            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+          </svg>
+          <h3 className="text-2xl font-bold text-white drop-shadow-md font-poppins">Discover Your Style DNA</h3>
+          <p className="text-white/90 drop-shadow-md mt-1 mb-4 max-w-md mx-auto">Unlock advanced analytics to see your dominant styles, color palettes, and brand loyalty.</p>
+          <button
+            onClick={() => showUpgradeModal('style_dna')}
+            className="bg-[#FF6B6B] hover:bg-[#ff5c5c] text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
+          >
+            Unlock Your Style DNA
+          </button>
         </div>
-        {/* Placeholder content for layout */}
-        <h3 className="font-semibold text-transparent mb-4">🧬 Style DNA</h3>
-        <p className="text-transparent">This is a premium feature.</p>
       </div>
     );
   }

@@ -975,7 +975,6 @@ fetchWardrobeHealth: async () => {
         method: 'GET',
       });
       set({ smartCollections: data, intelligenceLoading: false });
-      toast.success("Your smart collections are here. Check 'em out.");
     } catch (error) {
       const errorMessage = error.message || "We couldn't fetch your smart collections. The AI is thinking...";
       set({ error: errorMessage, loading: false });

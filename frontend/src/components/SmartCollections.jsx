@@ -10,6 +10,7 @@ import {
   SparklesIcon,
   ArrowLeftIcon
 } from '@heroicons/react/24/outline';
+import hangerSpark from '../assets/hanger-spark.png';
 
 const SmartCollections = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,10 +29,12 @@ const SmartCollections = () => {
 
   useEffect(() => {
     // Only fetch if the collections haven't been loaded yet.
+    // smartCollections is intentionally omitted from the dependency array
+    // to prevent an infinite loop. The check inside the effect handles this.
     if (!collectionSlug && (!smartCollections || Object.keys(smartCollections).length === 0)) {
       fetchSmartCollections();
     }
-  }, [collectionSlug, smartCollections, fetchSmartCollections]);
+  }, [collectionSlug, fetchSmartCollections]);
 
   // Effect to fetch a single collection when the URL slug changes
   useEffect(() => {
@@ -137,13 +140,14 @@ const SmartCollections = () => {
   
     if (!smartCollections || Object.keys(smartCollections).length === 0) {
       return (
-        <div className="text-center py-12 bg-card dark:bg-dark-subtle rounded-lg border border-fog dark:border-inkwell">
-          <SparklesIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate mb-4" />
-          <h3 className="text-lg font-medium mb-2">Getting to know your style...</h3>
-          <p className="mb-4">Add some more clothes and log a few outfits. We'll handle the rest.</p>
-          <div className="bg-secondary/10 dark:bg-secondary/20 rounded-lg p-4 max-w-md mx-auto">
-            <p className="text-sm text-secondary-foreground/80">💡 Smart collections automatically organize your clothes by style, occasion, and usage patterns</p>
-          </div>
+        <div className="text-center py-16">
+            <img src={hangerSpark} alt="Smart Hanger Icon" className="mx-auto h-16 w-16 mb-4" />
+            <h3 className="font-poppins font-bold text-xl text-gray-800 dark:text-white mb-2">
+              Your wardrobe is full of potential.
+            </h3>
+            <p className="font-inter text-gray-500 dark:text-gray-400">
+              Add a few items, and we'll start organizing them into smart collections for you!
+            </p>
         </div>
       );
     }

@@ -213,7 +213,7 @@ const FeatureLockPage = () => {
           Let our AI analyze your trip details and weather forecasts to create the perfect packing list from your wardrobe.
         </p>
         <button 
-          onClick={() => navigate('/billing')}
+          onClick={() => window.location.href = 'https://wewear.lemonsqueezy.com/checkout'}
           className="bg-coral-500 hover:bg-coral-600 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg"
         >
           Unlock Your Smart Suitcase
