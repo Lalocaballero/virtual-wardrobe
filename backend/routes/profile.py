@@ -112,22 +112,3 @@ def update_onboarding_status():
     
     db.session.commit()
     return jsonify({'message': 'Onboarding status updated successfully.'})
-
-
-@profile_bp.route('/status', methods=['GET'])
-@login_required
-def get_user_status():
-    """
-    Returns the premium status of the currently logged-in user.
-    Used for polling on the welcome page after checkout.
-    """
-    # Re-fetch the user from the DB to get the most up-to-date status
-    user = User.query.get(current_user.id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-        
-    response = jsonify({'is_premium': user.is_premium})
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response

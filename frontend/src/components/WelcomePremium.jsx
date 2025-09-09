@@ -18,27 +18,18 @@ const WelcomePremium = () => {
   useEffect(() => {
     if (status !== 'polling') return;
 
-    const toastId = toast.loading('Polling for status...');
-
     const pollingInterval = setInterval(async () => {
       try {
-        const data = await fetchApi('/profile/status', { cache: 'no-cache' });
+        // Use the active sync endpoint instead of the passive status check
+        const data = await fetchApi('/profile/sync-subscription', { method: 'POST' });
         if (data.is_premium) {
-          toast.success('Status is premium!', { id: toastId });
           clearInterval(pollingInterval);
-          
+          // Refresh the main user profile in the store to get all latest details
           await fetchProfile();
-          toast.success('Profile refreshed!');
-
           setStatus('success');
-          
-          setTimeout(() => {
-            toast('Redirecting to dashboard...');
-            navigate('/dashboard');
-          }, 2000);
+          setTimeout(() => navigate('/dashboard'), 2000);
         }
       } catch (error) {
-        toast.error('Polling API call failed.', { id: toastId });
         console.error("Error polling for user status:", error);
       }
     }, 5000);
@@ -46,7 +37,6 @@ const WelcomePremium = () => {
     const timeout = setTimeout(() => {
       if (status === 'polling') {
         clearInterval(pollingInterval);
-        toast.error('Polling timed out.', { id: toastId });
         setStatus('timedOut');
       }
     }, 90000);
