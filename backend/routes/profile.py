@@ -112,3 +112,13 @@ def update_onboarding_status():
     
     db.session.commit()
     return jsonify({'message': 'Onboarding status updated successfully.'})
+
+
+@profile_bp.route('/status', methods=['GET'])
+@login_required
+def get_user_status():
+    """
+    Returns the premium status of the currently logged-in user.
+    Used for polling on the welcome page after checkout.
+    """
+    return jsonify({"is_premium": current_user.is_premium})

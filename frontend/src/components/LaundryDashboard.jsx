@@ -16,7 +16,7 @@ const LockedSmartLoads = () => {
   const constructCheckoutUrl = () => {
     if (!profile) return '';
     const productId = process.env.REACT_APP_LEMONSQUEEZY_PRODUCT_ID;
-    const baseUrl = `https://wewear.lemonsqueezy.com/buy/${productId}`;
+    const baseUrl = `https://wewear.lemonsqueezy.com/checkout/buy/${productId}`;
     const params = new URLSearchParams({
       'checkout[email]': profile.email,
       'checkout_data[custom][user_id]': profile.id,
