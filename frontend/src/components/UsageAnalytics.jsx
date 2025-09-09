@@ -285,6 +285,27 @@ const UsageAnalytics = () => {
 const StyleDNACard = ({ profile, styleDNA, analyticsLoading, showUpgradeModal }) => {
   const navigate = useNavigate();
 
+  const constructCheckoutUrl = () => {
+    if (!profile) return '';
+    const productId = process.env.REACT_APP_LEMONSQUEEZY_PRODUCT_ID;
+    const baseUrl = `https://wewear.lemonsqueezy.com/checkout/buy/${productId}`;
+    const params = new URLSearchParams({
+        'checkout[email]': profile.email,
+        'checkout_data[custom][user_id]': profile.id,
+    });
+    return `${baseUrl}?${params.toString()}`;
+  };
+
+  const handleUpgradeClick = () => {
+    const checkoutUrl = constructCheckoutUrl();
+    if (checkoutUrl) {
+        showUpgradeModal('style_dna', {
+            ctaText: 'Unlock Your Style DNA',
+            checkoutUrl: checkoutUrl,
+        });
+    }
+  };
+
   if (!profile) return null; // Wait for profile to load
 
   if (!profile.is_premium) {
@@ -299,7 +320,7 @@ const StyleDNACard = ({ profile, styleDNA, analyticsLoading, showUpgradeModal })
           <h3 className="text-2xl font-bold text-[#F7F7F7] drop-shadow-md font-poppins">Discover Your Style DNA</h3>
           <p className="text-[#F7F7F7]/90 drop-shadow-md mt-1 mb-4 max-w-md mx-auto">Unlock advanced analytics to see your dominant styles, color palettes, and brand loyalty.</p>
           <button
-            onClick={() => showUpgradeModal('style_dna')}
+            onClick={handleUpgradeClick}
             className="bg-[#FF6B6B] hover:bg-[#ff5c5c] text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105 shadow-lg"
           >
             Unlock Your Style DNA

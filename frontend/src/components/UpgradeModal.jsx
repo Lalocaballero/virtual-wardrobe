@@ -34,7 +34,6 @@ const MODAL_CONTENT = {
     headline: "Unlock Your Smart Suitcase",
     body: "Our AI-powered Packing Assistant creates perfect packing lists based on your trip details and wardrobe. Upgrade to pack smarter, not harder.",
     cta: "Upgrade Now",
-    externalLink: "https://wewear.lemonsqueezy.com/checkout",
   },
 };
 

@@ -132,6 +132,27 @@ const SmartCollections = () => {
     const { profile, showUpgradeModal } = useWardrobeStore();
     const PREMIUM_COLLECTIONS = ['special', 'work', 'underused'];
 
+    const constructCheckoutUrl = () => {
+      if (!profile) return '';
+      const productId = process.env.REACT_APP_LEMONSQUEEZY_PRODUCT_ID;
+      const baseUrl = `https://wewear.lemonsqueezy.com/checkout/buy/${productId}`;
+      const params = new URLSearchParams({
+          'checkout[email]': profile.email,
+          'checkout_data[custom][user_id]': profile.id,
+      });
+      return `${baseUrl}?${params.toString()}`;
+    };
+
+    const handleUpgradeClick = () => {
+        const checkoutUrl = constructCheckoutUrl();
+        if (checkoutUrl) {
+            showUpgradeModal('smart_collections', {
+                ctaText: 'Unlock Smart Collections',
+                checkoutUrl: checkoutUrl,
+            });
+        }
+    };
+
     if (intelligenceLoading && (!smartCollections || Object.keys(smartCollections).length === 0)) {
       return (
         <div className="flex justify-center items-center h-64">
@@ -173,7 +194,7 @@ const SmartCollections = () => {
                 <div 
                   key={collectionId}
                   className="bg-card dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden relative cursor-pointer"
-                  onClick={() => showUpgradeModal('smart_collections')}
+                  onClick={handleUpgradeClick}
                 >
                   <div className="p-4 opacity-30">
                     <div className={`${colors} p-4`}>

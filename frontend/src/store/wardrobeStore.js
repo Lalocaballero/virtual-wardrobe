@@ -124,14 +124,26 @@ const useWardrobeStore = create((set, get) => ({
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
 
+        const constructCheckoutUrl = () => {
+            const profile = get().profile;
+            if (!profile) return null;
+            const productId = process.env.REACT_APP_LEMONSQUEEZY_PRODUCT_ID;
+            const baseUrl = `https://wewear.lemonsqueezy.com/checkout/buy/${productId}`;
+            const params = new URLSearchParams({
+                'checkout[email]': profile.email,
+                'checkout_data[custom][user_id]': profile.id,
+            });
+            return `${baseUrl}?${params.toString()}`;
+        };
+
         // Check for specific premium-related 403 errors
         if (response.status === 403 && errorData.error === 'wardrobe_limit_reached') {
-          get().showUpgradeModal('wardrobe');
+          get().showUpgradeModal('wardrobe', { checkoutUrl: constructCheckoutUrl() });
           // We don't throw an error here because the UI will react by showing the modal
           return Promise.reject({ ...errorData, handled: true }); 
         }
         if (response.status === 403 && errorData.error === 'generation_limit_reached') {
-          get().showUpgradeModal('generation');
+          get().showUpgradeModal('generation', { checkoutUrl: constructCheckoutUrl() });
           return Promise.reject({ ...errorData, handled: true });
         }
 
