@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
+import toast from 'react-hot-toast';
 
 // A simple, on-brand spinner component
 const LoadingSpinner = () => (
@@ -15,36 +16,41 @@ const WelcomePremium = () => {
   const { fetchApi, fetchProfile } = useWardrobeStore();
 
   useEffect(() => {
-    // Don't start polling if the component isn't in the polling state
     if (status !== 'polling') return;
+
+    const toastId = toast.loading('Polling for status...');
 
     const pollingInterval = setInterval(async () => {
       try {
-        // I'm using the adjusted URL based on my findings in the previous step
         const data = await fetchApi('/profile/status', { cache: 'no-cache' });
         if (data.is_premium) {
+          toast.success('Status is premium!', { id: toastId });
           clearInterval(pollingInterval);
-          // Refresh the main user profile in the store
+          
           await fetchProfile();
+          toast.success('Profile refreshed!');
+
           setStatus('success');
-          // Redirect after a short delay to let the user see the success message
-          setTimeout(() => navigate('/dashboard'), 2000);
+          
+          setTimeout(() => {
+            toast('Redirecting to dashboard...');
+            navigate('/dashboard');
+          }, 2000);
         }
       } catch (error) {
+        toast.error('Polling API call failed.', { id: toastId });
         console.error("Error polling for user status:", error);
-        // Optional: Implement a retry limit or stop on certain errors
       }
-    }, 5000); // Poll every 5 seconds
+    }, 5000);
 
     const timeout = setTimeout(() => {
-      // Only set to timedOut if we are still in the polling state
       if (status === 'polling') {
         clearInterval(pollingInterval);
+        toast.error('Polling timed out.', { id: toastId });
         setStatus('timedOut');
       }
-    }, 90000); // 90 seconds timeout
+    }, 90000);
 
-    // Cleanup function to clear intervals and timeouts when the component unmounts
     return () => {
       clearInterval(pollingInterval);
       clearTimeout(timeout);
