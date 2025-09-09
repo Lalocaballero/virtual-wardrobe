@@ -12,7 +12,7 @@ const LoadingSpinner = () => (
 const WelcomePremium = () => {
   const [status, setStatus] = useState('polling'); // 'polling' or 'timedOut' or 'success'
   const navigate = useNavigate();
-  const { fetchApi } = useWardrobeStore();
+  const { fetchApi, fetchProfile } = useWardrobeStore();
 
   useEffect(() => {
     // Don't start polling if the component isn't in the polling state
@@ -24,6 +24,8 @@ const WelcomePremium = () => {
         const data = await fetchApi('/profile/status', { cache: 'no-cache' });
         if (data.is_premium) {
           clearInterval(pollingInterval);
+          // Refresh the main user profile in the store
+          await fetchProfile();
           setStatus('success');
           // Redirect after a short delay to let the user see the success message
           setTimeout(() => navigate('/dashboard'), 2000);
@@ -47,7 +49,7 @@ const WelcomePremium = () => {
       clearInterval(pollingInterval);
       clearTimeout(timeout);
     };
-  }, [status, navigate, fetchApi]);
+  }, [status, navigate, fetchApi, fetchProfile]);
 
   const handleRefresh = () => {
     window.location.reload();
