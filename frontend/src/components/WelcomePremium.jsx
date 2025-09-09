@@ -21,7 +21,7 @@ const WelcomePremium = () => {
     const pollingInterval = setInterval(async () => {
       try {
         // I'm using the adjusted URL based on my findings in the previous step
-        const data = await fetchApi('/profile/status');
+        const data = await fetchApi('/profile/status', { cache: 'no-cache' });
         if (data.is_premium) {
           clearInterval(pollingInterval);
           setStatus('success');
