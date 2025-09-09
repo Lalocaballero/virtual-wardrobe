@@ -121,4 +121,8 @@ def get_user_status():
     Returns the premium status of the currently logged-in user.
     Used for polling on the welcome page after checkout.
     """
-    return jsonify({"is_premium": current_user.is_premium})
+    response = jsonify({'is_premium': current_user.is_premium})
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
