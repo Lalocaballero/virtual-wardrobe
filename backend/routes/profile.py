@@ -9,21 +9,18 @@ profile_bp = Blueprint('profile_bp', __name__, url_prefix='/api/profile')
 @profile_bp.route('/sync-subscription', methods=['POST'])
 @login_required
 def sync_subscription():
-    # This endpoint is designed to be non-destructive.
-    # It can grant premium, but it will never revoke it.
-    # Revocation should only happen via explicit webhook events (e.g., subscription_cancelled).
+    # Always get the freshest user data from the database first.
     user = User.query.get(current_user.id)
-    if user.is_premium:
+    if user and user.is_premium:
         return jsonify({'is_premium': True, 'message': 'User is already premium.'})
 
-    api_key = os.environ.get('LEMONSQUEEZY_API_KEY')
+    api_key = os.environ.get('LEMONSQUEEZУ_API_KEY')
     if not api_key:
-        current_app.logger.error("LEMONSQUEEZY_API_KEY environment variable is not set.")
-        return jsonify(error={'message': 'The server is not configured for billing.'}), 500
+        current_app.logger.error("LEMONSQUEEZY_API_KEY is not set.")
+        return jsonify(error={'message': 'Billing is not configured.'}), 500
 
     try:
         email = user.email
-        # Fetch subscriptions from Lemon Squeezy
         url = f"https://api.lemonsqueezy.com/v1/subscriptions?filter[user_email]={email}"
         headers = {
             "Accept": "application/vnd.api+json",
@@ -35,31 +32,32 @@ def sync_subscription():
 
         data = response.json()
         subscriptions = data.get('data', [])
+        
+        VALID_PREMIUM_STATUSES = {'active', 'on_trial', 'paid'}
 
-        # Define a set of statuses that should grant premium access
-        VALID_PREMIUM_STATUSES = {'active', 'on_trial'}
-
-        # Check if any subscription has a valid premium status
         is_premium_on_lemon = any(
             sub.get('attributes', {}).get('status') in VALID_PREMIUM_STATUSES
             for sub in subscriptions
         )
 
         if is_premium_on_lemon:
-            user.is_premium = True
-            db.session.commit()
-            current_app.logger.info(f"Granted premium to {user.email} via manual profile sync.")
-
-        return jsonify({'is_premium': user.is_premium})
+            if not user.is_premium:
+                user.is_premium = True
+                db.session.commit()
+                current_app.logger.info(f"Granted premium to {user.email} via manual sync.")
+            return jsonify({'is_premium': True})
+        else:
+            # Explicitly return false if no active subscription was found
+            return jsonify({'is_premium': False})
 
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f"Lemon Squeezy API request failed: {e}")
-        return jsonify(error={'message': 'Failed to sync subscription status.'}), 502
+        return jsonify(error={'message': 'Could not connect to the billing provider.'}), 502
     except Exception as e:
         current_app.logger.error(f"Subscription sync error: {e}")
         db.session.rollback()
-        return jsonify(error={'message': str(e)}), 500
-
+        return jsonify(error={'message': 'An unexpected error occurred.'}), 500
+    
 @profile_bp.route('/negative-prompts', methods=['GET'])
 @login_required
 def get_negative_prompts():
@@ -115,19 +113,3 @@ def update_onboarding_status():
     
     db.session.commit()
     return jsonify({'message': 'Onboarding status updated successfully.'})
-
-@profile_bp.route('/check-premium-event', methods=['GET'])
-@login_required
-def check_premium_event():
-    """
-    Checks if the 'premium_activated' flag exists in the user's settings.
-    This is a fast, lightweight endpoint for polling.
-    """
-    # Get a fresh user object to ensure we have the latest settings
-    user = User.query.get(current_user.id)
-
-    # Check the settings field for our flag
-    if user and user.settings and user.settings.get('premium_activated'):
-        return jsonify({'status': 'ready'})
-    
-    return jsonify({'status': 'pending'}), 202
