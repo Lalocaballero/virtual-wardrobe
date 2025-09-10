@@ -14,41 +14,47 @@ const NotificationBell = () => {
     } = useWardrobeStore();
     
     const [isOpen, setIsOpen] = useState(false);
-    const [justReceived, setJustReceived] = useState(false); // State for animation
+    const [justReceived, setJustReceived] = useState(false);
     const dropdownRef = useRef(null);
-
-    // Initial fetch of notifications when the component mounts.
-    useEffect(() => {
-        fetchNotifications();
-    }, [fetchNotifications]);
+    // This ref will help us distinguish between the initial load and new messages.
+    const isInitialCatchup = useRef(true);
 
     // This hook establishes the real-time connection to the server.
     useEffect(() => {
+        // We fetch notifications once on mount to get the initial state.
+        fetchNotifications();
+
         const eventSource = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
 
         // When a new notification arrives...
         eventSource.onmessage = (event) => {
             const newNotification = JSON.parse(event.data);
-            console.log('New notification received:', newNotification);
-
-            // 1. Show a toast message to the user.
-            toast(newNotification.message || 'You have a new notification!');
             
-            // 2. Refresh the list of notifications in the dropdown.
+            // --- THE FIX ---
+            // Only show a toast if this is NOT part of the initial batch of messages.
+            if (!isInitialCatchup.current) {
+                toast(newNotification.message || 'You have a new notification!');
+                // Trigger a visual animation on the bell icon for new messages only.
+                setJustReceived(true);
+                setTimeout(() => setJustReceived(false), 1000); // Animation duration
+            }
+            
+            // ALWAYS refresh the list of notifications in the dropdown.
             fetchNotifications();
-
-            // 3. Trigger a visual animation on the bell icon.
-            setJustReceived(true);
-            setTimeout(() => setJustReceived(false), 1000); // Animation duration
         };
 
         eventSource.onerror = (err) => {
             console.error('EventSource connection failed:', err);
-            // The browser will automatically try to reconnect, so we don't need to do anything here.
         };
+        
+        // After a brief moment, we assume the initial "catch-up" of old notifications is complete.
+        const catchupTimer = setTimeout(() => {
+            isInitialCatchup.current = false;
+        }, 1500); // 1.5-second delay
 
-        // Clean up the connection when the component is unmounted.
+        // Clean up the connection and the timer when the component is unmounted.
         return () => {
+            clearTimeout(catchupTimer);
             eventSource.close();
         };
     }, [fetchNotifications]);
@@ -76,7 +82,6 @@ const NotificationBell = () => {
         }
     };
     
-    // Add a simple keyframe animation for the bell shake
     const animationStyle = `
         @keyframes bell-shake {
             0% { transform: rotate(0); }
@@ -142,3 +147,4 @@ const NotificationBell = () => {
 };
 
 export default NotificationBell;
+
