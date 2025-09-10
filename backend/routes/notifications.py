@@ -1,6 +1,6 @@
 import time
 import json
-from flask import Blueprint, jsonify, request, Response, current_app, session
+from flask import Blueprint, jsonify, request, Response, current_app, session, stream_with_context
 from flask_login import login_required, current_user
 from models import db, Notification, User
 from utils.auth import get_actual_user
@@ -12,9 +12,7 @@ def cors_stream(f):
     """A decorator to add CORS headers to a streaming response."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Call the original function to get the response object
         response = f(*args, **kwargs)
-        # Manually set the headers at a later stage in the request lifecycle
         response.headers['Access-Control-Allow-Origin'] = 'https://wewear.app'
         response.headers['Access-Control-Allow-Credentials'] = 'true'
         return response
@@ -73,7 +71,7 @@ def mark_as_read(notification_id):
 
 @notifications_bp.route('/api/notifications/stream')
 @login_required
-@cors_stream # Apply the new decorator to the streaming function
+@cors_stream # Apply the CORS decorator
 def stream_notifications():
     user_id = session.get('user_id')
     if not user_id:
@@ -82,21 +80,25 @@ def stream_notifications():
     user = User.query.get(user_id)
     if not user:
         return Response(status=401)
-    
-    app = current_app._get_current_object()
 
-    def event_stream(app_instance):
+    def event_stream():
+        """
+        This generator function will now run within the request context
+        provided by stream_with_context, ensuring the DB is available.
+        """
         last_id = request.headers.get('Last-Event-ID', 0, type=int)
 
-        with app_instance.app_context():
-            notifications = Notification.query.filter(
-                Notification.user_id == user.id,
-                Notification.id > last_id
-            ).order_by(Notification.id.asc()).all()
+        notifications = Notification.query.filter(
+            Notification.user_id == user.id,
+            Notification.id > last_id
+        ).order_by(Notification.id.asc()).all()
 
-            for notification in notifications:
-                data = json.dumps(notification.to_dict())
-                yield f"id:{notification.id}\\ndata:{data}\\n\\n"
+        for notification in notifications:
+            data = json.dumps(notification.to_dict())
+            # Correctly format the SSE message with single newlines
+            yield f"id:{notification.id}\ndata:{data}\n\n"
     
-    # Return the raw Response; the decorator will now handle adding the headers.
-    return Response(event_stream(app), mimetype='text/event-stream')
+    # Use Flask's stream_with_context to safely manage the generator's lifecycle.
+    # The decorator will then correctly apply the headers to this response.
+    return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
+
