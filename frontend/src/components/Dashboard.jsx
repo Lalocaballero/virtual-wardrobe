@@ -108,7 +108,7 @@ const Dashboard = () => {
     eventSource.onmessage = (event) => {
       const newNotification = JSON.parse(event.data);
       console.log('New notification received via SSE:', newNotification);
-      toast.info(newNotification.message || 'You have a new notification!');
+      toast(newNotification.message || 'You have a new notification!');
       // Refetch all notifications to update the list and count
       useWardrobeStore.getState().fetchNotifications();
     };
