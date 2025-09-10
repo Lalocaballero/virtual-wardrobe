@@ -36,9 +36,12 @@ def sync_subscription():
         data = response.json()
         subscriptions = data.get('data', [])
 
-        # Check if any subscription is active
+        # Define a set of statuses that should grant premium access
+        VALID_PREMIUM_STATUSES = {'active', 'on_trial'}
+
+        # Check if any subscription has a valid premium status
         is_premium_on_lemon = any(
-            sub.get('attributes', {}).get('status') == 'active'
+            sub.get('attributes', {}).get('status') in VALID_PREMIUM_STATUSES
             for sub in subscriptions
         )
 
