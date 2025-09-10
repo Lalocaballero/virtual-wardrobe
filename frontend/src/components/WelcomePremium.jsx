@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useWardrobeStore from '../store/wardrobeStore';
-import toast from 'react-hot-toast';
 
-// A simple, on-brand spinner component
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center">
     <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin" style={{ borderColor: '#6F00FF' }}></div>
@@ -11,41 +8,39 @@ const LoadingSpinner = () => (
 );
 
 const WelcomePremium = () => {
-  const [status, setStatus] = useState('polling'); // 'polling' or 'timedOut' or 'success'
+  const [status, setStatus] = useState('polling'); // 'polling', 'timedOut', or 'success'
   const navigate = useNavigate();
-  const { fetchApi, fetchProfile } = useWardrobeStore();
 
   useEffect(() => {
-    if (status !== 'polling') return;
+    // 1. Establish a persistent connection to our new SSE endpoint.
+    const eventSource = new EventSource('/api/profile/premium-status-stream', { withCredentials: true });
 
-    const pollingInterval = setInterval(async () => {
-      try {
-        // Use the active sync endpoint instead of the passive status check
-        const data = await fetchApi('/profile/sync-subscription', { method: 'POST' });
-        if (data.is_premium) {
-          clearInterval(pollingInterval);
-          // Refresh the main user profile in the store to get all latest details
-          await fetchProfile();
-          setStatus('success');
-          setTimeout(() => navigate('/dashboard'), 2000);
-        }
-      } catch (error) {
-        console.error("Error polling for user status:", error);
-      }
-    }, 5000);
+    // 2. Define what to do when a message is received from the server.
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
 
-    const timeout = setTimeout(() => {
-      if (status === 'polling') {
-        clearInterval(pollingInterval);
+      if (data.status === 'success' && data.is_premium) {
+        setStatus('success');
+        eventSource.close(); // Close the connection
+        setTimeout(() => navigate('/dashboard'), 2000); // Redirect to the dashboard
+      } else if (data.status === 'timeout') {
         setStatus('timedOut');
+        eventSource.close();
       }
-    }, 90000);
-
-    return () => {
-      clearInterval(pollingInterval);
-      clearTimeout(timeout);
     };
-  }, [status, navigate, fetchApi, fetchProfile]);
+
+    // 3. Handle any connection errors.
+    eventSource.onerror = (err) => {
+      console.error("EventSource failed:", err);
+      setStatus('timedOut');
+      eventSource.close();
+    };
+
+    // 4. Clean up the connection when the component is no longer on screen.
+    return () => {
+      eventSource.close();
+    };
+  }, [navigate]); // This effect runs only once when the component mounts.
 
   const handleRefresh = () => {
     window.location.reload();

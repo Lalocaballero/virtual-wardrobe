@@ -115,3 +115,34 @@ def update_onboarding_status():
     
     db.session.commit()
     return jsonify({'message': 'Onboarding status updated successfully.'})
+
+@profile_bp.route('/premium-status-stream')
+@login_required
+def premium_status_stream():
+    """
+    Holds a connection open and pushes an update via SSE
+    when the user's premium status becomes true.
+    """
+    def generate():
+        # This will check the user's status every second for up to 3 minutes.
+        max_retries = 180 
+
+        for i in range(max_retries):
+            # Always get the freshest user object directly from the database.
+            user = User.query.get(current_user.id)
+            
+            if user and user.is_premium:
+                # Success! Send a message to the client.
+                data = json.dumps({'status': 'success', 'is_premium': True})
+                yield f"data: {data}\n\n"
+                return # Stop the function and close the stream.
+
+            # Wait for one second before checking again.
+            time.sleep(1)
+        
+        # If the loop finishes, it means we timed out.
+        data = json.dumps({'status': 'timeout'})
+        yield f"data: {data}\n\n"
+
+    # Return the special streaming response.
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
