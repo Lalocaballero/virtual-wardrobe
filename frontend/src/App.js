@@ -49,8 +49,6 @@ function App() {
           {/* Protected Routes */}
           <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          <Route path="/welcome-premium" element={<ProtectedRoute><WelcomePremium /></ProtectedRoute>} />
-
           <Route path="/admin/*" element={isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} />
 
           {/* Temporary Verification Routes */}

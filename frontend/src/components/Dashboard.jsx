@@ -61,6 +61,7 @@ const Dashboard = () => {
     logout,
     laundryAlerts,
     updateOnboardingStatus,
+    handlePostCheckoutSync,
     shouldRunTourOnLoad, // New state to trigger tour
     setRunTourOnLoad,      // New action to reset tour trigger
     // fetchAppSettings was removed as it does not exist in the store
@@ -87,6 +88,18 @@ const Dashboard = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldRunTourOnLoad]);
+
+    useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('checkout') === 'success') {
+      // The user has just returned from a successful checkout.
+      // Trigger the smart sync process from the store.
+      handlePostCheckoutSync();
+      
+      // Remove the query parameter from the URL so this doesn't run again on refresh.
+      navigate('/dashboard', { replace: true });
+    }
+  }, [location, navigate, handlePostCheckoutSync]);
 
   // Establish Server-Sent Events (SSE) connection for notifications
   useEffect(() => {
