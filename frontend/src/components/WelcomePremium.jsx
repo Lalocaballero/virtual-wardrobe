@@ -12,39 +12,46 @@ const WelcomePremium = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. Establish a persistent connection to our new SSE endpoint.
-    const eventSource = new EventSource('/api/profile/premium-status-stream', { withCredentials: true });
+      if (status !== 'polling') return;
 
-    // 2. Define what to do when a message is received from the server.
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      const toastId = toast.loading('Finalizing your premium access...');
 
-      if (data.status === 'success' && data.is_premium) {
-        setStatus('success');
-        eventSource.close(); // Close the connection
-        setTimeout(() => navigate('/dashboard'), 2000); // Redirect to the dashboard
-      } else if (data.status === 'timeout') {
-        setStatus('timedOut');
-        eventSource.close();
-      }
-    };
+      const pollingInterval = setInterval(async () => {
+        try {
+          // Poll the new, lightweight endpoint
+          const data = await fetchApi('/profile/check-premium-event');
+          
+          // The endpoint returns 'ready' once the webhook has successfully run
+          if (data.status === 'ready') {
+            toast.success('All set! Redirecting...', { id: toastId });
+            clearInterval(pollingInterval);
+            
+            // Refresh the main user profile in the store
+            await fetchProfile();
+            setStatus('success');
+            
+            setTimeout(() => navigate('/dashboard'), 1500);
+          }
+          // If status is 'pending', the loop will just continue
+        } catch (error) {
+          console.error("Error polling for event status:", error);
+          // Optional: handle polling errors if they occur
+        }
+      }, 3000); // Check every 3 seconds
 
-    // 3. Handle any connection errors.
-    eventSource.onerror = (err) => {
-      console.error("EventSource failed:", err);
-      setStatus('timedOut');
-      eventSource.close();
-    };
+      const timeout = setTimeout(() => {
+        if (status === 'polling') {
+          toast.error('Still working on it...', { id: toastId });
+          clearInterval(pollingInterval);
+          setStatus('timedOut');
+        }
+      }, 90000); // 90-second timeout
 
-    // 4. Clean up the connection when the component is no longer on screen.
-    return () => {
-      eventSource.close();
-    };
-  }, [navigate]); // This effect runs only once when the component mounts.
-
-  const handleRefresh = () => {
-    window.location.reload();
-  };
+      return () => {
+        clearInterval(pollingInterval);
+        clearTimeout(timeout);
+      };
+  }, [status, navigate, fetchApi, fetchProfile]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 text-center p-4">
