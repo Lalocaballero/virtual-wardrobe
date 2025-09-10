@@ -19,7 +19,6 @@ import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import CookieBanner from './components/CookieBanner';
 import UpgradeModal from './components/UpgradeModal';
-import WelcomePremium from './components/WelcomePremium';
 
 function App() {
   const { user, initUser, isImpersonating } = useWardrobeStore();
