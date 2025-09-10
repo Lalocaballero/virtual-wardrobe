@@ -4,7 +4,7 @@ import {
   ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon,
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
-import { Toaster, toast } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { STATUS } from 'react-joyride';
 import useWardrobeStore from '../store/wardrobeStore';
@@ -19,7 +19,6 @@ import PackingAssistant from './PackingAssistant';
 import NotificationBell from './NotificationBell';
 import AppTour from './AppTour';
 import { tourSteps } from '../tourSteps';
-import { API_BASE } from '../store/wardrobeStore';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -100,30 +99,6 @@ const Dashboard = () => {
       navigate('/dashboard', { replace: true });
     }
   }, [location, navigate, handlePostCheckoutSync]);
-
-  // Establish Server-Sent Events (SSE) connection for notifications
-  useEffect(() => {
-    const eventSource = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
-
-    eventSource.onmessage = (event) => {
-      const newNotification = JSON.parse(event.data);
-      console.log('New notification received via SSE:', newNotification);
-      toast(newNotification.message || 'You have a new notification!');
-      // Refetch all notifications to update the list and count
-      useWardrobeStore.getState().fetchNotifications();
-    };
-
-    eventSource.onerror = (err) => {
-      console.error('EventSource failed:', err);
-      // The browser will automatically try to reconnect, but we can close it
-      // if we want to stop. For now, we'll let it keep trying.
-    };
-
-    // Clean up the connection when the component unmounts
-    return () => {
-      eventSource.close();
-    };
-  }, []); // Empty dependency array ensures this runs only once.
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);

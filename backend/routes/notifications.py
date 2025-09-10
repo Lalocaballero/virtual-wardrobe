@@ -83,22 +83,30 @@ def stream_notifications():
 
     def event_stream():
         """
-        This generator function will now run within the request context
-        provided by stream_with_context, ensuring the DB is available.
+        A long-lived generator that periodically checks for new notifications.
+        This is the core fix to prevent the reconnect loop.
         """
-        last_id = request.headers.get('Last-Event-ID', 0, type=int)
+        last_id = 0
+        while True:
+            # On reconnect, the browser can send a Last-Event-ID. We use it to avoid resending old notifications.
+            client_last_id = request.headers.get('Last-Event-ID')
+            if client_last_id:
+                last_id = int(client_last_id)
+            
+            # Query the database for any notifications created after the last one we sent.
+            notifications = Notification.query.filter(
+                Notification.user_id == user.id,
+                Notification.id > last_id
+            ).order_by(Notification.id.asc()).all()
 
-        notifications = Notification.query.filter(
-            Notification.user_id == user.id,
-            Notification.id > last_id
-        ).order_by(Notification.id.asc()).all()
-
-        for notification in notifications:
-            data = json.dumps(notification.to_dict())
-            # Correctly format the SSE message with single newlines
-            yield f"id:{notification.id}\ndata:{data}\n\n"
+            # If we find new notifications, send them to the client.
+            for notification in notifications:
+                data = json.dumps(notification.to_dict())
+                yield f"id:{notification.id}\ndata:{data}\n\n"
+                last_id = notification.id # Update our record of the last ID we've sent
+            
+            # Wait for 5 seconds before checking the database again. This keeps the connection open.
+            time.sleep(5)
     
     # Use Flask's stream_with_context to safely manage the generator's lifecycle.
-    # The decorator will then correctly apply the headers to this response.
     return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
-
