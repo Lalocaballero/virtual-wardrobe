@@ -4,8 +4,22 @@ from flask import Blueprint, jsonify, request, Response, current_app, session
 from flask_login import login_required, current_user
 from models import db, Notification, User
 from utils.auth import get_actual_user
+from functools import wraps
 
 notifications_bp = Blueprint('notifications', __name__)
+
+def cors_stream(f):
+    """A decorator to add CORS headers to a streaming response."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Call the original function to get the response object
+        response = f(*args, **kwargs)
+        # Manually set the headers at a later stage in the request lifecycle
+        response.headers['Access-Control-Allow-Origin'] = 'https://wewear.app'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+    return decorated_function
+
 
 @notifications_bp.route('/api/notifications', methods=['GET'])
 @login_required
@@ -58,7 +72,8 @@ def mark_as_read(notification_id):
         return jsonify({'error': 'Failed to mark notification as read.'}), 500
 
 @notifications_bp.route('/api/notifications/stream')
-@login_required # Keep this as a first-line defense
+@login_required
+@cors_stream # Apply the new decorator to the streaming function
 def stream_notifications():
     user_id = session.get('user_id')
     if not user_id:
@@ -83,13 +98,5 @@ def stream_notifications():
                 data = json.dumps(notification.to_dict())
                 yield f"id:{notification.id}\\ndata:{data}\\n\\n"
     
-    # --- FIX FOR CORS ---
-    # Create the response object from your event stream generator
-    response = Response(event_stream(app), mimetype='text/event-stream')
-    
-    # Manually set the necessary CORS headers for this specific streaming response
-    response.headers['Access-Control-Allow-Origin'] = 'https://wewear.app'
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    
-    return response
-
+    # Return the raw Response; the decorator will now handle adding the headers.
+    return Response(event_stream(app), mimetype='text/event-stream')
