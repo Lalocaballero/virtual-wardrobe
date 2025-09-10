@@ -12,7 +12,7 @@ def sync_subscription():
     # This endpoint is designed to be non-destructive.
     # It can grant premium, but it will never revoke it.
     # Revocation should only happen via explicit webhook events (e.g., subscription_cancelled).
-    user = current_user
+    user = User.query.get(current_user.id)
     if user.is_premium:
         return jsonify({'is_premium': True, 'message': 'User is already premium.'})
 
