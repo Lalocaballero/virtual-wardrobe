@@ -60,30 +60,20 @@ def mark_as_read(notification_id):
 @notifications_bp.route('/api/notifications/stream')
 @login_required # Keep this as a first-line defense
 def stream_notifications():
-    # --- THE FIX ---
-    # Manually load the user from the session ID for reliability in a streaming context.
     user_id = session.get('user_id')
     if not user_id:
-        # If there's no user_id in the session, the user is not properly logged in.
         return Response(status=401)
     
-    # Fetch the user directly from the database using the ID from the session.
     user = User.query.get(user_id)
     if not user:
-        # If the user_id from the session doesn't match a real user in the database.
         return Response(status=401)
-    # --- END OF FIX ---
-
-    # The rest of the function can now proceed, confident that 'user' is a valid object.
+    
     app = current_app._get_current_object()
 
     def event_stream(app_instance):
-        # The EventSource protocol includes a Last-Event-ID header on reconnects.
-        # We can use this to send only new notifications since the last connection.
         last_id = request.headers.get('Last-Event-ID', 0, type=int)
 
         with app_instance.app_context():
-            # Fetch notifications newer than the last one the client received.
             notifications = Notification.query.filter(
                 Notification.user_id == user.id,
                 Notification.id > last_id
@@ -91,7 +81,15 @@ def stream_notifications():
 
             for notification in notifications:
                 data = json.dumps(notification.to_dict())
-                # Include the notification ID in the event stream.
                 yield f"id:{notification.id}\\ndata:{data}\\n\\n"
     
-    return Response(event_stream(app), mimetype='text/event-stream')
+    # --- FIX FOR CORS ---
+    # Create the response object from your event stream generator
+    response = Response(event_stream(app), mimetype='text/event-stream')
+    
+    # Manually set the necessary CORS headers for this specific streaming response
+    response.headers['Access-Control-Allow-Origin'] = 'https://wewear.app'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    
+    return response
+
