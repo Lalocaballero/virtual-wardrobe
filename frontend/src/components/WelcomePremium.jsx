@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useWardrobeStore from '../store/wardrobeStore';
+import toast from 'react-hot-toast';
 
+// A simple, on-brand spinner component using WeWear's Electric Indigo color
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center">
     <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin" style={{ borderColor: '#6F00FF' }}></div>
@@ -10,48 +13,56 @@ const LoadingSpinner = () => (
 const WelcomePremium = () => {
   const [status, setStatus] = useState('polling'); // 'polling', 'timedOut', or 'success'
   const navigate = useNavigate();
+  const { fetchApi, fetchProfile } = useWardrobeStore();
 
   useEffect(() => {
-      if (status !== 'polling') return;
+    if (status !== 'polling') return;
 
-      const toastId = toast.loading('Finalizing your premium access...');
+    const toastId = toast.loading('Finalizing your premium access...');
 
-      const pollingInterval = setInterval(async () => {
-        try {
-          // Poll the new, lightweight endpoint
-          const data = await fetchApi('/profile/check-premium-event');
-          
-          // The endpoint returns 'ready' once the webhook has successfully run
-          if (data.status === 'ready') {
-            toast.success('All set! Redirecting...', { id: toastId });
-            clearInterval(pollingInterval);
-            
-            // Refresh the main user profile in the store
-            await fetchProfile();
-            setStatus('success');
-            
-            setTimeout(() => navigate('/dashboard'), 1500);
-          }
-          // If status is 'pending', the loop will just continue
-        } catch (error) {
-          console.error("Error polling for event status:", error);
-          // Optional: handle polling errors if they occur
-        }
-      }, 3000); // Check every 3 seconds
-
-      const timeout = setTimeout(() => {
-        if (status === 'polling') {
-          toast.error('Still working on it...', { id: toastId });
+    const pollingInterval = setInterval(async () => {
+      try {
+        // Poll the new, lightweight endpoint that checks for the webhook's "flag"
+        const data = await fetchApi('/profile/check-premium-event');
+        
+        // The endpoint will return 'ready' once the webhook has successfully run
+        if (data.status === 'ready') {
+          toast.success('All set! Your premium perks are active.', { id: toastId });
           clearInterval(pollingInterval);
-          setStatus('timedOut');
+          
+          // Refresh the main user profile in the store to get all the latest details
+          await fetchProfile();
+          setStatus('success');
+          
+          // Redirect to the dashboard
+          setTimeout(() => navigate('/dashboard'), 1500);
         }
-      }, 90000); // 90-second timeout
+        // If the status is 'pending', the interval will simply continue checking.
+      } catch (error) {
+        // This catch block will handle network errors or if the API returns a non-2xx status
+        console.error("Error polling for event status:", error);
+        // We can let the timeout handle the user-facing message
+      }
+    }, 3000); // Check for the flag every 3 seconds
 
-      return () => {
+    const timeout = setTimeout(() => {
+      if (status === 'polling') {
+        toast.error('Still working on it... This is taking longer than usual.', { id: toastId, duration: 6000 });
         clearInterval(pollingInterval);
-        clearTimeout(timeout);
-      };
+        setStatus('timedOut');
+      }
+    }, 90000); // Stop polling after 90 seconds
+
+    // Cleanup function to clear intervals and timeouts if the user navigates away
+    return () => {
+      clearInterval(pollingInterval);
+      clearTimeout(timeout);
+    };
   }, [status, navigate, fetchApi, fetchProfile]);
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 text-center p-4">
