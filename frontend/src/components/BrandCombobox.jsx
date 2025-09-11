@@ -35,7 +35,7 @@ const BrandCombobox = ({ value, onChange }) => {
 
   useEffect(() => {
     debouncedFetch(query);
-  }, [query]);
+  }, [query, debouncedFetch]);
 
   return (
     <Combobox value={value} onChange={onChange}>

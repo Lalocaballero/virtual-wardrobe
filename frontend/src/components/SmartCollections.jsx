@@ -34,7 +34,7 @@ const SmartCollections = () => {
     if (!collectionSlug && (!smartCollections || Object.keys(smartCollections).length === 0)) {
       fetchSmartCollections();
     }
-  }, [collectionSlug, fetchSmartCollections]);
+  }, [collectionSlug, fetchSmartCollections, smartCollections]);
 
   // Effect to fetch a single collection when the URL slug changes
   useEffect(() => {

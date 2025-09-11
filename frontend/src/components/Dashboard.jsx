@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   SunIcon, MoonIcon, CloudIcon, UserIcon, SparklesIcon,
-  ChartBarIcon, CubeIcon, BeakerIcon, Bars3Icon, XMarkIcon,
+  ChartBarIcon, CubeIcon, Bars3Icon, XMarkIcon,
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import { Toaster } from 'react-hot-toast';
@@ -53,7 +53,6 @@ const Dashboard = () => {
   const { 
     user, // Get the basic user object for email display
     profile, // Get the full profile for the profile image
-    fetchProfile, // Action to fetch the profile
     currentOutfit, 
     generateOutfit, 
     loading, 

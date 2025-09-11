@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import useWardrobeStore from '../store/wardrobeStore';
 import { 
   ChartBarIcon, 
@@ -30,7 +29,7 @@ const UsageAnalytics = () => {
     if (profile?.is_premium && !styleDNA) {
       fetchStyleDNA();
     }
-  }, [profile, usageAnalytics, styleDNA]);
+  }, [profile, usageAnalytics, styleDNA, fetchProfile, fetchUsageAnalytics, fetchStyleDNA]);
 
   if (analyticsLoading) {
     return (

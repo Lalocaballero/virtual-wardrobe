@@ -38,7 +38,6 @@ const UserProfile = () => {
     exportData,
     deleteAccount,
     resetOutfitHistory,
-    syncSubscription,
     isSyncing,
     handlePostCheckoutSync,
     isSmartSyncing,

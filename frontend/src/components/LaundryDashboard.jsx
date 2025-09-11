@@ -68,7 +68,6 @@ const LockedSmartLoads = () => {
 };
 
 const LaundryDashboard = () => {
-  const navigate = useNavigate();
   const { 
     profile,
     fetchProfile,
@@ -77,8 +76,7 @@ const LaundryDashboard = () => {
     fetchLaundryAlerts, 
     fetchWardrobeHealth,
     markItemsWashed,
-    laundryLoading,
-    showUpgradeModal
+    laundryLoading
   } = useWardrobeStore();
 
   useEffect(() => {
