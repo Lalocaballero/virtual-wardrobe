@@ -617,6 +617,8 @@ def create_app():
     @login_required
     def change_password():
         """Changes the password for the currently logged-in user."""
+        if hasattr(g, 'user') and g.user:
+            return jsonify({'error': 'This action is not allowed during impersonation'}), 403
         data = request.get_json()
         current_password = data.get('current_password')
         new_password = data.get('new_password')
@@ -659,6 +661,8 @@ def create_app():
     @login_required
     def delete_account():
         """Deletes the account for the currently logged-in user."""
+        if hasattr(g, 'user') and g.user:
+            return jsonify({'error': 'This action is not allowed during impersonation'}), 403
         data = request.get_json()
         password = data.get('password')
 
@@ -715,6 +719,29 @@ def create_app():
     # WARDROBE ROUTES
     # ======================
 
+    def is_valid_cloudinary_url(url):
+        """Checks if a URL is a valid Cloudinary URL for the app."""
+        if not isinstance(url, str):
+            return False
+        
+        cloudinary_url_env = os.environ.get('CLOUDINARY_URL')
+        if not cloudinary_url_env:
+            # If Cloudinary is not configured, we cannot validate.
+            # We will proceed assuming internal URLs are being used, which don't need this validation.
+            return True
+
+        try:
+            parsed_env_url = urlparse(cloudinary_url_env)
+            cloud_name = parsed_env_url.hostname
+            
+            # All Cloudinary URLs should start with this base
+            expected_prefix = f"https://res.cloudinary.com/{cloud_name}/"
+            
+            return url.startswith(expected_prefix)
+        except Exception:
+            # If parsing fails for any reason, treat as invalid.
+            return False
+
     @app.route('/api/add-item', methods=['POST'])
     @login_required
     def add_clothing_item():
@@ -738,6 +765,11 @@ def create_app():
                 if not data.get(field) or not data.get(field).strip():
                     return jsonify({'error': f'The "{field}" field is required and cannot be empty.'}), 400
             
+            # --- Image URL Validation ---
+            image_url = data.get('image_url', '')
+            if image_url and not is_valid_cloudinary_url(image_url):
+                return jsonify({'error': 'The provided image URL is not valid or from an allowed domain.'}), 400
+
             purchase_date_str = data.get('purchase_date')
             purchase_date = None
             if purchase_date_str:
@@ -768,7 +800,7 @@ def create_app():
                 brand=brand_obj,
                 condition=data.get('condition', 'good'),
                 is_clean=data.get('is_clean', True),
-                image_url=data.get('image_url', ''),
+                image_url=image_url,
                 custom_tags=json.dumps(data.get('custom_tags', [])),
                 # New fields
                 purchase_date=purchase_date,
@@ -836,7 +868,10 @@ def create_app():
             item.is_clean = data.get('is_clean', item.is_clean)
             item.custom_tags = json.dumps(data.get('custom_tags', json.loads(item.custom_tags or '[]')))
             if 'image_url' in data:
-                item.image_url = data['image_url']
+                image_url = data['image_url']
+                if image_url and not is_valid_cloudinary_url(image_url):
+                    return jsonify({'error': 'The provided image URL is not valid or from an allowed domain.'}), 400
+                item.image_url = image_url
 
             # Update new fields
             if 'purchase_date' in data:
@@ -1386,11 +1421,19 @@ def create_app():
     # IMAGE UPLOAD
     # ======================
 
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+    ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg', 'image/webp'}
     MAX_FILE_SIZE = 5 * 1024 * 1024
 
-    def allowed_file(filename):
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    def allowed_file(file):
+        # Check by filename extension
+        has_valid_extension = '.' in file.filename and \
+            file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        
+        # Check by MIME type
+        has_valid_mime_type = file.mimetype in ALLOWED_MIME_TYPES
+        
+        return has_valid_extension and has_valid_mime_type
 
     @app.route('/api/upload-image', methods=['POST'])
     def upload_image():
@@ -1399,6 +1442,11 @@ def create_app():
         file = request.files['file']
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
+
+        if not allowed_file(file):
+            return jsonify({
+                'error': 'Invalid file type. Allowed types are PNG, JPG, and WEBP.'
+            }), 400
 
         try:
             # Upload the file to Cloudinary

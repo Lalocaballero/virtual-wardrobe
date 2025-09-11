@@ -14,7 +14,7 @@ def sync_subscription():
     if user and user.is_premium:
         return jsonify({'is_premium': True, 'message': 'User is already premium.'})
 
-    api_key = os.environ.get('LEMONSQUEEZУ_API_KEY')
+    api_key = os.environ.get('LEMONSQUEEZY_API_KEY')
     if not api_key:
         current_app.logger.error("LEMONSQUEEZY_API_KEY is not set.")
         return jsonify(error={'message': 'Billing is not configured.'}), 500

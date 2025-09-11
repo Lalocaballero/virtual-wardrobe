@@ -83,6 +83,16 @@ def set_premium(user_id):
     if is_premium is None:
         return jsonify({'error': 'Missing is_premium flag'}), 400
     user.is_premium = is_premium
+    
+    # Log the action
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=user.id,
+        action_type='PREMIUM_STATUS_CHANGE',
+        details=f'Set premium status to {is_premium}'
+    )
+    db.session.add(admin_action)
+    
     db.session.commit()
     return jsonify({'message': f'User {user.email} premium status set to {user.is_premium}'})
 
@@ -90,6 +100,16 @@ def set_premium(user_id):
 @admin_required
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
+    
+    # Log the action before deleting the user
+    admin_action = AdminAction(
+        admin_id=current_user.id,
+        target_user_id=user.id,
+        action_type='USER_DELETION',
+        details='Admin deleted user.'
+    )
+    db.session.add(admin_action)
+    
     db.session.delete(user)
     db.session.commit()
     return jsonify({'message': f'User {user.email} has been deleted.'})
