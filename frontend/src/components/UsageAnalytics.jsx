@@ -282,8 +282,6 @@ const UsageAnalytics = () => {
 };
 
 const StyleDNACard = ({ profile, styleDNA, analyticsLoading, showUpgradeModal }) => {
-  const navigate = useNavigate();
-
   const constructCheckoutUrl = () => {
     if (!profile) return '';
     const productId = process.env.REACT_APP_LEMONSQUEEZY_PRODUCT_ID;
