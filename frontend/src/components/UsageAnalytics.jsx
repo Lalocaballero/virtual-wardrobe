@@ -30,7 +30,7 @@ const UsageAnalytics = () => {
     if (profile?.is_premium && !styleDNA) {
       fetchStyleDNA();
     }
-  }, [profile, usageAnalytics, styleDNA, fetchProfile, fetchUsageAnalytics, fetchStyleDNA]);
+  }, [profile, usageAnalytics, styleDNA]);
 
   if (analyticsLoading) {
     return (

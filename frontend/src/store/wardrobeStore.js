@@ -775,16 +775,28 @@ const useWardrobeStore = create((set, get) => ({
   },
 
   // Existing wardrobe actions
-  fetchWardrobe: async () => {
+  fetchWardrobe: async (searchTerm = '', filterType = 'all') => {
     set({ loading: true, error: null });
     try {
-      const data = await get().fetchApi(`${API_BASE}/get-wardrobe`, {
+      const params = new URLSearchParams();
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+      if (filterType && filterType !== 'all') {
+        params.append('type', filterType);
+      }
+      const queryString = params.toString();
+      const url = `${API_BASE}/get-wardrobe${queryString ? `?${queryString}` : ''}`;
+      
+      const data = await get().fetchApi(url, {
         method: 'GET',
       });
-      set({ wardrobe: data.items, loading: false });
+      // The backend now returns the items in a top-level `items` key.
+      // Ensure we default to an empty array if the key is missing.
+      set({ wardrobe: data.items || [], loading: false });
     } catch (error) {
       const errorMessage = error.message || "We're having trouble fetching your wardrobe. It might be hiding.";
-      set({ error: errorMessage, loading: false });
+      set({ error: errorMessage, loading: false, wardrobe: [] }); // Clear wardrobe on error
       toast.error(errorMessage); 
     }
   },

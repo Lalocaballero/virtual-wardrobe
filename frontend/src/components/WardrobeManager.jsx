@@ -45,11 +45,8 @@ const WardrobeManager = () => {
   });
 
   useEffect(() => {
-    // Only fetch the wardrobe if it's not already loaded.
-    if (wardrobe.length === 0) {
-      fetchWardrobe();
-    }
-  }, [wardrobe.length, fetchWardrobe]);
+    fetchWardrobe(searchTerm, filterType);
+  }, [searchTerm, filterType, fetchWardrobe]);
 
   const submitBrandForReview = async (brandName) => {
     if (!brandName || !brandName.trim()) {
@@ -114,14 +111,6 @@ const WardrobeManager = () => {
         : [...prev.mood_tags, tag]
     }));
   };
-
-  const filteredWardrobe = wardrobe.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.color.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || item.type === filterType;
-    return matchesSearch && matchesType;
-  });
 
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -300,7 +289,7 @@ const WardrobeManager = () => {
 
       {loading && wardrobe.length === 0 ? <LoadingSkeleton /> : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {filteredWardrobe.map(item => (
+          {wardrobe.map(item => (
             <div key={item.id} className="bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group border border-fog dark:border-inkwell">
               <div className="aspect-square bg-muted dark:bg-inkwell relative">
                 {item.image_url ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" /> : (
@@ -349,7 +338,7 @@ const WardrobeManager = () => {
         </div>
       )}
 
-      {!loading && filteredWardrobe.length === 0 && (
+      {!loading && wardrobe.length === 0 && (
         <div className="text-center py-12 bg-card dark:bg-dark-subtle dark:bg-dark-subtle rounded-lg border border-fog dark:border-inkwell">
           <PhotoIcon className="mx-auto h-12 w-12 mb-4" />
           <h3 className="text-lg font-medium mb-2">
