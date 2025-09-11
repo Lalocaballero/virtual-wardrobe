@@ -307,6 +307,9 @@ class Outfit(db.Model):
     clothing_items = db.relationship('ClothingItem', secondary=outfit_items, lazy='subquery',
                                    backref=db.backref('outfits', lazy=True))
     
+    # NEW: Store a snapshot of item details for historical accuracy
+    items_snapshot = db.Column(JSON, nullable=True)
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -317,7 +320,7 @@ class Outfit(db.Model):
             'was_actually_worn': self.was_actually_worn or True,
             'rating': self.rating,
             'notes': self.notes,
-            'clothing_items': [item.to_dict() for item in self.clothing_items]
+            'clothing_items': self.items_snapshot or [item.to_dict() for item in self.clothing_items]
         }
 
 class Trip(db.Model):

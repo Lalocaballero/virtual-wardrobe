@@ -764,6 +764,12 @@ def create_app():
             for field in required_fields:
                 if not data.get(field) or not data.get(field).strip():
                     return jsonify({'error': f'The "{field}" field is required and cannot be empty.'}), 400
+
+            # --- Input Length Validation ---
+            field_limits = {'name': 100, 'type': 50, 'color': 50, 'style': 50}
+            for field, limit in field_limits.items():
+                if field in data and len(data[field]) > limit:
+                    return jsonify({'error': f'The "{field}" field cannot exceed {limit} characters.'}), 400
             
             # --- Image URL Validation ---
             image_url = data.get('image_url', '')
@@ -826,7 +832,27 @@ def create_app():
     def get_wardrobe():
         try:
             user = get_actual_user()
-            items = ClothingItem.query.options(selectinload(ClothingItem.owner)).filter_by(user_id=user.id).all()
+            search_term = request.args.get('search', type=str)
+            item_type = request.args.get('type', type=str)
+
+            query = ClothingItem.query.options(selectinload(ClothingItem.owner)).filter_by(user_id=user.id)
+
+            if search_term:
+                search_filter = f"%{search_term.lower()}%"
+                query = query.filter(
+                    db.or_(
+                        func.lower(ClothingItem.name).ilike(search_filter),
+                        func.lower(ClothingItem.color).ilike(search_filter),
+                        func.lower(ClothingItem.style).ilike(search_filter),
+                        func.lower(ClothingItem.type).ilike(search_filter),
+                        func.lower(ClothingItem.custom_tags).ilike(search_filter)
+                    )
+                )
+            
+            if item_type:
+                query = query.filter(func.lower(ClothingItem.type) == item_type.lower())
+
+            items = query.all()
             return jsonify({'items': [item.to_dict() for item in items]})
         except Exception as e:
             if app.debug:
@@ -848,6 +874,12 @@ def create_app():
             for field in ['name', 'type', 'color', 'style']:
                 if field in data and (data[field] is None or not str(data[field]).strip()):
                     return jsonify({'error': f'The "{field}" field cannot be empty.'}), 400
+
+            # --- Input Length Validation ---
+            field_limits = {'name': 100, 'type': 50, 'color': 50, 'style': 50}
+            for field, limit in field_limits.items():
+                if field in data and data.get(field) and len(data[field]) > limit:
+                    return jsonify({'error': f'The "{field}" field cannot exceed {limit} characters.'}), 400
 
             item.name = data.get('name', item.name)
             item.type = data.get('type', item.type)
@@ -1157,6 +1189,24 @@ def create_app():
         try:
             user = get_actual_user()
             data = request.get_json()
+            
+            item_ids = data.get('item_ids', [])
+            items = ClothingItem.query.filter(ClothingItem.id.in_(item_ids), ClothingItem.user_id == user.id).all()
+            
+            if len(items) != len(item_ids):
+                return jsonify({'error': 'One or more clothing items not found or not owned by user.'}), 404
+
+            items_snapshot = []
+            for item in items:
+                snapshot = {
+                    'id': item.id,
+                    'name': item.name,
+                    'image_url': item.image_url,
+                    'type': item.type,
+                    'color': item.color
+                }
+                items_snapshot.append(snapshot)
+
             outfit = Outfit(
                 user_id=user.id,
                 weather=data.get('weather', ''),
@@ -1164,13 +1214,16 @@ def create_app():
                 reason_text=data.get('reason_text', ''),
                 was_actually_worn=data.get('was_actually_worn', True),
                 rating=data.get('rating'),
-                notes=data.get('notes', '')
+                notes=data.get('notes', ''),
+                items_snapshot=items_snapshot
             )
-            for item_id in data.get('item_ids', []):
-                item = ClothingItem.query.get(item_id)
-                if item and item.user_id == current_user.id:
-                    outfit.clothing_items.append(item)
-                    current_app.laundry_service.increment_wear_count(item_id)
+
+            # Still associate with real items for other features, but snapshot preserves history
+            outfit.clothing_items.extend(items)
+
+            for item in items:
+                current_app.laundry_service.increment_wear_count(item.id)
+
             db.session.add(outfit)
             db.session.commit()
             return jsonify({'message': 'Outfit saved successfully', 'outfit': outfit.to_dict()})
@@ -1423,7 +1476,7 @@ def create_app():
 
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg', 'image/webp'}
-    MAX_FILE_SIZE = 5 * 1024 * 1024
+    MAX_FILE_SIZE = 10 * 1024 * 1024 # 10MB
 
     def allowed_file(file):
         # Check by filename extension
@@ -1442,6 +1495,9 @@ def create_app():
         file = request.files['file']
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
+
+        if request.content_length > MAX_FILE_SIZE:
+            return jsonify({'error': f'File size exceeds the limit of {MAX_FILE_SIZE / 1024 / 1024}MB.'}), 413
 
         if not allowed_file(file):
             return jsonify({
